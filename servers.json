@@ -1,0 +1,7 @@
+[
+	{
+		"port": 80,
+		"cache": "caches",
+		"content": "www"
+	}
+]
