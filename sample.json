@@ -1,0 +1,52 @@
+[
+	{
+		"port": 80,
+		"servlets": [],
+		"resources": [],
+		"authenticates": [],
+		"roster": [],
+		"hosts": [
+			{
+				"names": [
+					"www.joyzl.com"
+				],
+				"servlets": [],
+				"resources": [
+					{
+						"uri": "*",
+						"cache": "caches",
+						"content": "/var/www/joyzl",
+						"defaults": [
+							"index.html"
+						],
+						"compresses": [],
+						"caches": [],
+						"error": "/var/www/joyzl/errors",
+						"browse": false,
+						"weak": true
+					}
+				],
+				"authenticates": [
+					{
+						"uri": "/limited",
+						"type": "Basic",
+						"realm": "protected resources",
+						"algorithm": "MD5",
+						"methods": [],
+						"users": "/var/www/joyzl.user"
+					}
+				],
+				"roster": [
+					{
+						"deny": true,
+						"host": "192.168.0.1"
+					},
+					{
+						"deny": true,
+						"host": "192.168.2.3"
+					}
+				]
+			}
+		]
+	}
+]

@@ -1,7 +1,75 @@
 [
 	{
 		"port": 80,
-		"cache": "caches",
-		"content": "www"
+		"servlets": [
+			"com.joyzl.webserver.servlets"
+		],
+		"resources": [
+			{
+				"cache": "RAM",
+				"content": "D:\\GitHub\\HTTP-TEST\\sites",
+				"error": "D:\\GitHub\\HTTP-TEST\\sites\\error",
+				"browse": true,
+				"weak": false
+			}
+		],
+		"authenticates": [
+			{
+				"type": "Basic",
+				"realm": "Fried Twice",
+				"path": "/a4-test/limited1/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a4-test\\limited1\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Digest",
+				"realm": "Colonial Place",
+				"path": "/a4-test/limited2/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a4-test\\limited2\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Basic",
+				"realm": "Fried Twice",
+				"path": "/a5-test/limited1/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited1\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Digest",
+				"realm": "Colonial Place",
+				"path": "/a5-test/limited2/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited2\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Basic",
+				"realm": "Fried Twice",
+				"path": "/a5-test/limited3/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited3\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Digest",
+				"realm": "Colonial Place",
+				"path": "/a5-test/limited4/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited4\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Basic",
+				"realm": "Fried Twice",
+				"path": "/a5-test/limited5/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited5\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			},
+			{
+				"type": "Basic",
+				"realm": "Fried Twice",
+				"path": "/a5-test/limited6/",
+				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited6\\WeMustProtectThisHouse!",
+				"algorithm": "MD5"
+			}
+		]
 	}
 ]

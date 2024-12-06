@@ -5,7 +5,7 @@
 
 	<groupId>com.joyzl</groupId>
 	<artifactId>webserver</artifactId>
-	<version>2.1.0</version>
+	<version>2.1.2</version>
 
 	<name>WEB HTTP Server</name>
 	<description>基于 JOYZL network 组件的 WEB HTTP Server 独立部署版</description>
@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>com.joyzl</groupId>
 			<artifactId>logger</artifactId>
-			<version>1.1.1</version>
+			<version>2.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

@@ -1,17 +1,18 @@
 package com.joyzl.webserver.manage;
 
 import com.joyzl.logger.Logger;
+import com.joyzl.network.Utility;
 import com.joyzl.network.chain.ChainChannel;
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTPServerHandler;
+import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Message;
+import com.joyzl.network.http.Request;
+import com.joyzl.network.http.Response;
 import com.joyzl.network.web.Servlet;
-import com.joyzl.network.web.WEBRequest;
-import com.joyzl.network.web.WEBResponse;
-import com.joyzl.network.web.WEBServerHandler;
-import com.joyzl.network.web.WEBSlave;
+import com.joyzl.network.web.WEBServlet;
 
-public class Handler extends WEBServerHandler {
+public class Handler extends HTTPServerHandler {
 
 	private final Server server;
 
@@ -20,30 +21,81 @@ public class Handler extends WEBServerHandler {
 	}
 
 	@Override
-	public void received(WEBSlave slave, WEBRequest request, WEBResponse response) {
-		if (Roster.isDeny(slave.getRemoteAddress())) {
+	public void received(HTTPSlave slave, Request request, Response response) {
+		// Logger.debug(request);
+
+		if (server.deny(slave.getRemoteAddress())) {
+			// 黑名单阻止
+			response.addHeader(WEBServlet.DATE);
 			response.setStatus(HTTPStatus.FORBIDDEN);
-		}
-
-		final String host = request.getHeader(com.joyzl.network.http.Host.NAME);
-		if (host == null || host.length() < 1) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
+			slave.send(response);
 		} else {
-			request.setURI(HTTPCoder.parseQuery(request.getURI(), request.getParametersMap()));
-
-			final Servlet servlet = server.find(host, request.getURI());
-			if (servlet == null) {
-				response.setStatus(HTTPStatus.NOT_FOUND);
+			if (Utility.isEmpty(request.getURL())) {
+				// 未指定 URL/URI
+				response.addHeader(WEBServlet.DATE);
+				response.setStatus(HTTPStatus.BAD_REQUEST);
 				slave.send(response);
 			} else {
-				try {
-					servlet.service(slave, request, response);
-				} catch (Exception e) {
-					response.setStatus(HTTPStatus.INTERNAL_SERVER_ERROR);
-					Logger.error(e);
+				final String name = request.getHeader(com.joyzl.network.http.Host.NAME);
+				if (Utility.isEmpty(name)) {
+					// 未指定 Host
+					response.addHeader(WEBServlet.DATE);
+					response.setStatus(HTTPStatus.BAD_REQUEST);
+					slave.send(response);
+				} else {
+					final Servlet servlet;
+					final Host host = server.findHost(name);
+					if (host == null) {
+						if (server.check(request, response)) {
+							servlet = server.findServlet(request.getPath());
+							if (servlet == null) {
+								// 无匹配 Servlet
+								response.setStatus(HTTPStatus.NOT_FOUND);
+								slave.send(response);
+							} else {
+								try {
+									servlet.service(slave, request, response);
+								} catch (Exception e) {
+									// Servlet 内部错误
+									response.setStatus(HTTPStatus.INTERNAL_SERVER_ERROR);
+									Logger.error(e);
+								}
+							}
+						} else {
+							slave.send(response);
+						}
+					} else {
+						if (host.deny(slave.getRemoteAddress())) {
+							// 黑名单阻止
+							response.addHeader(WEBServlet.DATE);
+							response.setStatus(HTTPStatus.FORBIDDEN);
+							slave.send(response);
+						} else {
+							if (host.check(request, response)) {
+								servlet = host.findServlet(request.getPath());
+								if (servlet == null) {
+									// 无匹配Servlet
+									response.setStatus(HTTPStatus.NOT_FOUND);
+									slave.send(response);
+								} else {
+									try {
+										servlet.service(slave, request, response);
+									} catch (Exception e) {
+										// Servlet内部错误
+										response.setStatus(HTTPStatus.INTERNAL_SERVER_ERROR);
+										Logger.error(e);
+									}
+								}
+							} else {
+								slave.send(response);
+							}
+						}
+					}
 				}
 			}
 		}
+
+		// Logger.debug(response);
 	}
 
 	@Override

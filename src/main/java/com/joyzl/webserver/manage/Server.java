@@ -1,23 +1,30 @@
 package com.joyzl.webserver.manage;
 
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.joyzl.logger.Logger;
-import com.joyzl.network.web.DiskFileServlet;
-import com.joyzl.network.web.RAMFileServlet;
+import com.joyzl.network.http.HTTPServer;
+import com.joyzl.network.http.Request;
+import com.joyzl.network.http.Response;
+import com.joyzl.network.web.Authenticates;
 import com.joyzl.network.web.Servlet;
-import com.joyzl.network.web.WEBServer;
 import com.joyzl.network.web.Wildcards;
 import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.entities.Address;
+import com.joyzl.webserver.entities.Authenticate;
+import com.joyzl.webserver.entities.Resource;
 
 public final class Server extends com.joyzl.webserver.entities.Server {
 
+	private final Roster ROSTER = new Roster();
+	private final Authenticates AUTHENTICATES = new Authenticates();
 	private final Wildcards<Servlet> SERVLETS = new Wildcards<>();
 	private final Map<String, Host> HOSTS = new HashMap<>();
-	private WEBServer server;
 
-	@Override
+	private HTTPServer server;
+
 	public void start() throws Exception {
 		if (server != null) {
 			return;
@@ -26,59 +33,40 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 			return;
 		}
 
+		ROSTER.clear();
+		for (Address address : getRoster()) {
+			ROSTER.add(address);
+		}
+
 		SERVLETS.clear();
 		Utility.scanServlets(SERVLETS, getServlets());
-		if (Utility.noEmpty(getContent())) {
-			if (Utility.noEmpty(getCache())) {
-				if ("RAM".equals(getCache())) {
-					final RAMFileServlet servlet = new RAMFileServlet(getContent());
-					if (getDefaults() != null) {
-						servlet.setDefaults(getDefaults());
-					}
-					if (getCompresses() != null) {
-						servlet.setCompresses(getCompresses());
-					}
-					if (getCaches() != null) {
-						servlet.setCaches(getCaches());
-					}
-					SERVLETS.bind("*", servlet);
-				} else {
-					final DiskFileServlet servlet = new DiskFileServlet(getContent(), getCache());
-					if (getDefaults() != null) {
-						servlet.setDefaults(getDefaults());
-					}
-					if (getCompresses() != null) {
-						servlet.setCompresses(getCompresses());
-					}
-					SERVLETS.bind("*", servlet);
-				}
+		for (Resource resource : getResources()) {
+			if (Utility.isEmpty(resource.getURI())) {
+				SERVLETS.bind("*", Manager.instance(resource));
 			} else {
-				final DiskFileServlet servlet = new DiskFileServlet(getContent());
-				if (getDefaults() != null) {
-					servlet.setDefaults(getDefaults());
-				}
-				if (getCompresses() != null) {
-					servlet.setCompresses(getCompresses());
-				}
-				SERVLETS.bind("*", servlet);
+				SERVLETS.bind(resource.getURI(), Manager.instance(resource));
 			}
+		}
+
+		AUTHENTICATES.clear();
+		for (Authenticate authenticate : getAuthenticates()) {
+			AUTHENTICATES.addAuthenticate(Manager.instance(authenticate));
 		}
 
 		HOSTS.clear();
 		for (com.joyzl.webserver.entities.Host host : getHosts()) {
-			if (host.getHosts().size() > 0) {
+			if (host.getNames().size() > 0) {
 				host.reset();
-				for (String name : host.getHosts()) {
+				for (String name : host.getNames()) {
 					HOSTS.put(name, (Host) host);
 				}
 			}
 		}
-		server = new WEBServer(new Handler(this), getIP(), getPort());
 
+		server = new HTTPServer(new Handler(this), getIP(), getPort());
 		Logger.info("SERVER:", getIP(), getPort());
 	}
 
-	@Override
 	public void stop() {
 		if (server != null) {
 			server.close();
@@ -86,12 +74,19 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		}
 	}
 
-	public Servlet find(String host, String uri) {
-		final Host h = HOSTS.get(host);
-		if (h == null) {
-			return SERVLETS.find(uri);
-		} else {
-			return h.find(uri);
-		}
+	public boolean deny(SocketAddress address) {
+		return ROSTER.isDeny(address);
+	}
+
+	public boolean check(Request request, Response response) {
+		return AUTHENTICATES.check(request, response);
+	}
+
+	public Host findHost(String host) {
+		return HOSTS.get(host);
+	}
+
+	public Servlet findServlet(String uri) {
+		return SERVLETS.find(uri);
 	}
 }

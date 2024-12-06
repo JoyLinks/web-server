@@ -1,7 +1,7 @@
 package com.joyzl.webserver.entities;
 
 /**
- * 地址
+ * 地址阻止或允许
  * 
  * @author ZhangXi 2024年11月17日
  */

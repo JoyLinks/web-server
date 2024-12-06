@@ -1,57 +1,54 @@
 package com.joyzl.webserver.manage;
 
-import com.joyzl.network.web.DiskFileServlet;
-import com.joyzl.network.web.RAMFileServlet;
+import java.net.SocketAddress;
+
+import com.joyzl.network.http.Request;
+import com.joyzl.network.http.Response;
+import com.joyzl.network.web.Authenticates;
 import com.joyzl.network.web.Servlet;
 import com.joyzl.network.web.Wildcards;
 import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.entities.Address;
+import com.joyzl.webserver.entities.Authenticate;
+import com.joyzl.webserver.entities.Resource;
 
 public class Host extends com.joyzl.webserver.entities.Host {
 
+	private final Roster ROSTER = new Roster();
+	private final Authenticates AUTHENTICATES = new Authenticates();
 	private final Wildcards<Servlet> SERVLETS = new Wildcards<>();
 
-	@Override
 	public void reset() throws Exception {
+		ROSTER.clear();
+		for (Address address : getRoster()) {
+			ROSTER.add(address);
+		}
+
 		SERVLETS.clear();
 		Utility.scanServlets(SERVLETS, getServlets());
-		if (Utility.noEmpty(getContent())) {
-			if (Utility.noEmpty(getCache())) {
-				if ("RAM".equals(getCache())) {
-					final RAMFileServlet servlet = new RAMFileServlet(getContent());
-					if (getDefaults() != null) {
-						servlet.setDefaults(getDefaults());
-					}
-					if (getCompresses() != null) {
-						servlet.setCompresses(getCompresses());
-					}
-					if (getCaches() != null) {
-						servlet.setCaches(getCaches());
-					}
-					SERVLETS.bind("*", servlet);
-				} else {
-					final DiskFileServlet servlet = new DiskFileServlet(getContent(), getCache());
-					if (getDefaults() != null) {
-						servlet.setDefaults(getDefaults());
-					}
-					if (getCompresses() != null) {
-						servlet.setCompresses(getCompresses());
-					}
-					SERVLETS.bind("*", servlet);
-				}
+		for (Resource resource : getResources()) {
+			if (Utility.isEmpty(resource.getURI())) {
+				SERVLETS.bind("*", Manager.instance(resource));
 			} else {
-				final DiskFileServlet servlet = new DiskFileServlet(getContent());
-				if (getDefaults() != null) {
-					servlet.setDefaults(getDefaults());
-				}
-				if (getCompresses() != null) {
-					servlet.setCompresses(getCompresses());
-				}
-				SERVLETS.bind("*", servlet);
+				SERVLETS.bind(resource.getURI(), Manager.instance(resource));
 			}
+		}
+
+		AUTHENTICATES.clear();
+		for (Authenticate authenticate : getAuthenticates()) {
+			AUTHENTICATES.addAuthenticate(Manager.instance(authenticate));
 		}
 	}
 
-	public final Servlet find(String key) {
-		return SERVLETS.find(key);
+	public boolean deny(SocketAddress address) {
+		return ROSTER.isDeny(address);
+	}
+
+	public boolean check(Request request, Response response) {
+		return AUTHENTICATES.check(request, response);
+	}
+
+	public final Servlet findServlet(String uri) {
+		return SERVLETS.find(uri);
 	}
 }

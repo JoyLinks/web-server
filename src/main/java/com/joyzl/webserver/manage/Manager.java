@@ -14,6 +14,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.joyzl.network.web.AuthenticateBasic;
+import com.joyzl.network.web.AuthenticateBearer;
+import com.joyzl.network.web.AuthenticateDigest;
+import com.joyzl.network.web.DiskFileServlet;
+import com.joyzl.network.web.FileResourceServlet;
+import com.joyzl.network.web.RAMFileServlet;
+import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.entities.Authenticate;
+import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Server;
 
 /**
@@ -29,6 +38,9 @@ public final class Manager {
 	private Manager() {
 	}
 
+	/**
+	 * 读取配置文件初始化服务
+	 */
 	public static void initialize(String servers) throws IOException, ParseException {
 		file = new File(servers);
 		if (file.exists() && file.isFile()) {
@@ -72,5 +84,57 @@ public final class Manager {
 		try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
 			Serializer.getJson().writeEntity(SERVERS, writer);
 		}
+	}
+
+	public static FileResourceServlet instance(Resource resource) throws IOException {
+		final FileResourceServlet servlet;
+		if (Utility.noEmpty(resource.getCache())) {
+			if ("RAM".equals(resource.getCache())) {
+				servlet = new RAMFileServlet(resource.getContent());
+				if (resource.getCaches() != null) {
+					((RAMFileServlet) servlet).setCaches(resource.getCaches());
+				}
+			} else {
+				servlet = new DiskFileServlet(resource.getContent(), resource.getCache());
+			}
+		} else {
+			servlet = new DiskFileServlet(resource.getContent());
+		}
+
+		servlet.setErrorPages(resource.getError());
+		servlet.setBrowse(resource.isBrowse());
+		servlet.setWeak(resource.isWeak());
+		if (resource.getDefaults() != null) {
+			servlet.setDefaults(resource.getDefaults());
+		}
+		if (resource.getCompresses() != null) {
+			servlet.setCompresses(resource.getCompresses());
+		}
+		return servlet;
+	}
+
+	public static com.joyzl.network.web.Authenticate instance(Authenticate authenticate) throws IOException {
+		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
+			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getURI());
+			a.setAlgorithm(authenticate.getAlgorithm());
+			a.setRealm(authenticate.getRealm());
+			a.setUsers(authenticate.getUsers());
+			return a;
+		}
+		if (AuthenticateDigest.TYPE.equalsIgnoreCase(authenticate.getType())) {
+			final AuthenticateDigest a = new AuthenticateDigest(authenticate.getURI());
+			a.setAlgorithm(authenticate.getAlgorithm());
+			a.setRealm(authenticate.getRealm());
+			a.setUsers(authenticate.getUsers());
+			return a;
+		}
+		if (AuthenticateBearer.TYPE.equalsIgnoreCase(authenticate.getType())) {
+			final AuthenticateBearer a = new AuthenticateBearer(authenticate.getURI());
+			a.setAlgorithm(authenticate.getAlgorithm());
+			a.setRealm(authenticate.getRealm());
+			a.setUsers(authenticate.getUsers());
+			return a;
+		}
+		throw new IllegalArgumentException("Authenticate.Type:" + authenticate.getType());
 	}
 }

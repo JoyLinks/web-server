@@ -165,4 +165,31 @@ class FileTest {
 		// 结论：内存比固态硬盘快1000倍不止
 		file.delete();
 	}
+
+	@Test
+	void testURI() {
+		final File root = new File("");
+		final File file = new File(root, "style/index.html");
+		final String uri = file.getPath().substring(root.getPath().length()).replace('\\', '/');
+		System.out.println(uri);
+	}
+
+	@Test
+	void testToString() {
+		long time = System.currentTimeMillis();
+		for (int index = 0; index < 1000000; index++) {
+			Long.toString(time);
+		}
+		time = System.currentTimeMillis() - time;
+		System.out.println("数值转换字符串，耗时：" + time);
+
+		String text = Long.toString(System.currentTimeMillis());
+		time = System.currentTimeMillis();
+		for (int index = 0; index < 1000000; index++) {
+			text.toString();
+		}
+		time = System.currentTimeMillis() - time;
+		System.out.println("直接获取字符串，耗时：" + time);
+		// 结论：直接获取显然更快
+	}
 }

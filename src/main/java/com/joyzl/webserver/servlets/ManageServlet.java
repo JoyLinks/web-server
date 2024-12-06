@@ -1,9 +1,9 @@
 package com.joyzl.webserver.servlets;
 
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.network.http.Request;
+import com.joyzl.network.http.Response;
 import com.joyzl.network.web.CROSServlet;
-import com.joyzl.network.web.WEBRequest;
-import com.joyzl.network.web.WEBResponse;
 
 /**
  * 服务管理接口
@@ -12,27 +12,27 @@ import com.joyzl.network.web.WEBResponse;
  */
 public class ManageServlet extends CROSServlet {
 
-	protected void get(WEBRequest request, WEBResponse response) throws Exception {
+	protected void get(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
-	protected void head(WEBRequest request, WEBResponse response) throws Exception {
+	protected void head(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
-	protected void post(WEBRequest request, WEBResponse response) throws Exception {
+	protected void post(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
-	protected void put(WEBRequest request, WEBResponse response) throws Exception {
+	protected void put(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
-	protected void delete(WEBRequest request, WEBResponse response) throws Exception {
+	protected void delete(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
-	protected void connect(WEBRequest request, WEBResponse response) throws Exception {
+	protected void connect(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 }
