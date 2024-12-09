@@ -17,9 +17,7 @@ import java.util.List;
 import com.joyzl.network.web.AuthenticateBasic;
 import com.joyzl.network.web.AuthenticateBearer;
 import com.joyzl.network.web.AuthenticateDigest;
-import com.joyzl.network.web.DiskFileServlet;
 import com.joyzl.network.web.FileResourceServlet;
-import com.joyzl.network.web.RAMFileServlet;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
@@ -89,16 +87,9 @@ public final class Manager {
 	public static FileResourceServlet instance(Resource resource) throws IOException {
 		final FileResourceServlet servlet;
 		if (Utility.noEmpty(resource.getCache())) {
-			if ("RAM".equals(resource.getCache())) {
-				servlet = new RAMFileServlet(resource.getContent());
-				if (resource.getCaches() != null) {
-					((RAMFileServlet) servlet).setCaches(resource.getCaches());
-				}
-			} else {
-				servlet = new DiskFileServlet(resource.getContent(), resource.getCache());
-			}
+			servlet = new FileResourceServlet(resource.getURI(), resource.getContent(), resource.getCache());
 		} else {
-			servlet = new DiskFileServlet(resource.getContent());
+			servlet = new FileResourceServlet(resource.getURI(), resource.getContent());
 		}
 
 		servlet.setErrorPages(resource.getError());
@@ -109,6 +100,9 @@ public final class Manager {
 		}
 		if (resource.getCompresses() != null) {
 			servlet.setCompresses(resource.getCompresses());
+		}
+		if (resource.getCaches() != null) {
+			servlet.setCaches(resource.getCaches());
 		}
 		return servlet;
 	}

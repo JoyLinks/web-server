@@ -1,6 +1,5 @@
 package com.joyzl.webserver;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,7 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.joyzl.network.web.WEBContentCoder;
+import com.joyzl.network.http.HTTPCoder;
 
 class FileTest {
 
@@ -108,19 +107,12 @@ class FileTest {
 	}
 
 	@Test
-	void stringToLong() {
-		assertEquals(Utility.toLong("", 0, 0), 0);
-		assertNotEquals(Utility.toLong("a", 0, 1), Utility.toLong("b", 0, 1));
-		assertNotEquals(Utility.toLong("ab", 0, 2), Utility.toLong("ba", 0, 2));
-	}
-
-	@Test
 	void testDiskOrRAM() throws IOException {
 		// 测试每次从磁盘读取文件以及缓存文件性能差异
 
 		final File file = new File("test.dat");
 		try (FileOutputStream output = new FileOutputStream(file)) {
-			for (int index = 0; index < WEBContentCoder.BLOCK; index++) {
+			for (int index = 0; index < HTTPCoder.BLOCK_BYTES; index++) {
 				output.write(index);
 			}
 			output.flush();

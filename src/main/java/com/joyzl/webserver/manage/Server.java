@@ -41,10 +41,12 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		SERVLETS.clear();
 		Utility.scanServlets(SERVLETS, getServlets());
 		for (Resource resource : getResources()) {
-			if (Utility.isEmpty(resource.getURI())) {
-				SERVLETS.bind("*", Manager.instance(resource));
-			} else {
-				SERVLETS.bind(resource.getURI(), Manager.instance(resource));
+			if (Utility.noEmpty(resource.getContent())) {
+				if (Utility.isEmpty(resource.getURI())) {
+					SERVLETS.bind("*", Manager.instance(resource));
+				} else {
+					SERVLETS.bind(resource.getURI(), Manager.instance(resource));
+				}
 			}
 		}
 

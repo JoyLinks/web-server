@@ -27,10 +27,12 @@ public class Host extends com.joyzl.webserver.entities.Host {
 		SERVLETS.clear();
 		Utility.scanServlets(SERVLETS, getServlets());
 		for (Resource resource : getResources()) {
-			if (Utility.isEmpty(resource.getURI())) {
-				SERVLETS.bind("*", Manager.instance(resource));
-			} else {
-				SERVLETS.bind(resource.getURI(), Manager.instance(resource));
+			if (Utility.noEmpty(resource.getContent())) {
+				if (Utility.isEmpty(resource.getURI())) {
+					SERVLETS.bind("*", Manager.instance(resource));
+				} else {
+					SERVLETS.bind(resource.getURI(), Manager.instance(resource));
+				}
 			}
 		}
 

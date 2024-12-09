@@ -6,11 +6,15 @@
 		],
 		"resources": [
 			{
-				"cache": "RAM",
+				"cache": "cache",
 				"content": "D:\\GitHub\\HTTP-TEST\\sites",
 				"error": "D:\\GitHub\\HTTP-TEST\\sites\\error",
 				"browse": true,
 				"weak": false
+			},
+			{
+				"uri": "/.well-known/access.log",
+				"content": "log/access.log"
 			}
 		],
 		"authenticates": [
