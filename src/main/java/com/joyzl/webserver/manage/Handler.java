@@ -12,7 +12,7 @@ import com.joyzl.network.http.Response;
 import com.joyzl.network.web.Servlet;
 import com.joyzl.network.web.WEBServlet;
 
-public class Handler extends HTTPServerHandler {
+public final class Handler extends HTTPServerHandler {
 
 	private final Server server;
 
@@ -22,79 +22,87 @@ public class Handler extends HTTPServerHandler {
 
 	@Override
 	public void received(HTTPSlave slave, Request request, Response response) {
-		// Logger.debug(request);
-
 		if (server.deny(slave.getRemoteAddress())) {
+			server.access().record(slave, request);
 			// 黑名单阻止
 			response.addHeader(WEBServlet.DATE);
 			response.setStatus(HTTPStatus.FORBIDDEN);
-			slave.send(response);
 		} else {
 			if (Utility.isEmpty(request.getURL())) {
+				server.access().record(slave, request);
 				// 未指定 URL/URI
 				response.addHeader(WEBServlet.DATE);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
-				slave.send(response);
 			} else {
 				final String name = request.getHeader(com.joyzl.network.http.Host.NAME);
 				if (Utility.isEmpty(name)) {
+					server.access().record(slave, request);
 					// 未指定 Host
 					response.addHeader(WEBServlet.DATE);
 					response.setStatus(HTTPStatus.BAD_REQUEST);
-					slave.send(response);
 				} else {
 					final Servlet servlet;
 					final Host host = server.findHost(name);
 					if (host == null) {
+						server.access().record(slave, request);
 						if (server.check(request, response)) {
 							servlet = server.findServlet(request.getPath());
 							if (servlet == null) {
-								// 无匹配 Servlet
+								// 无匹配处理对象 Servlet
+								response.addHeader(WEBServlet.DATE);
 								response.setStatus(HTTPStatus.NOT_FOUND);
-								slave.send(response);
 							} else {
 								try {
 									servlet.service(slave, request, response);
+									if (response.getStatus() > 0) {
+									} else {
+										// 挂起异步
+										return;
+									}
 								} catch (Exception e) {
-									// Servlet 内部错误
+									// 处理对象内部错误
 									response.setStatus(HTTPStatus.INTERNAL_SERVER_ERROR);
 									Logger.error(e);
 								}
 							}
-						} else {
-							slave.send(response);
 						}
 					} else {
+						host.access().record(slave, request);
 						if (host.deny(slave.getRemoteAddress())) {
 							// 黑名单阻止
 							response.addHeader(WEBServlet.DATE);
 							response.setStatus(HTTPStatus.FORBIDDEN);
-							slave.send(response);
 						} else {
 							if (host.check(request, response)) {
 								servlet = host.findServlet(request.getPath());
 								if (servlet == null) {
-									// 无匹配Servlet
+									// 无匹配处理对象 Servlet
 									response.setStatus(HTTPStatus.NOT_FOUND);
-									slave.send(response);
 								} else {
 									try {
 										servlet.service(slave, request, response);
+										if (response.getStatus() > 0) {
+										} else {
+											// 挂起异步
+											return;
+										}
 									} catch (Exception e) {
-										// Servlet内部错误
+										// 处理对象内部错误
 										response.setStatus(HTTPStatus.INTERNAL_SERVER_ERROR);
 										Logger.error(e);
 									}
 								}
-							} else {
-								slave.send(response);
 							}
 						}
+						host.access().record(slave, response);
+						slave.send(response);
+						return;
 					}
 				}
 			}
 		}
-
+		server.access().record(slave, response);
+		slave.send(response);
 		// Logger.debug(response);
 	}
 

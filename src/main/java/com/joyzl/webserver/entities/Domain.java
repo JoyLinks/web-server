@@ -14,6 +14,7 @@ public abstract class Domain {
 	private final List<String> servlets = new ArrayList<>();
 	private final List<Resource> resources = new ArrayList<>();
 	private final List<Authenticate> authenticates = new ArrayList<>();
+	private String access;
 
 	/**
 	 * 获取服务组包名
@@ -81,5 +82,19 @@ public abstract class Domain {
 			roster.clear();
 			roster.addAll(values);
 		}
+	}
+
+	/**
+	 * 获取访问日志存储位置
+	 */
+	public String getAccess() {
+		return access;
+	}
+
+	/**
+	 * 设置访问日志存储位置，格式为"dir/access.log"
+	 */
+	public void setAccess(String value) {
+		access = value;
 	}
 }

@@ -74,6 +74,7 @@
 				"users": "D:\\GitHub\\HTTP-TEST\\sites\\a5-test\\limited6\\WeMustProtectThisHouse!",
 				"algorithm": "MD5"
 			}
-		]
+		],
+		"access": "access/access.log"
 	}
 ]

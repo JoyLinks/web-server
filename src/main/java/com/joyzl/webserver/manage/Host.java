@@ -11,12 +11,14 @@ import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.entities.Address;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
+import com.joyzl.webserver.manage.Access.AccessCommonLogger;
 
 public class Host extends com.joyzl.webserver.entities.Host {
 
 	private final Roster ROSTER = new Roster();
 	private final Authenticates AUTHENTICATES = new Authenticates();
 	private final Wildcards<Servlet> SERVLETS = new Wildcards<>();
+	private Access access = Access.EMPTY;
 
 	public void reset() throws Exception {
 		ROSTER.clear();
@@ -40,6 +42,12 @@ public class Host extends com.joyzl.webserver.entities.Host {
 		for (Authenticate authenticate : getAuthenticates()) {
 			AUTHENTICATES.addAuthenticate(Manager.instance(authenticate));
 		}
+
+		if (Utility.noEmpty(getAccess())) {
+			access = new AccessCommonLogger(getAccess());
+		} else {
+			access = Access.EMPTY;
+		}
 	}
 
 	public boolean deny(SocketAddress address) {
@@ -52,5 +60,9 @@ public class Host extends com.joyzl.webserver.entities.Host {
 
 	public final Servlet findServlet(String uri) {
 		return SERVLETS.find(uri);
+	}
+
+	public Access access() {
+		return access;
 	}
 }

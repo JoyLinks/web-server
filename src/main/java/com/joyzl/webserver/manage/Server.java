@@ -15,6 +15,7 @@ import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.entities.Address;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
+import com.joyzl.webserver.manage.Access.AccessCommonLogger;
 
 public final class Server extends com.joyzl.webserver.entities.Server {
 
@@ -22,6 +23,7 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 	private final Authenticates AUTHENTICATES = new Authenticates();
 	private final Wildcards<Servlet> SERVLETS = new Wildcards<>();
 	private final Map<String, Host> HOSTS = new HashMap<>();
+	private Access access = Access.EMPTY;
 
 	private HTTPServer server;
 
@@ -65,6 +67,12 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 			}
 		}
 
+		if (Utility.noEmpty(getAccess())) {
+			access = new AccessCommonLogger(getAccess());
+		} else {
+			access = Access.EMPTY;
+		}
+
 		server = new HTTPServer(new Handler(this), getIP(), getPort());
 		Logger.info("SERVER:", getIP(), getPort());
 	}
@@ -90,5 +98,9 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 
 	public Servlet findServlet(String uri) {
 		return SERVLETS.find(uri);
+	}
+
+	public Access access() {
+		return access;
 	}
 }

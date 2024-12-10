@@ -5,6 +5,7 @@
 		"resources": [],
 		"authenticates": [],
 		"roster": [],
+		"access": "access/access.log",
 		"hosts": [
 			{
 				"names": [
@@ -45,7 +46,8 @@
 						"deny": true,
 						"host": "192.168.2.3"
 					}
-				]
+				],
+				"access": "/var/www/joyzl.access/access.log"
 			}
 		]
 	}
