@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.joyzl.network.web.Servlet;
-import com.joyzl.network.web.ServletURI;
+import com.joyzl.network.web.ServletPath;
 import com.joyzl.network.web.Wildcards;
 import com.joyzl.odbs.ODBSReflect;
 
@@ -26,11 +26,11 @@ public class Utility extends com.joyzl.network.Utility {
 				if (ODBSReflect.canUsable(clazz)) {
 					if (ODBSReflect.canInstance(clazz)) {
 						if (ODBSReflect.isImplemented(clazz, Servlet.class)) {
-							ServletURI annotation = ODBSReflect.findAnnotation(clazz, ServletURI.class);
+							ServletPath annotation = ODBSReflect.findAnnotation(clazz, ServletPath.class);
 							if (annotation != null) {
 								try {
 									Servlet servlet = (Servlet) clazz.getConstructor().newInstance();
-									instances.bind(annotation.uri(), servlet);
+									instances.bind(annotation.path(), servlet);
 								} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 									throw e;
 								}

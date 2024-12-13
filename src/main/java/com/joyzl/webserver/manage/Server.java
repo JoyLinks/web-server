@@ -23,7 +23,7 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 	private final Authenticates AUTHENTICATES = new Authenticates();
 	private final Wildcards<Servlet> SERVLETS = new Wildcards<>();
 	private final Map<String, Host> HOSTS = new HashMap<>();
-	private Access access = Access.EMPTY;
+	private Access access;
 
 	private HTTPServer server;
 
@@ -44,10 +44,10 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		Utility.scanServlets(SERVLETS, getServlets());
 		for (Resource resource : getResources()) {
 			if (Utility.noEmpty(resource.getContent())) {
-				if (Utility.isEmpty(resource.getURI())) {
+				if (Utility.isEmpty(resource.getPath())) {
 					SERVLETS.bind("*", Manager.instance(resource));
 				} else {
-					SERVLETS.bind(resource.getURI(), Manager.instance(resource));
+					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
 				}
 			}
 		}
@@ -70,7 +70,7 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		if (Utility.noEmpty(getAccess())) {
 			access = new AccessCommonLogger(getAccess());
 		} else {
-			access = Access.EMPTY;
+			access = new Access();
 		}
 
 		server = new HTTPServer(new Handler(this), getIP(), getPort());

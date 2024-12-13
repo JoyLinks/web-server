@@ -12,6 +12,11 @@ import com.joyzl.network.http.Response;
 import com.joyzl.network.web.Servlet;
 import com.joyzl.network.web.WEBServlet;
 
+/**
+ * Server Handler
+ * 
+ * @author ZhangXi 2024年12月11日
+ */
 public final class Handler extends HTTPServerHandler {
 
 	private final Server server;
@@ -55,6 +60,7 @@ public final class Handler extends HTTPServerHandler {
 								try {
 									servlet.service(slave, request, response);
 									if (response.getStatus() > 0) {
+										// CONTINUE
 									} else {
 										// 挂起异步
 										return;
@@ -82,6 +88,7 @@ public final class Handler extends HTTPServerHandler {
 									try {
 										servlet.service(slave, request, response);
 										if (response.getStatus() > 0) {
+											// CONTINUE
 										} else {
 											// 挂起异步
 											return;

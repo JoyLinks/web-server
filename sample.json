@@ -14,7 +14,7 @@
 				"servlets": [],
 				"resources": [
 					{
-						"uri": "*",
+						"path": "*",
 						"cache": "caches",
 						"content": "/var/www/joyzl",
 						"defaults": [
@@ -29,7 +29,7 @@
 				],
 				"authenticates": [
 					{
-						"uri": "/limited",
+						"path": "/limited",
 						"type": "Basic",
 						"realm": "protected resources",
 						"algorithm": "MD5",

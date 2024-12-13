@@ -7,24 +7,24 @@ package com.joyzl.webserver.entities;
  */
 public class Authenticate {
 
-	private String uri;
+	private String path;
 	private String type;
 	private String realm;
 	private String users;
 	private String algorithm;
 
 	/**
-	 * 获取须验证的URI，指定URI及其子路径须身份验证
+	 * 获取须验证的路径，指定路径及其子路径须身份验证
 	 */
-	public String getURI() {
-		return uri;
+	public String getPath() {
+		return path;
 	}
 
 	/**
-	 * 设置须验证的URI，指定URI及其子路径须身份验证
+	 * 设置须验证的路径，指定路径及其子路径须身份验证
 	 */
-	public void setURI(String value) {
-		uri = value;
+	public void setPath(String value) {
+		path = value;
 	}
 
 	/**

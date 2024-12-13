@@ -3,6 +3,7 @@ package com.joyzl.webserver.manage;
 import java.io.File;
 import java.net.SocketAddress;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.joyzl.logger.clf.CLFRecord;
 import com.joyzl.logger.clf.CommonLogger;
@@ -19,16 +20,21 @@ import com.joyzl.network.http.Response;
  */
 public class Access {
 
-	/** 空的访问日志类，不执行任何操作 */
-	final static Access EMPTY = new Access();
+	protected final AtomicLong counter = new AtomicLong();
 
-	private Access() {
+	public Access() {
 	}
 
 	public void record(HTTPSlave chain, Request request) {
+		counter.incrementAndGet();
 	}
 
 	public void record(HTTPSlave chain, Response response) {
+		counter.incrementAndGet();
+	}
+
+	public long count() {
+		return counter.get();
 	}
 
 	final static class AccessCommonLogger extends Access {
@@ -43,7 +49,7 @@ public class Access {
 			logger.record(new CLFRecord() {
 				@Override
 				public long getTimestamp() {
-					return request.getTimestamp();
+					return System.currentTimeMillis();
 				}
 
 				@Override
@@ -95,7 +101,7 @@ public class Access {
 
 				@Override
 				public String getTo() {
-					return null;
+					return request.getPath();
 				}
 
 				@Override
@@ -104,8 +110,8 @@ public class Access {
 				}
 
 				@Override
-				public int getCSeqNumber() {
-					return 0;
+				public long getCSeqNumber() {
+					return counter.incrementAndGet();
 				}
 
 				@Override
@@ -120,7 +126,7 @@ public class Access {
 
 				@Override
 				public String getRURI() {
-					return request.getPath();
+					return request.getURL();
 				}
 
 				@Override
@@ -130,7 +136,7 @@ public class Access {
 
 				@Override
 				public String getServerTxn() {
-					return chain.server().getPoint();
+					return null;
 				}
 
 				@Override
@@ -150,7 +156,7 @@ public class Access {
 			logger.record(new CLFRecord() {
 				@Override
 				public long getTimestamp() {
-					return response.getTimestamp();
+					return System.currentTimeMillis();
 				}
 
 				@Override
@@ -211,8 +217,8 @@ public class Access {
 				}
 
 				@Override
-				public int getCSeqNumber() {
-					return 0;
+				public long getCSeqNumber() {
+					return counter.get();
 				}
 
 				@Override
@@ -237,7 +243,7 @@ public class Access {
 
 				@Override
 				public String getServerTxn() {
-					return chain.server().getPoint();
+					return null;
 				}
 
 				@Override

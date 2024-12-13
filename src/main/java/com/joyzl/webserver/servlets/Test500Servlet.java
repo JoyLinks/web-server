@@ -6,10 +6,10 @@ import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.network.web.MIMEType;
-import com.joyzl.network.web.ServletURI;
+import com.joyzl.network.web.ServletPath;
 import com.joyzl.network.web.WEBServlet;
 
-@ServletURI(uri = "/a5-test/500.cgi")
+@ServletPath(path = "/a5-test/500.cgi")
 public class Test500Servlet extends WEBServlet {
 
 	protected void get(Request request, Response response) throws Exception {

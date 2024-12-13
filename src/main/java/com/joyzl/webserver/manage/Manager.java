@@ -87,9 +87,9 @@ public final class Manager {
 	public static FileResourceServlet instance(Resource resource) throws IOException {
 		final FileResourceServlet servlet;
 		if (Utility.noEmpty(resource.getCache())) {
-			servlet = new FileResourceServlet(resource.getURI(), resource.getContent(), resource.getCache());
+			servlet = new FileResourceServlet(resource.getPath(), resource.getContent(), resource.getCache());
 		} else {
-			servlet = new FileResourceServlet(resource.getURI(), resource.getContent());
+			servlet = new FileResourceServlet(resource.getPath(), resource.getContent());
 		}
 
 		servlet.setErrorPages(resource.getError());
@@ -109,21 +109,21 @@ public final class Manager {
 
 	public static com.joyzl.network.web.Authenticate instance(Authenticate authenticate) throws IOException {
 		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getURI());
+			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
 			a.setUsers(authenticate.getUsers());
 			return a;
 		}
 		if (AuthenticateDigest.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateDigest a = new AuthenticateDigest(authenticate.getURI());
+			final AuthenticateDigest a = new AuthenticateDigest(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
 			a.setUsers(authenticate.getUsers());
 			return a;
 		}
 		if (AuthenticateBearer.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateBearer a = new AuthenticateBearer(authenticate.getURI());
+			final AuthenticateBearer a = new AuthenticateBearer(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
 			a.setUsers(authenticate.getUsers());

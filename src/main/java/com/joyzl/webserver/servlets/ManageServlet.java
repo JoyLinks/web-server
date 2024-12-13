@@ -4,19 +4,24 @@ import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.web.CROSServlet;
+import com.joyzl.network.web.ServletPath;
 
 /**
  * 服务管理接口
  * 
  * @author ZhangXi 2024年11月15日
  */
+@ServletPath(path = "/manager/*")
 public class ManageServlet extends CROSServlet {
 
+	// 获取计数
+	// 获取配置，调整配置，重置服务
+	// 黑白名单
+	// 访问日志查询
+	// 管理 Basic 和 Digict 用户
 	protected void get(Request request, Response response) throws Exception {
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
-	}
-
-	protected void head(Request request, Response response) throws Exception {
+		// servers
+		// hosts
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
@@ -29,10 +34,6 @@ public class ManageServlet extends CROSServlet {
 	}
 
 	protected void delete(Request request, Response response) throws Exception {
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
-	}
-
-	protected void connect(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 }

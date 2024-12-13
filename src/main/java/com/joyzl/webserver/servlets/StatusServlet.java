@@ -4,10 +4,10 @@ import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.ServletURI;
+import com.joyzl.network.web.ServletPath;
 import com.joyzl.network.web.WEBServlet;
 
-@ServletURI(uri = "/a5-test/status.cgi")
+@ServletPath(path = "/a5-test/status.cgi")
 public class StatusServlet extends WEBServlet {
 
 	protected void get(Request request, Response response) throws Exception {

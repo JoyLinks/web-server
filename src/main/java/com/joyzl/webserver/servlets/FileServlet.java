@@ -9,7 +9,7 @@ import com.joyzl.network.http.HTTP;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.DirResource;
+import com.joyzl.network.web.DirectoryResource;
 import com.joyzl.network.web.FileResource;
 import com.joyzl.network.web.FileResourceServlet;
 import com.joyzl.network.web.WEBResource;
@@ -55,7 +55,7 @@ public class FileServlet extends FileResourceServlet {
 				e.printStackTrace();
 				return null;
 			}
-			return new FileResource(getRoot(), file, isWeak());
+			return new FileResource(request.getPath(), file, isWeak());
 		}
 		return null;
 	}
@@ -72,7 +72,7 @@ public class FileServlet extends FileResourceServlet {
 					return resource;
 				}
 			} else //
-			if (resource instanceof DirResource) {
+			if (resource instanceof DirectoryResource) {
 				final FileResource file = (FileResource) resource;
 				if (file.getFile().delete()) {
 					return resource;

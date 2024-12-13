@@ -7,19 +7,20 @@ import com.joyzl.network.http.HTTP;
 import com.joyzl.network.http.HTTPClient;
 import com.joyzl.network.http.HTTPClientHandler;
 import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Host;
 import com.joyzl.network.http.Message;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.network.web.MIMEType;
-import com.joyzl.network.web.ServletURI;
+import com.joyzl.network.web.ServletPath;
 import com.joyzl.network.web.WEBServlet;
 
-@ServletURI(uri = "/a5-test/location.cgi")
+@ServletPath(path = "/a5-test/location.cgi")
 public class LocationServlet extends WEBServlet {
 
-	public void service(ChainChannel<Message> chain, Request request, Response response) throws Exception {
+	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
 		final HTTPClientHandler handler = new HTTPClientHandler() {
 			@Override
 			public void connected(ChainChannel<Message> chain) throws Exception {

@@ -18,7 +18,7 @@ public class Host extends com.joyzl.webserver.entities.Host {
 	private final Roster ROSTER = new Roster();
 	private final Authenticates AUTHENTICATES = new Authenticates();
 	private final Wildcards<Servlet> SERVLETS = new Wildcards<>();
-	private Access access = Access.EMPTY;
+	private Access access;
 
 	public void reset() throws Exception {
 		ROSTER.clear();
@@ -30,10 +30,10 @@ public class Host extends com.joyzl.webserver.entities.Host {
 		Utility.scanServlets(SERVLETS, getServlets());
 		for (Resource resource : getResources()) {
 			if (Utility.noEmpty(resource.getContent())) {
-				if (Utility.isEmpty(resource.getURI())) {
+				if (Utility.isEmpty(resource.getPath())) {
 					SERVLETS.bind("*", Manager.instance(resource));
 				} else {
-					SERVLETS.bind(resource.getURI(), Manager.instance(resource));
+					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
 				}
 			}
 		}
@@ -46,7 +46,7 @@ public class Host extends com.joyzl.webserver.entities.Host {
 		if (Utility.noEmpty(getAccess())) {
 			access = new AccessCommonLogger(getAccess());
 		} else {
-			access = Access.EMPTY;
+			access = new Access();
 		}
 	}
 

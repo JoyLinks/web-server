@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class Resource {
 
-	private String uri;
+	private String path;
 	private String cache;
 	private String content;
 	private String error;
@@ -23,15 +23,15 @@ public class Resource {
 	/**
 	 * 获取资源路径
 	 */
-	public String getURI() {
-		return uri;
+	public String getPath() {
+		return path;
 	}
 
 	/**
 	 * 设置资源路径
 	 */
-	public void setURI(String value) {
-		uri = value;
+	public void setPath(String value) {
+		path = value;
 	}
 
 	/**

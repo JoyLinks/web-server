@@ -18,10 +18,8 @@ JOYZL WEB Server 是一个 WEB HTTP Server (通过HTTP协议提供WEB服务的�
 
 Windows系统文件扩展名不区分大小写，而路径和文件名区分大小写。
 不再支持 CGI、JSP、PHP、ASP 等过时的功能。
-
+访问日志固定为 RFC 6872 Common Log Format (CLF) 格式
 ## 开发计划
-
-内存缓存
 
 HTTPS
 
@@ -37,10 +35,6 @@ session
 
 103 Early Hints
 SPDY -> HTTP/2
-
-RFC 6872 The Common Log Format (CLF) for the Session Initiation Protocol (SIP): Framework and Information Model 
-access.log Server/Host
-error.log 不在区分
 
 计数器 总计数（Server/Host/Resource）
 
