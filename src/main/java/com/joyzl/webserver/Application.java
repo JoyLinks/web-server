@@ -138,7 +138,7 @@ public class Application {
 		Executor.initialize(Utility.value(properties.getProperty("THREAD"), 0));
 		Logger.info("THREAD SIZE: " + Executor.getThreadSize());
 
-		Logger.debug(Serializer.getOdbs().checkString());
+		Logger.debug(Serializer.ODBS().checkString());
 
 		// 初始化服务集
 		Manager.initialize(properties.getProperty("SERVERS"));

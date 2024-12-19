@@ -43,7 +43,7 @@ public final class Manager {
 		file = new File(servers);
 		if (file.exists() && file.isFile()) {
 			try (final Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-				List<?> entities = (List<?>) Serializer.getJson().readEntity(Server.class, reader);
+				List<?> entities = (List<?>) Serializer.JSON().readEntity(Server.class, reader);
 				if (entities != null && entities.size() > 0) {
 					for (int index = 0; index < entities.size(); index++) {
 						SERVERS.add((Server) entities.get(index));
@@ -80,7 +80,7 @@ public final class Manager {
 
 	public static void save() throws Exception {
 		try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			Serializer.getJson().writeEntity(SERVERS, writer);
+			Serializer.JSON().writeEntity(SERVERS, writer);
 		}
 	}
 
@@ -130,5 +130,9 @@ public final class Manager {
 			return a;
 		}
 		throw new IllegalArgumentException("Authenticate.Type:" + authenticate.getType());
+	}
+
+	public static List<Server> servers() {
+		return SERVERS;
 	}
 }

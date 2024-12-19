@@ -1,7 +1,9 @@
 package com.joyzl.webserver.entities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server and Host super class
@@ -14,6 +16,7 @@ public abstract class Domain {
 	private final List<String> servlets = new ArrayList<>();
 	private final List<Resource> resources = new ArrayList<>();
 	private final List<Authenticate> authenticates = new ArrayList<>();
+	private final Map<String, String> headers = new HashMap<>();
 	private String access;
 
 	/**
@@ -81,6 +84,23 @@ public abstract class Domain {
 		if (values != roster) {
 			roster.clear();
 			roster.addAll(values);
+		}
+	}
+
+	/**
+	 * 获取附加标头，附加标头将添加到每个响应
+	 */
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
+
+	/**
+	 * 设置附加标头，附加标头将添加到每个响应
+	 */
+	public void setHeaders(Map<String, String> values) {
+		if (values != headers) {
+			headers.clear();
+			headers.putAll(values);
 		}
 	}
 
