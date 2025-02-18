@@ -1,43 +1,11 @@
-# JOYZL web-server
-JOYZL WEB Server 是一个 WEB HTTP Server (通过HTTP协议提供WEB服务的服务器软件)；
-纯粹中国智造的国产化软件，支持高性能高吞吐量的 WEB 服务，
-内容自动缓存（支持常规文件缓存，以及高性能内存缓存），
-内容压缩（GZip），反向代理、群集与负载均衡。
+# JOYZL Server
 
-## 安装与使用
+JOYZL Server 是纯粹中国智造，完全开源的国产化服务器软件；
 
-可独立部署，作为WEB内容服务器;
+支持基于HTTP协议的WEB服务；
+支持基于HTTP协议的WEBDAV服务；
 
-可作为组件集成到您的项目中，支持 Servlet (不是 Jakarta Servlet，也不支持 JSP) 扩展功能接口；
-项目即可作为独立应用启动，无须额外部署 WEB HTTP Server 与 SpringBoot 启动方式类似。
-
-更多内容及文档请参考官网
-[JOYZL WEB Server](http://web.joyzl.net)
-
-## 特性
-
-Windows系统文件扩展名不区分大小写，而路径和文件名区分大小写。
-不再支持 CGI、JSP、PHP、ASP 等过时的功能。
-访问日志固定为 RFC 6872 Common Log Format (CLF) 格式
-## 开发计划
-
-HTTPS
-
-HEADERS
-
-反向代理与负载均衡
-
-攻击与漏洞封堵
-	IP黑名单
-	防暴力破解
-	权限
-session
-
-103 Early Hints
-SPDY -> HTTP/2
-
-计数器 总计数（Server/Host/Resource）
-
+正在开发中。。。
 
 ### 语言代码（Language Codes）
 
