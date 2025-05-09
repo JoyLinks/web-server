@@ -2,12 +2,10 @@ package com.joyzl.webserver.manage;
 
 import com.joyzl.logger.Logger;
 import com.joyzl.network.Utility;
-import com.joyzl.network.chain.ChainChannel;
 import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.HTTPServerHandler;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
-import com.joyzl.network.http.Message;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.web.Servlet;
@@ -120,8 +118,7 @@ public final class Handler extends HTTPServerHandler {
 	}
 
 	@Override
-	public void error(ChainChannel<Message> chain, Throwable e) {
-		super.error(chain, e);
+	public void error(HTTPSlave slave, Throwable e) {
 		Logger.error(e);
 	}
 }

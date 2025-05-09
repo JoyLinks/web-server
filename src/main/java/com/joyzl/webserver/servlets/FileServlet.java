@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import com.joyzl.network.buffer.DataBuffer;
-import com.joyzl.network.http.HTTP;
+import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
@@ -37,7 +37,7 @@ public class FileServlet extends FileResourceServlet {
 		if (resource == null) {
 
 		} else {
-			response.addHeader(HTTP.Location, resource.getContentLocation());
+			response.addHeader(HTTP1.Location, resource.getContentLocation());
 			response.setStatus(HTTPStatus.CREATED);
 		}
 	}

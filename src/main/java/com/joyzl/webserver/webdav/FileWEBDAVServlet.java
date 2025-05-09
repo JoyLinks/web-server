@@ -2,7 +2,7 @@ package com.joyzl.webserver.webdav;
 
 import com.joyzl.network.Utility;
 import com.joyzl.network.http.ContentType;
-import com.joyzl.network.http.HTTP;
+import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
@@ -96,7 +96,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
-		request.getHeader(HTTP.Depth);
+		request.getHeader(HTTP1.Depth);
 		request.getPath();
 		// multistatus
 
@@ -110,8 +110,8 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void copy(Request request, Response response) throws Exception {
-		request.getHeader(HTTP.Destination);
-		request.getHeader(HTTP.Overwrite);
+		request.getHeader(HTTP1.Destination);
+		request.getHeader(HTTP1.Overwrite);
 		request.getPath();
 
 		// multistatus

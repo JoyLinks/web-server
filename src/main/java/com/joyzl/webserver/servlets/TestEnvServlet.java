@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 
 import com.joyzl.network.buffer.DataBufferOutput;
 import com.joyzl.network.http.ContentType;
-import com.joyzl.network.http.HTTP;
+import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPCoder;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
@@ -37,7 +37,7 @@ public class TestEnvServlet extends WEBServlet {
 		writer.write(HTTPCoder.LF);
 
 		writer.write("HTTP_USER_AGENT = ");
-		writer.write(request.getHeader(HTTP.User_Agent));
+		writer.write(request.getHeader(HTTP1.User_Agent));
 		writer.write(HTTPCoder.LF);
 
 		writer.close();
@@ -94,6 +94,6 @@ public class TestEnvServlet extends WEBServlet {
 	}
 
 	protected void options(Request request, Response response) throws Exception {
-		response.addHeader(HTTP.Allow, "OPTIONS, GET, HEAD, POST, TRACE");
+		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, POST, TRACE");
 	}
 }

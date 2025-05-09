@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.joyzl.logger.clf.CLFRecord;
 import com.joyzl.logger.clf.CommonLogger;
 import com.joyzl.logger.clf.OptionalField;
-import com.joyzl.network.http.HTTP;
+import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
@@ -91,7 +91,7 @@ public class Access {
 
 				@Override
 				public String getFrom() {
-					return request.getHeader(HTTP.Referer);
+					return request.getHeader(HTTP1.Referer);
 				}
 
 				@Override
@@ -198,7 +198,7 @@ public class Access {
 
 				@Override
 				public String getFrom() {
-					return response.getHeader(HTTP.Referer);
+					return response.getHeader(HTTP1.Referer);
 				}
 
 				@Override

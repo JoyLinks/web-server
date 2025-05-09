@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 
 import com.joyzl.network.buffer.DataBufferOutput;
 import com.joyzl.network.http.ContentType;
-import com.joyzl.network.http.HTTP;
+import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPCoder;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
@@ -70,6 +70,6 @@ public class TestLimited3EnvServlet extends WEBServlet {
 	}
 
 	protected void options(Request request, Response response) throws Exception {
-		response.addHeader(HTTP.Allow, "OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE");
+		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE");
 	}
 }

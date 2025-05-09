@@ -1,7 +1,7 @@
 package com.joyzl.webserver.webdav;
 
 import com.joyzl.network.http.FormDataCoder;
-import com.joyzl.network.http.HTTP;
+import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.QueryCoder;
@@ -18,59 +18,59 @@ public abstract class WEBDAVServlet extends WEBServlet {
 
 	@Override
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
-		if (request.getVersion() != HTTP.V11 && request.getVersion() != HTTP.V10) {
+		if (request.getVersion() != HTTP1.V11 && request.getVersion() != HTTP1.V10) {
 			response.setStatus(HTTPStatus.VERSION_NOT_SUPPORTED);
 		} else {
 			// 将查询参数合并到请求参数中
 			QueryCoder.parse(request);
 			switch (request.getMethod()) {
-				case HTTP.PROPFIND:
+				case HTTP1.PROPFIND:
 					propfind((Request) request, (Response) response);
 					break;
-				case HTTP.PROPPATCH:
+				case HTTP1.PROPPATCH:
 					proppatch((Request) request, (Response) response);
 					break;
-				case HTTP.MKCOL:
+				case HTTP1.MKCOL:
 					mkcol((Request) request, (Response) response);
 					break;
-				case HTTP.COPY:
+				case HTTP1.COPY:
 					copy((Request) request, (Response) response);
 					break;
-				case HTTP.MOVE:
+				case HTTP1.MOVE:
 					move((Request) request, (Response) response);
 					break;
-				case HTTP.LOCK:
+				case HTTP1.LOCK:
 					lock((Request) request, (Response) response);
 					break;
-				case HTTP.UNLOCK:
+				case HTTP1.UNLOCK:
 					unlock((Request) request, (Response) response);
 					break;
-				case HTTP.GET:
+				case HTTP1.GET:
 					get((Request) request, (Response) response);
 					break;
-				case HTTP.HEAD:
+				case HTTP1.HEAD:
 					head((Request) request, (Response) response);
 					break;
-				case HTTP.POST:
+				case HTTP1.POST:
 					FormDataCoder.read(request);
 					post((Request) request, (Response) response);
 					break;
-				case HTTP.PUT:
+				case HTTP1.PUT:
 					put((Request) request, (Response) response);
 					break;
-				case HTTP.PATCH:
+				case HTTP1.PATCH:
 					patch((Request) request, (Response) response);
 					break;
-				case HTTP.DELETE:
+				case HTTP1.DELETE:
 					delete((Request) request, (Response) response);
 					break;
-				case HTTP.TRACE:
+				case HTTP1.TRACE:
 					trace((Request) request, (Response) response);
 					break;
-				case HTTP.OPTIONS:
+				case HTTP1.OPTIONS:
 					options((Request) request, (Response) response);
 					break;
-				case HTTP.CONNECT:
+				case HTTP1.CONNECT:
 					connect((Request) request, (Response) response);
 					break;
 				default:
