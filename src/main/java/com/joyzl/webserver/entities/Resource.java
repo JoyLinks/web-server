@@ -3,7 +3,7 @@ package com.joyzl.webserver.entities;
 import java.util.List;
 
 /**
- * 资源
+ * 资源请求
  * 
  * @author ZhangXi 2024年11月27日
  */

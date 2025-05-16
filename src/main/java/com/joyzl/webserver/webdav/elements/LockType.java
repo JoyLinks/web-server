@@ -5,6 +5,10 @@ package com.joyzl.webserver.webdav.elements;
  * 
  * @author ZhangXi 2025年2月9日
  */
-public class LockType {
+public enum LockType {
+	/*-
+	 * <!ELEMENT locktype (write) >
+	 */
 
+	WRITE
 }

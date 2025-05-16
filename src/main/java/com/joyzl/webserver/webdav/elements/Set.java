@@ -1,5 +1,6 @@
 package com.joyzl.webserver.webdav.elements;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,18 +22,18 @@ public class Set extends Element implements Prop {
 	   </D:set>
 	 */
 
+	private final Map<String, Object> prop = new HashMap<>();
+
 	@Override
 	public Map<String, Object> getProp() {
-		// TODO Auto-generated method stub
-		return null;
+		return prop;
 	}
 
 	@Override
 	public void setProp(Map<String, Object> values) {
-		// TODO Auto-generated method stub
-
+		if (prop != values) {
+			prop.clear();
+			prop.putAll(values);
+		}
 	}
-	/*-
-	 * <!ELEMENT set (prop) >
-	 */
 }

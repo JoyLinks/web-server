@@ -42,7 +42,7 @@ public class WEBDAV {
 	final static String TIMEOUT = "timeout";
 	final static String WRITE = "write";
 
-	// 属性
+	// 属性(也以元素方式呈现)
 
 	final static String CREATION_DATE = "creationdate";
 	final static String DISPLAY_NAME = "displayname";
@@ -55,7 +55,27 @@ public class WEBDAV {
 	final static String RESOURCE_TYPE = "resourcetype";
 	final static String SUPPORTED_LOCK = "supportedlock";
 
-	final static String INFINITY = "infinity";
+	// 属性（系统支持的属性）
+	// BASIC
+	final static String LAST_MODIFIED_TIME = "lastmodifiedtime";
+	final static String LAST_ACCESS_TIME = "lastaccesstime";
+	final static String CREATION_TIME = "creationtime";
+	final static String SIZE = "size";
+	final static String IS_REGULARFILE = "isregularfile";
+	final static String IS_DIRECTORY = "isdirectory";
+	final static String IS_SYMBOLIC_LINK = "issymboliclink";
+	final static String IS_OTHER = "isother";
+	final static String FILE_KEY = "filekey";
+	// DOS
+	final static String READONLY = "readonly";
+	final static String HIDDEN = "hidden";
+	final static String SYSTEM = "system";
+	final static String ARCHIVE = "archive";
+	// POSIX
+	final static String PERMISSIONS = "permissions";
+	final static String GROUP = "group";
+	// ACL
+	final static String ACL = "acl";
 
 	public final static StringSeeker NAMES = new StringSeeker(new String[] { //
 			ACTIVELOCK, //
@@ -88,6 +108,7 @@ public class WEBDAV {
 			STATUS, //
 			TIMEOUT, //
 			WRITE, //
+
 			CREATION_DATE, //
 			DISPLAY_NAME, //
 			GET_CONTENT_LANGUAGE, //
@@ -97,6 +118,5 @@ public class WEBDAV {
 			GET_LAST_MODIFIED, //
 			LOCK_DISCOVERY, //
 			RESOURCE_TYPE, //
-			SUPPORTED_LOCK, //
-			INFINITY });
+			SUPPORTED_LOCK });
 }

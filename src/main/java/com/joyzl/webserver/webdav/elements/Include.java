@@ -1,7 +1,5 @@
 package com.joyzl.webserver.webdav.elements;
 
-import java.util.List;
-
 /**
  * 包含在PROPFIND响应中的属性的名称
  * 
@@ -16,7 +14,7 @@ public interface Include {
 	   </D:include>
 	 */
 
-	List<String> getInclude();
+	java.util.Set<String> getInclude();
 
-	void setInclude(List<String> values);
+	void setInclude(java.util.Set<String> values);
 }

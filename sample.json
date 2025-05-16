@@ -12,6 +12,12 @@
 				"names": [
 					"www.joyzl.com"
 				],
+				"webdavs":[
+					{
+						"path":"/webdav",
+						"content": "/var/www/webdav"
+					}
+				],
 				"servlets": [],
 				"resources": [
 					{

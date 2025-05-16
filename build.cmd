@@ -1,5 +1,7 @@
 @ECHO OFF
 
+java -version
+
 set dir=%cd%\publish
 IF EXIST %dir% RD /S /Q %dir%
 
@@ -16,7 +18,8 @@ jlink ^
 	--strip-debug^
 	--bind-services^
 	--include-locales=zh-cn^
-	--add-modules com.joyzl.webserver
+	--add-modules com.joyzl.webserver^
+	--ignore-signing-information
 
 %dir%\server\bin\java --list-modules
 

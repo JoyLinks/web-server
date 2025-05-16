@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # chkconfig: 2345 80 90
-# description: JOYZL SCADA Server
-# processname: scada-server
+# description: JOYZL Server
+# processname: joyzl-server
 
 WORK_HOME=$(cd $(dirname "$0") && pwd)
 JAVA_HOME="$WORK_HOME"
-JAVA_SERVICE="com.joyzl.scada.servo/com.joyzl.scada.servo.Application"
-JAVA_OPTIONS="-Xms256m -Xmx1024m -Duser.dir=$WORK_HOME -Dfile.encoding=UTF-8 -Duser.timezone=GMT+08"
+JAVA_SERVICE="com.joyzl.server/com.joyzl.server.Application"
+JAVA_OPTIONS="-Xms256m -Xmx2048m -Duser.dir=$WORK_HOME -Dfile.encoding=UTF-8 -Duser.timezone=GMT+08"
 JAVA_EXECUTE="--module-path $WORK_HOME/lib/service --module $JAVA_SERVICE"
 JAVA_COMMAND="$JAVA_HOME/bin/java -server $JAVA_OPTIONS $JAVA_EXECUTE"
 
-SERVER=scada-servo
+SERVER=joyzl-server
 # command augment -debug/-f
 AUGMENT2=$2
 

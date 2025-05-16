@@ -5,8 +5,13 @@ package com.joyzl.webserver.webdav.elements;
  * 
  * @author ZhangXi 2025年2月9日
  */
-public interface Collection {
+public class Collection extends Element {
 	/*-
 	 * <!ELEMENT collection EMPTY >
 	 */
+
+	public final static Collection INSTANCE = new Collection();
+
+	private Collection() {
+	}
 }

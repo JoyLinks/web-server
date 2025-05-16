@@ -8,15 +8,17 @@ import java.util.List;
  * 
  * @author ZhangXi 2025年2月9日
  */
-public class Response extends Element implements Href, Location, ResponseDescription, Error {
+public class Response extends Element implements Href, Location, Status, ResponseDescription, Error {
 	/*-
 	 * <!ELEMENT response (href, ((href*, status)|(propstat+)), error?, responsedescription? , location?) >
 	 */
 
+	private boolean dir;
 	private String href;
 	private List<Propstat> propstat = new ArrayList<>();
 	private String location;
 	private String description;
+	private String status = OK;
 	private String error;
 
 	@Override
@@ -68,5 +70,25 @@ public class Response extends Element implements Href, Location, ResponseDescrip
 	@Override
 	public void setError(String value) {
 		error = value;
+	}
+
+	@Override
+	public String getStatus() {
+		return status;
+	}
+
+	@Override
+	public void setStatus(String value) {
+		status = value;
+	}
+
+	/** 指示是否目录 */
+	public boolean dir() {
+		return dir;
+	}
+
+	/** 设置是否目录 */
+	public void dir(boolean dir) {
+		this.dir = dir;
 	}
 }

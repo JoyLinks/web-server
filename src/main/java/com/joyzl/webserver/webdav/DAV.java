@@ -21,7 +21,5 @@ public class DAV extends Header {
 
 	@Override
 	public void setHeaderValue(String value) {
-		// TODO Auto-generated method stub
-
 	}
 }

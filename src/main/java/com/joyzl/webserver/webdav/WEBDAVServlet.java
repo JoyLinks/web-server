@@ -1,10 +1,8 @@
 package com.joyzl.webserver.webdav;
 
-import com.joyzl.network.http.FormDataCoder;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
-import com.joyzl.network.http.QueryCoder;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.web.WEBServlet;
@@ -21,8 +19,6 @@ public abstract class WEBDAVServlet extends WEBServlet {
 		if (request.getVersion() != HTTP1.V11 && request.getVersion() != HTTP1.V10) {
 			response.setStatus(HTTPStatus.VERSION_NOT_SUPPORTED);
 		} else {
-			// 将查询参数合并到请求参数中
-			QueryCoder.parse(request);
 			switch (request.getMethod()) {
 				case HTTP1.PROPFIND:
 					propfind((Request) request, (Response) response);
@@ -52,7 +48,6 @@ public abstract class WEBDAVServlet extends WEBServlet {
 					head((Request) request, (Response) response);
 					break;
 				case HTTP1.POST:
-					FormDataCoder.read(request);
 					post((Request) request, (Response) response);
 					break;
 				case HTTP1.PUT:

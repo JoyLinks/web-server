@@ -1,7 +1,7 @@
 package com.joyzl.webserver.webdav.elements;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -14,8 +14,8 @@ public class Propfind extends Element implements Prop, Propname, Allprop, Includ
 	 * <!ELEMENT propfind ( propname | (allprop, include?) | prop ) >
 	 */
 
-	private Map<String, Object> prop = new HashMap<>();
-	private List<String> include;
+	private final Map<String, Object> prop = new HashMap<>();
+	private final java.util.Set<String> include = new HashSet<>();
 	private boolean propname;
 	private boolean allprop;
 
@@ -49,12 +49,15 @@ public class Propfind extends Element implements Prop, Propname, Allprop, Includ
 	}
 
 	@Override
-	public List<String> getInclude() {
+	public java.util.Set<String> getInclude() {
 		return include;
 	}
 
 	@Override
-	public void setInclude(List<String> values) {
-		include = values;
+	public void setInclude(java.util.Set<String> values) {
+		if (include != values) {
+			include.clear();
+			include.addAll(values);
+		}
 	}
 }

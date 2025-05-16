@@ -25,7 +25,7 @@ public class Propstat extends Element implements Prop, Status, Error, ResponseDe
 
 	private Map<String, Object> prop = new HashMap<>();
 	private String description;
-	private String status;
+	private String status = OK;
 	private String error;
 
 	@Override

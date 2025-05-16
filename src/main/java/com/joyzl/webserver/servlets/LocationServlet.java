@@ -1,14 +1,15 @@
 package com.joyzl.webserver.servlets;
 
+import java.io.IOException;
+
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTP1;
+import com.joyzl.network.http.HTTP1ClientHandler;
 import com.joyzl.network.http.HTTPClient;
-import com.joyzl.network.http.HTTPClientHandler;
 import com.joyzl.network.http.HTTPCoder;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Host;
-import com.joyzl.network.http.Message;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
@@ -20,7 +21,7 @@ import com.joyzl.network.web.WEBServlet;
 public class LocationServlet extends WEBServlet {
 
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
-		final HTTPClientHandler handler = new HTTPClientHandler() {
+		final HTTP1ClientHandler handler = new HTTP1ClientHandler() {
 			@Override
 			public void connected(HTTPClient client) throws Exception {
 				final Request r = new Request();
@@ -31,8 +32,7 @@ public class LocationServlet extends WEBServlet {
 			}
 
 			@Override
-			public void received(HTTPClient client, Message message) throws Exception {
-				final Response response = (Response) message;
+			protected void received(HTTPClient client, Request request, Response response) {
 				if (response.getStatus() == 301) {
 					// https://www.cs.odu.edu/~mln/
 					System.out.println(response.getHeader(HTTP1.Location));
@@ -40,15 +40,19 @@ public class LocationServlet extends WEBServlet {
 				} else {
 					System.out.println(HTTPCoder.toString((DataBuffer) response.getContent()));
 				}
+				try {
+					final DataBuffer buffer = DataBuffer.instance();
+					HTTPCoder.writeCommand(buffer, response);
+					HTTPCoder.writeHeaders(buffer, response);
+					HTTPCoder.writeContent(buffer, response);
+					response.setContent(buffer);
+				} catch (IOException e) {
 
-				final DataBuffer buffer = DataBuffer.instance();
-				HTTPCoder.writeCommand(buffer, response);
-				HTTPCoder.writeHeaders(buffer, response);
-				HTTPCoder.writeContent(buffer, response);
-				response.setContent(buffer);
+				}
 				response.addHeader(ContentType.NAME, MIMEType.TEXT_HTML);
 				response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
 				response(chain, response);
+
 			}
 		};
 		final HTTPClient client = new HTTPClient(handler, "www.cs.odu.edu", 80);
