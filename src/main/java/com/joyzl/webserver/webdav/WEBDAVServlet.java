@@ -5,7 +5,7 @@ import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.WEBServlet;
+import com.joyzl.webserver.web.WEBServlet;
 
 /**
  * WEBDAV
@@ -16,61 +16,61 @@ public abstract class WEBDAVServlet extends WEBServlet {
 
 	@Override
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
-		if (request.getVersion() != HTTP1.V11 && request.getVersion() != HTTP1.V10) {
-			response.setStatus(HTTPStatus.VERSION_NOT_SUPPORTED);
-		} else {
+		if (request.getVersion() == HTTP1.V20 || request.getVersion() == HTTP1.V11 || request.getVersion() == HTTP1.V10) {
 			switch (request.getMethod()) {
 				case HTTP1.PROPFIND:
-					propfind((Request) request, (Response) response);
+					propfind(request, response);
 					break;
 				case HTTP1.PROPPATCH:
-					proppatch((Request) request, (Response) response);
+					proppatch(request, response);
 					break;
 				case HTTP1.MKCOL:
-					mkcol((Request) request, (Response) response);
+					mkcol(request, response);
 					break;
 				case HTTP1.COPY:
-					copy((Request) request, (Response) response);
+					copy(request, response);
 					break;
 				case HTTP1.MOVE:
-					move((Request) request, (Response) response);
+					move(request, response);
 					break;
 				case HTTP1.LOCK:
-					lock((Request) request, (Response) response);
+					lock(request, response);
 					break;
 				case HTTP1.UNLOCK:
-					unlock((Request) request, (Response) response);
+					unlock(request, response);
 					break;
 				case HTTP1.GET:
-					get((Request) request, (Response) response);
+					get(request, response);
 					break;
 				case HTTP1.HEAD:
-					head((Request) request, (Response) response);
+					head(request, response);
 					break;
 				case HTTP1.POST:
-					post((Request) request, (Response) response);
+					post(request, response);
 					break;
 				case HTTP1.PUT:
-					put((Request) request, (Response) response);
+					put(request, response);
 					break;
 				case HTTP1.PATCH:
-					patch((Request) request, (Response) response);
+					patch(request, response);
 					break;
 				case HTTP1.DELETE:
-					delete((Request) request, (Response) response);
+					delete(request, response);
 					break;
 				case HTTP1.TRACE:
-					trace((Request) request, (Response) response);
+					trace(request, response);
 					break;
 				case HTTP1.OPTIONS:
-					options((Request) request, (Response) response);
+					options(request, response);
 					break;
 				case HTTP1.CONNECT:
-					connect((Request) request, (Response) response);
+					connect(request, response);
 					break;
 				default:
 					response.setStatus(HTTPStatus.BAD_REQUEST);
 			}
+		} else {
+			response.setStatus(HTTPStatus.VERSION_NOT_SUPPORTED);
 		}
 		response(chain, response);
 	}
@@ -89,4 +89,28 @@ public abstract class WEBDAVServlet extends WEBServlet {
 
 	protected abstract void unlock(Request request, Response response) throws Exception;
 
+	@Override
+	protected void post(Request request, Response response) throws Exception {
+		response.addHeader(HTTP1.Allow, "OPTIONS,PROPFIND,PROPPATCH,MKCOL,DELETE,GET,PUT,COPY,MOVE,LOCK,UNLOCK,TRACE");
+		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+	}
+
+	@Override
+	protected void patch(Request request, Response response) throws Exception {
+		response.addHeader(HTTP1.Allow, "OPTIONS,PROPFIND,PROPPATCH,MKCOL,DELETE,GET,PUT,COPY,MOVE,LOCK,UNLOCK,TRACE");
+		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+	}
+
+	@Override
+	protected void connect(Request request, Response response) throws Exception {
+		response.addHeader(HTTP1.Allow, "OPTIONS,PROPFIND,PROPPATCH,MKCOL,DELETE,GET,PUT,COPY,MOVE,LOCK,UNLOCK,TRACE");
+		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+	}
+
+	@Override
+	protected void options(Request request, Response response) throws Exception {
+		response.addHeader(HTTP1.Allow, "OPTIONS,PROPFIND,PROPPATCH,MKCOL,DELETE,GET,PUT,COPY,MOVE,LOCK,UNLOCK,TRACE");
+		response.addHeader(HTTP1.DAV, "1,3");
+		response.setStatus(HTTPStatus.OK);
+	}
 }

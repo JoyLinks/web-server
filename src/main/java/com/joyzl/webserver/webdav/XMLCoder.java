@@ -2,15 +2,18 @@ package com.joyzl.webserver.webdav;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map.Entry;
 
 import com.joyzl.codec.XMLElementType;
 import com.joyzl.codec.XMLReader;
 import com.joyzl.codec.XMLWriter;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
+import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.http.ContentLength;
+import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.Request;
+import com.joyzl.webserver.web.MIMEType;
+import com.joyzl.webserver.webdav.elements.Collection;
 import com.joyzl.webserver.webdav.elements.Element;
 import com.joyzl.webserver.webdav.elements.Error;
 import com.joyzl.webserver.webdav.elements.Include;
@@ -18,15 +21,14 @@ import com.joyzl.webserver.webdav.elements.LockInfo;
 import com.joyzl.webserver.webdav.elements.LockScope;
 import com.joyzl.webserver.webdav.elements.LockType;
 import com.joyzl.webserver.webdav.elements.Multistatus;
-import com.joyzl.webserver.webdav.elements.Owner;
 import com.joyzl.webserver.webdav.elements.Prop;
+import com.joyzl.webserver.webdav.elements.Property;
 import com.joyzl.webserver.webdav.elements.PropertyUpdate;
 import com.joyzl.webserver.webdav.elements.Propfind;
+import com.joyzl.webserver.webdav.elements.Propname;
 import com.joyzl.webserver.webdav.elements.Propstat;
-import com.joyzl.webserver.webdav.elements.Remove;
 import com.joyzl.webserver.webdav.elements.Response;
 import com.joyzl.webserver.webdav.elements.ResponseDescription;
-import com.joyzl.webserver.webdav.elements.Set;
 import com.joyzl.webserver.webdav.elements.Status;
 
 /**
@@ -34,21 +36,19 @@ import com.joyzl.webserver.webdav.elements.Status;
  * 
  * @author ZhangXi 2025年2月14日
  */
-public class XMLCoder extends WEBDAV {
+class XMLCoder extends WEBDAV {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T read(Class<T> clazz, Request request) throws IOException {
-		if (request.hasContent()) {
-			try (final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent(), true)) {
-				if (clazz == Propfind.class) {
-					return (T) readPropfind(input);
-				}
-				if (clazz == PropertyUpdate.class) {
-					return (T) readPropertyUpdate(input);
-				}
-				if (clazz == LockInfo.class) {
-					return (T) readLockInfo(input);
-				}
+		try (final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent(), true)) {
+			if (clazz == Propfind.class) {
+				return (T) readPropfind(input);
+			}
+			if (clazz == PropertyUpdate.class) {
+				return (T) readPropertyUpdate(input);
+			}
+			if (clazz == LockInfo.class) {
+				return (T) readLockInfo(input);
 			}
 		}
 		return null;
@@ -91,7 +91,12 @@ public class XMLCoder extends WEBDAV {
 			} else if (reader.isName(LOCKTYPE)) {
 				lockInfo.setLockType(readLockType(reader));
 			} else if (reader.isName(OWNER)) {
-				lockInfo.setOwner(readOwner(reader));
+				if (reader.isEnd()) {
+					lockInfo.setOwner(reader.getContent());
+				} else {
+					lockInfo.setOwner(reader.getChildren());
+					reader.nextElement();
+				}
 			} else {
 				// 忽略无法识别的元素
 			}
@@ -127,19 +132,6 @@ public class XMLCoder extends WEBDAV {
 		return type;
 	}
 
-	private static Owner readOwner(XMLReader reader) throws IOException {
-		final Owner owner = new Owner();
-		final int depth = reader.depth();
-		while (reader.nextElement() && reader.depth() > depth) {
-			if (reader.isName(HREF)) {
-				owner.setHref(reader.getContent());
-			} else {
-				// 忽略无法识别的元素
-			}
-		}
-		return owner;
-	}
-
 	public static PropertyUpdate readPropertyUpdate(InputStream input) throws IOException {
 		final XMLReader reader = new XMLReader(input);
 		while (reader.nextElement()) {
@@ -153,40 +145,19 @@ public class XMLCoder extends WEBDAV {
 	private static PropertyUpdate readPropertyUpdate(XMLReader reader) throws IOException {
 		final PropertyUpdate propertyUpdate = new PropertyUpdate();
 		final int depth = reader.depth();
+		int type = Property.NORMAL;
 		while (reader.nextElement() && reader.depth() > depth) {
 			if (reader.isName(SET)) {
-				propertyUpdate.setSet(new Set());
-				readSet(reader, propertyUpdate.getSet());
+				type = Property.SET;
 			} else if (reader.isName(REMOVE)) {
-				propertyUpdate.setRemove(new Remove());
-				readRemove(reader, propertyUpdate.getRemove());
+				type = Property.REMOVE;
+			} else if (reader.isName(PROP)) {
+				readProps(reader, propertyUpdate, type);
 			} else {
 				// 忽略无法识别的元素
 			}
 		}
 		return propertyUpdate;
-	}
-
-	private static void readSet(XMLReader reader, Set set) throws IOException {
-		final int depth = reader.depth();
-		while (reader.nextElement() && reader.depth() > depth) {
-			if (reader.isName(PROP)) {
-				readProp(reader, set);
-			} else {
-				// 忽略无法识别的元素
-			}
-		}
-	}
-
-	private static void readRemove(XMLReader reader, Remove remove) throws IOException {
-		final int depth = reader.depth();
-		while (reader.nextElement() && reader.depth() > depth) {
-			if (reader.isName(PROP)) {
-				readProp(reader, remove);
-			} else {
-				// 忽略无法识别的元素
-			}
-		}
 	}
 
 	public static Propfind readPropfind(InputStream input) throws IOException {
@@ -204,7 +175,7 @@ public class XMLCoder extends WEBDAV {
 		final int depth = reader.depth();
 		while (reader.nextElement() && reader.depth() > depth) {
 			if (reader.isName(PROP)) {
-				readProp(reader, propfind);
+				readProps(reader, propfind, Property.NORMAL);
 			} else if (reader.isName(PROPNAME)) {
 				propfind.setPropname(true);
 			} else if (reader.isName(ALLPROP)) {
@@ -218,33 +189,84 @@ public class XMLCoder extends WEBDAV {
 		return propfind;
 	}
 
-	private static void readInclude(XMLReader reader, Include include) throws IOException {
+	private static void readInclude(XMLReader reader, Include parent) throws IOException {
 		final int depth = reader.depth();
 		while (reader.nextElement() && reader.depth() > depth) {
-			include.getInclude().add(reader.getName());
+			parent.include().add(reader.getName());
 		}
 	}
 
-	private static void readProp(XMLReader reader, Prop prop) throws IOException {
+	private static void readProps(XMLReader reader, Propname parent, int type) throws IOException {
 		final int depth = reader.depth();
 		while (reader.nextElement() && reader.depth() > depth) {
 			if (reader.isEnd()) {
-
-			}
-			if (reader.hasContent()) {
-				prop.getProp().put(reader.getName(), reader.getContent());
+				if (reader.hasContent()) {
+					throw new IOException("WEBDAV无效的PROPERTY");
+				}
+				parent.prop().add(getName(reader));
 			} else {
-				prop.getProp().put(reader.getName(), null);
+				throw new IOException("WEBDAV无效的PROPERTY");
 			}
 		}
 	}
 
-	public static void write(Multistatus multistatus, com.joyzl.network.http.Response output) throws IOException {
-
+	private static void readProps(XMLReader reader, Prop parent, int type) throws IOException {
+		Property property;
+		final int depth = reader.depth();
+		while (reader.nextElement() && reader.depth() > depth) {
+			property = new Property(type);
+			property.setName(getName(reader));
+			if (reader.isEnd()) {
+				if (reader.hasContent()) {
+					property.setValue(reader.getContent());
+				}
+			} else {
+				property.setValue(reader.getChildren());
+				reader.nextElement();
+			}
+			parent.prop().add(property);
+		}
 	}
 
-	public static void write(Multistatus multistatus, OutputStream output) throws IOException {
-		write(multistatus, new XMLWriter(output));
+	private static String getName(XMLReader reader) throws IOException {
+		// 注意：将规范之外的命名空间合并到名称中
+		if (reader.hasPrefix()) {
+			if (!reader.isPrefix("D")) {
+				String xmlns = reader.getAttributeValue("xmlns:" + reader.getPrefix());
+				if (xmlns == null || xmlns.length() == 0) {
+					// <bar:foo xmlns:bar=""/>
+					throw new IOException("WEBDAV命名空间缺失");
+				} else {
+					// <R:author
+					// xmlns:R="http://ns.example.com/boxschema/">xxx</R:author>
+					xmlns = xmlns.replace('/', '(');
+					xmlns = xmlns.replace(':', ')');
+					return reader.getName() + " " + xmlns;
+				}
+			}
+		} else if (reader.hasAttributes()) {
+			String xmlns = reader.getAttributeValue("xmlns");
+			if (xmlns != null && xmlns.length() > 0) {
+				if (!"DAV:".equals(xmlns)) {
+					// <somename xmlns="http://example.com/alpha"/>
+					xmlns = xmlns.replace('/', '(');
+					xmlns = xmlns.replace(':', ')');
+					return reader.getName() + " " + xmlns;
+				}
+			}
+		}
+		return reader.getName();
+	}
+
+	public static void write(Multistatus multistatus, com.joyzl.network.http.Response response) throws IOException {
+		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_XML);
+		try (final DataBufferOutput output = new DataBufferOutput();
+			final XMLWriter writer = new XMLWriter(output);) {
+			write(multistatus, writer);
+			writer.flush();
+			response.setContent(output.buffer());
+			response.addHeader(ContentLength.NAME, Integer.toString(output.buffer().readable()));
+		}
 	}
 
 	private static void write(Multistatus multistatus, XMLWriter writer) throws IOException {
@@ -277,16 +299,7 @@ public class XMLCoder extends WEBDAV {
 					if (propstat != null) {
 						writer.writeElement("D", PROPSTAT);
 
-						writer.writeElement("D", PROP);
-						for (Entry<String, Object> entry : propstat.getProp().entrySet()) {
-							writer.writeElement(entry.getKey());
-							if (entry.getValue() != null) {
-								writer.writeContent(entry.getValue().toString());
-							}
-							writer.endElement(entry.getKey());
-						}
-						writer.endElement("D", PROP);
-
+						writeProps(propstat, writer);
 						writeError(propstat, writer);
 						writeStatus(propstat, writer);
 						writeResponseDescription(propstat, writer);
@@ -305,6 +318,52 @@ public class XMLCoder extends WEBDAV {
 		writer.endElement("D", MULTISTATUS);
 	}
 
+	private static void writeProps(Prop parent, XMLWriter writer) throws IOException {
+		// 命名空间错误 <bar:foo xmlns:bar=""/>
+		// 自定义命名空间 <prop1 xmlns="http://example.com/neon/litmus/">value1</prop1>
+		// 注意：自定义命名空间已合并到名称中
+
+		String name, xmlns;
+		writer.writeElement("D", PROP);
+		if (parent.hasProp()) {
+			for (Property property : parent.prop()) {
+				if (RESOURCE_TYPE.equals(property.getName())) {
+					// <resourcetype><collection/></resourcetype>
+
+					writer.writeElement("D", property.getName());
+					if (property.getValue() == Collection.INSTANCE) {
+						writer.writeElement("D", COLLECTION);
+						writer.endElement("D", COLLECTION);
+					}
+					writer.endElement("D", property.getName());
+				} else {
+					// 拆解含有命名空间的名称
+					int s = property.getName().indexOf(' ');
+					if (s > 0) {
+						name = property.getName().substring(0, s);
+						xmlns = property.getName().substring(s + 1);
+						xmlns = xmlns.replace('(', '/');
+						xmlns = xmlns.replace(')', ':');
+
+					} else {
+						name = property.getName();
+						xmlns = null;
+					}
+
+					writer.writeElement(name);
+					if (xmlns != null) {
+						writer.writeAttribute("xmlns", xmlns);
+					}
+					if (property.getValue() != null) {
+						writer.writeContent(property.getValue().toString());
+					}
+					writer.endElement(name);
+				}
+			}
+		}
+		writer.endElement("D", PROP);
+	}
+
 	private static void writeError(Error e, XMLWriter writer) throws IOException {
 		if (e.getError() != null) {
 			writer.writeElement("D", ERROR);
@@ -316,6 +375,8 @@ public class XMLCoder extends WEBDAV {
 	private static void writeStatus(Status s, XMLWriter writer) throws IOException {
 		if (s.getStatus() != null) {
 			writer.writeElement("D", STATUS);
+			writer.writeContent(s.version());
+			writer.writeContent(" ");
 			writer.writeContent(s.getStatus());
 			writer.endElement("D", STATUS);
 		}

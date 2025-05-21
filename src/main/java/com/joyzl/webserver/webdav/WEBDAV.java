@@ -3,7 +3,16 @@ package com.joyzl.webserver.webdav;
 import com.joyzl.network.StringSeeker;
 
 /**
+ * WebDAV:HTTP Extensions for Web Distributed Authoring and Versioning
+ * 
+ * <pre>
  * http://www.webdav.org/
+ * RFC2518:HTTP Extensions for Distributed Authoring
+ * RFC3253:Versioning Extensions to WebDAV
+ * RFC4791:Calendaring Extensions to WebDAV (CalDAV)
+ * RFC4918:HTTP Extensions for Web Distributed Authoring and Versioning
+ * RFC5689:Extended MKCOL for Web Distributed Authoring and Versioning
+ * </pre>
  * 
  * @author ZhangXi 2025年2月12日
  */
@@ -77,6 +86,7 @@ public class WEBDAV {
 	// ACL
 	final static String ACL = "acl";
 
+	/** 所有元素名称（含属性） */
 	public final static StringSeeker NAMES = new StringSeeker(new String[] { //
 			ACTIVELOCK, //
 			ALLPROP, //
@@ -109,6 +119,19 @@ public class WEBDAV {
 			TIMEOUT, //
 			WRITE, //
 
+			CREATION_DATE, //
+			DISPLAY_NAME, //
+			GET_CONTENT_LANGUAGE, //
+			GET_CONTENT_LENGTH, //
+			GET_CONTENT_TYPE, //
+			GET_ETAG, //
+			GET_LAST_MODIFIED, //
+			LOCK_DISCOVERY, //
+			RESOURCE_TYPE, //
+			SUPPORTED_LOCK });
+
+	/** 所有属性名称（活属性） */
+	public final static StringSeeker PROPERTIES = new StringSeeker(new String[] { //
 			CREATION_DATE, //
 			DISPLAY_NAME, //
 			GET_CONTENT_LANGUAGE, //

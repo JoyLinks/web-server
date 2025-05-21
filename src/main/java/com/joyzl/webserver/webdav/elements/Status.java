@@ -14,9 +14,17 @@ public interface Status {
 	 */
 	public final static String OK = "200 OK";
 
+	/** HTTP Status "200 OK" */
 	String getStatus();
 
+	/** HTTP Version "HTTP/1.1" */
+	String version();
+
+	/** HTTP Status "200 OK" */
 	void setStatus(String value);
+
+	/** HTTP Version "HTTP/1.1" */
+	void version(String value);
 
 	default void setStatus(HTTPStatus value) {
 		setStatus(value.code() + " " + value.text());

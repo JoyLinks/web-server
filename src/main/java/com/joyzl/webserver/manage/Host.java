@@ -4,14 +4,15 @@ import java.net.SocketAddress;
 
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.Authenticates;
-import com.joyzl.network.web.Servlet;
-import com.joyzl.network.web.Wildcards;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.entities.Address;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
+import com.joyzl.webserver.entities.Webdav;
 import com.joyzl.webserver.manage.Access.AccessCommonLogger;
+import com.joyzl.webserver.web.Authenticates;
+import com.joyzl.webserver.web.Servlet;
+import com.joyzl.webserver.web.Wildcards;
 
 public class Host extends com.joyzl.webserver.entities.Host {
 
@@ -34,6 +35,15 @@ public class Host extends com.joyzl.webserver.entities.Host {
 					SERVLETS.bind("*", Manager.instance(resource));
 				} else {
 					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
+				}
+			}
+		}
+		for (Webdav webdav : getWebdavs()) {
+			if (Utility.noEmpty(webdav.getContent())) {
+				if (Utility.isEmpty(webdav.getPath())) {
+					SERVLETS.bind("*", Manager.instance(webdav));
+				} else {
+					SERVLETS.bind(webdav.getPath(), Manager.instance(webdav));
 				}
 			}
 		}

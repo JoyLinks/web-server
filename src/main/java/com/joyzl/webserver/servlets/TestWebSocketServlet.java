@@ -1,12 +1,12 @@
 package com.joyzl.webserver.servlets;
 
 import com.joyzl.network.buffer.DataBuffer;
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.WEBSocketHandler;
 import com.joyzl.network.http.WEBSocketMessage;
-import com.joyzl.network.web.ServletPath;
-import com.joyzl.network.web.WEBSocket;
+import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.web.WEBSocket;
 
 @ServletPath(path = "/ws")
 public class TestWebSocketServlet extends WEBSocket {
@@ -16,7 +16,7 @@ public class TestWebSocketServlet extends WEBSocket {
 		return new Handler();
 	}
 
-	class Handler extends com.joyzl.network.web.WEBSocketHandler {
+	class Handler extends com.joyzl.webserver.web.WEBSocketHandler {
 		@Override
 		public void connected(HTTPSlave slave) throws Exception {
 			System.out.println("WEB Socket connected");
@@ -30,7 +30,7 @@ public class TestWebSocketServlet extends WEBSocket {
 		public void received(HTTPSlave slave, WEBSocketMessage message) throws Exception {
 			System.out.println(message);
 			if (message.getContent() != null) {
-				System.out.println(HTTPCoder.toString((DataBuffer) message.getContent()));
+				System.out.println(HTTP1Coder.toString((DataBuffer) message.getContent()));
 
 			}
 		}

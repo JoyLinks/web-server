@@ -7,7 +7,6 @@ package com.joyzl.webserver.web;
 
 import java.io.IOException;
 
-import com.joyzl.network.Utility;
 import com.joyzl.network.http.AcceptEncoding;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentEncoding;
@@ -16,7 +15,7 @@ import com.joyzl.network.http.ContentRange;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.ETag;
 import com.joyzl.network.http.HTTP1;
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.MultipartRange;
 import com.joyzl.network.http.MultipartRange.MultipartRanges;
@@ -25,6 +24,7 @@ import com.joyzl.network.http.Range.ByteRange;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
+import com.joyzl.webserver.Utility;
 
 /**
  * 资源请求服务
@@ -98,9 +98,9 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	// 如果请求资源需要重定向，例如请求目录 /eno 将其重定向为 /eno/
 
 	// 建议分块大小
-	private int BLOCK_BYTES = HTTPCoder.BLOCK_BYTES;
+	private int BLOCK_BYTES = HTTP1Coder.BLOCK_BYTES;
 	// 最大请求大小
-	private int MAX_BYTES = HTTPCoder.BLOCK_BYTES * 1024;
+	private int MAX_BYTES = HTTP1Coder.BLOCK_BYTES * 1024;
 	// 最多请求分块
 	private int PART_MAX = MAX_BYTES / BLOCK_BYTES;
 	// 强制分块请求
@@ -109,7 +109,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	@Override
 	protected void options(Request request, Response response) throws Exception {
 		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
-		response.setStatus(HTTPStatus.OK);
 	}
 
 	@Override
@@ -120,13 +119,11 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void head(Request request, Response response) throws Exception {
-		// execute(request, response, false);
 		locate(request, response, false);
 	}
 
 	@Override
 	protected void get(Request request, Response response) throws Exception {
-		// execute(request, response, true);
 		locate(request, response, true);
 	}
 
@@ -146,7 +143,7 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	 * 资源定位
 	 */
 	protected void locate(Request request, Response response, boolean content) throws IOException {
-		WEBResource resource = find(request.getPath());
+		WEBResource resource = find(Utility.normalizePath(request.getPath()));
 		if (resource == null) {
 			// 资源未找到
 			response.setStatus(HTTPStatus.NOT_FOUND);
@@ -154,8 +151,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 			resource = find(HTTPStatus.NOT_FOUND);
 			if (resource != null) {
 				whole(request, response, resource, content);
-			} else {
-				response.addHeader(ContentLength.NAME, "0");
 			}
 		} else if (resource.getETag() == null) {
 			// 缺失ETag则认为无法定位资源或为目录
@@ -171,7 +166,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 					// 目录重定向 /dir 且存在 重定向 /dir/
 					response.setStatus(HTTPStatus.MOVED_PERMANENTLY);
 					response.addHeader(HTTP1.Location, resource.getContentLocation());
-					response.addHeader(ContentLength.NAME, "0");
 				} else {
 					if (resource.getContentType() == null) {
 						// 不允许浏览目录
@@ -180,12 +174,9 @@ public abstract class WEBResourceServlet extends WEBServlet {
 						resource = find(HTTPStatus.NOT_FOUND);
 						if (resource != null) {
 							whole(request, response, resource, content);
-						} else {
-							response.addHeader(ContentLength.NAME, "0");
 						}
 					} else {
 						// 列出子目录和文件
-						response.setStatus(HTTPStatus.OK);
 						response.addHeader(ContentType.NAME, resource.getContentType());
 						whole(request, response, resource, content);
 					}
@@ -225,7 +216,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 			if (Utility.equal(value, resource.getETag())) {
 				response.setStatus(HTTPStatus.NOT_MODIFIED);
 			} else {
-				response.setStatus(HTTPStatus.OK);
 				whole(request, response, resource, content);
 			}
 			return;
@@ -235,7 +225,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 		value = request.getHeader(HTTP1.If_Match);
 		if (Utility.noEmpty(value)) {
 			if (Utility.equal(value, resource.getETag())) {
-				response.setStatus(HTTPStatus.OK);
 				whole(request, response, resource, content);
 			} else {
 				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
@@ -249,7 +238,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 			if (Utility.equal(value, resource.getLastModified())) {
 				response.setStatus(HTTPStatus.NOT_MODIFIED);
 			} else {
-				response.setStatus(HTTPStatus.OK);
 				whole(request, response, resource, content);
 			}
 			return;
@@ -259,7 +247,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 		value = request.getHeader(HTTP1.If_Unmodified_Since);
 		if (Utility.noEmpty(value)) {
 			if (Utility.equal(value, resource.getLastModified())) {
-				response.setStatus(HTTPStatus.OK);
 				whole(request, response, resource, content);
 			} else {
 				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
@@ -280,7 +267,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 				if (Utility.equal(value, resource.getLastModified())) {
 					parts(request, response, resource, range, content);
 				} else {
-					response.setStatus(HTTPStatus.OK);
 					whole(request, response, resource, content);
 				}
 			} else {
@@ -290,7 +276,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 		}
 
 		// 其它情况
-		response.setStatus(HTTPStatus.OK);
 		whole(request, response, resource, content);
 	}
 
@@ -313,7 +298,7 @@ public abstract class WEBResourceServlet extends WEBServlet {
 		// Content-Encoding: br/gzip/deflate
 		response.addHeader(ContentEncoding.NAME, encoding);
 
-		if (length < HTTPCoder.BLOCK_BYTES) {
+		if (length < HTTP1Coder.BLOCK_BYTES) {
 			// Content-Length:9
 			response.addHeader(ContentLength.NAME, Long.toString(length));
 		} else {
@@ -422,7 +407,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 			// Content-Encoding: br/gzip/deflate
 			response.addHeader(ContentEncoding.NAME, encoding);
 			// 200 OK
-			response.setStatus(HTTPStatus.OK);
 			if (content) {
 				response.setContent(resource.getData(encoding));
 			}

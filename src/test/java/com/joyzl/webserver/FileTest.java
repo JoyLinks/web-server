@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTP1Coder;
 
 class FileTest {
 
@@ -112,7 +112,7 @@ class FileTest {
 
 		final File file = new File("test.dat");
 		try (FileOutputStream output = new FileOutputStream(file)) {
-			for (int index = 0; index < HTTPCoder.BLOCK_BYTES; index++) {
+			for (int index = 0; index < HTTP1Coder.BLOCK_BYTES; index++) {
 				output.write(index);
 			}
 			output.flush();

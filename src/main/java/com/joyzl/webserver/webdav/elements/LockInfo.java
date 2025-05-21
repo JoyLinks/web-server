@@ -12,13 +12,13 @@ public class LockInfo extends Element {
 
 	private LockScope lockScope;
 	private LockType lockType;
-	private Owner owner;
+	private String owner;
 
-	public Owner getOwner() {
+	public String getOwner() {
 		return owner;
 	}
 
-	public void setOwner(Owner value) {
+	public void setOwner(String value) {
 		owner = value;
 	}
 

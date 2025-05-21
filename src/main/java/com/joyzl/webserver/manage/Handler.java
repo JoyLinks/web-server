@@ -8,8 +8,8 @@ import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.Servlet;
-import com.joyzl.network.web.WEBServlet;
+import com.joyzl.webserver.web.Servlet;
+import com.joyzl.webserver.web.WEBServlet;
 
 /**
  * Server Handler
@@ -26,6 +26,7 @@ public final class Handler extends HTTPServerHandler {
 
 	@Override
 	public void received(HTTPSlave slave, Request request, Response response) {
+		// Logger.debug(request);
 		if (server.deny(slave.getRemoteAddress())) {
 			server.access().record(slave, request);
 			// 黑名单阻止

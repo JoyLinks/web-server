@@ -4,6 +4,12 @@
 		"servlets": [
 			"com.joyzl.webserver.servlets"
 		],
+		"webdavs": [
+			{
+				"path": "/webdav/*",
+				"content": "D:\\GitHub\\HTTP-TEST\\webdav"
+			}
+		],
 		"resources": [
 			{
 				"cache": "D:\\GitHub\\HTTP-TEST\\sites\\cache",

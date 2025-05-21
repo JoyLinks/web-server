@@ -5,4 +5,5 @@ module com.joyzl.webserver {
 	exports com.joyzl.webserver.entities to com.joyzl.odbs;
 	exports com.joyzl.webserver.manage to com.joyzl.odbs;
 	exports com.joyzl.webserver.web;
+	exports com.joyzl.webserver.webdav;
 }

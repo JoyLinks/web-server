@@ -18,6 +18,7 @@ public class Response extends Element implements Href, Location, Status, Respons
 	private List<Propstat> propstat = new ArrayList<>();
 	private String location;
 	private String description;
+	private String version;
 	private String status = OK;
 	private String error;
 
@@ -70,6 +71,16 @@ public class Response extends Element implements Href, Location, Status, Respons
 	@Override
 	public void setError(String value) {
 		error = value;
+	}
+
+	@Override
+	public String version() {
+		return version;
+	}
+
+	@Override
+	public void version(String value) {
+		version = value;
 	}
 
 	@Override

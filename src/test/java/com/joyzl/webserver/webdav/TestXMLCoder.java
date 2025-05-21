@@ -23,11 +23,11 @@ class TestXMLCoder {
 		final String xml = """
 				<?xml version="1.0" encoding="utf-8" ?>
 				<D:propfind xmlns:D="DAV:">
-				    <D:prop xmlns:R="http://ns.example.com/boxschema/">
-				        <R:bigbox/>
-				        <R:author/>
-				        <R:DingALing/>
-				        <R:Random/>
+				    <D:prop>
+				        <bigbox/>
+				        <author/>
+				        <DingALing/>
+				        <Random/>
 				    </D:prop>
 				</D:propfind>
 				""";
@@ -36,10 +36,10 @@ class TestXMLCoder {
 
 		Propfind propfind = XMLCoder.readPropfind(input(xml));
 		assertEquals(propfind.getProp().size(), 4);
-		assertTrue(propfind.getProp().containsKey("bigbox"));
-		assertTrue(propfind.getProp().containsKey("author"));
-		assertTrue(propfind.getProp().containsKey("DingALing"));
-		assertTrue(propfind.getProp().containsKey("Random"));
+		assertTrue(propfind.getProp().contains("bigbox"));
+		assertTrue(propfind.getProp().contains("author"));
+		assertTrue(propfind.getProp().contains("DingALing"));
+		assertTrue(propfind.getProp().contains("Random"));
 	}
 
 	@Test
@@ -98,17 +98,17 @@ class TestXMLCoder {
 	void testPROPPATCH1() throws Exception {
 		final String xml = """
 				<?xml version="1.0" encoding="utf-8" ?>
-				<D:propertyupdate xmlns:D="DAV:" xmlns:Z="http://ns.example.com/standards/z39.50/">
+				<D:propertyupdate xmlns:D="DAV:">
 				    <D:set>
 				        <D:prop>
-				            <Z:Authors>
-				                <Z:Author>Jim Whitehead</Z:Author>
-				                <Z:Author>Roy Fielding</Z:Author>
-				            </Z:Authors>
+				            <Authors>
+				                <Author>Jim Whitehead</Z:Author>
+				                <Author>Roy Fielding</Z:Author>
+				            </Authors>
 				        </D:prop>
 				    </D:set>
 				    <D:remove>
-				        <D:prop><Z:Copyright-Owner/></D:prop>
+				        <D:prop><Copyright-Owner/></D:prop>
 				    </D:remove>
 				</D:propertyupdate>
 				""";
@@ -116,11 +116,7 @@ class TestXMLCoder {
 		assertTrue(element instanceof PropertyUpdate);
 
 		PropertyUpdate property = XMLCoder.readPropertyUpdate(input(xml));
-		assertNotNull(property.getSet());
-		assertNotNull(property.getRemove());
-		assertEquals(property.getSet().getProp().size(), 2);
-		assertEquals(property.getRemove().getProp().size(), 1);
-		// {Authors=null, Author=Roy Fielding}
+		assertEquals(property.getProp().size(), 2);
 	}
 
 	@Test

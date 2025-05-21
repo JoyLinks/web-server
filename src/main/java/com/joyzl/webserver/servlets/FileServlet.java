@@ -9,10 +9,10 @@ import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.DirectoryResource;
-import com.joyzl.network.web.FileResource;
-import com.joyzl.network.web.FileResourceServlet;
-import com.joyzl.network.web.WEBResource;
+import com.joyzl.webserver.web.DirectoryResource;
+import com.joyzl.webserver.web.FileResource;
+import com.joyzl.webserver.web.FileResourceServlet;
+import com.joyzl.webserver.web.WEBResource;
 
 public class FileServlet extends FileResourceServlet {
 

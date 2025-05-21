@@ -10,3 +10,9 @@ JOYZL Server 是纯粹中国智造，完全开源的国产化服务器软件；
 ### 语言代码（Language Codes）
 
 由 [www.iso639-3.sil.org](http://www.iso639-3.sil.org/) 提供 ISO 639-3 语言代码集
+
+### 致谢
+
+[MDN WEB Docs](https://developer.mozilla.org)
+
+[WebDAV test suite litmus](https://github.com/tolsen/litmus)

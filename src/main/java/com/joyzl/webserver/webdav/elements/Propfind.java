@@ -1,21 +1,20 @@
 package com.joyzl.webserver.webdav.elements;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * PROPFIND方法返回的属性
  * 
  * @author ZhangXi 2025年2月9日
  */
-public class Propfind extends Element implements Prop, Propname, Allprop, Include {
+public class Propfind extends Element implements Propname, Allprop, Include {
 	/*-
 	 * <!ELEMENT propfind ( propname | (allprop, include?) | prop ) >
 	 */
 
-	private final Map<String, Object> prop = new HashMap<>();
-	private final java.util.Set<String> include = new HashSet<>();
+	private Set<String> prop;
+	private Set<String> include;
 	private boolean propname;
 	private boolean allprop;
 
@@ -36,16 +35,33 @@ public class Propfind extends Element implements Prop, Propname, Allprop, Includ
 	}
 
 	@Override
-	public Map<String, Object> getProp() {
+	public Set<String> getProp() {
 		return prop;
 	}
 
 	@Override
-	public void setProp(Map<String, Object> values) {
+	public void setProp(Set<String> values) {
 		if (prop != values) {
-			prop.clear();
-			prop.putAll(values);
+			if (prop == null) {
+				prop = values;
+			} else {
+				prop.clear();
+				prop.addAll(values);
+			}
 		}
+	}
+
+	@Override
+	public Set<String> prop() {
+		if (prop == null) {
+			prop = new HashSet<>();
+		}
+		return prop;
+	}
+
+	@Override
+	public boolean hasProp() {
+		return prop != null && prop.size() > 0;
 	}
 
 	@Override
@@ -56,8 +72,25 @@ public class Propfind extends Element implements Prop, Propname, Allprop, Includ
 	@Override
 	public void setInclude(java.util.Set<String> values) {
 		if (include != values) {
-			include.clear();
-			include.addAll(values);
+			if (include == null) {
+				include = new HashSet<>(values);
+			} else {
+				include.clear();
+				include.addAll(values);
+			}
 		}
+	}
+
+	@Override
+	public boolean hasInclude() {
+		return include != null && include.size() > 0;
+	}
+
+	@Override
+	public Set<String> include() {
+		if (include == null) {
+			include = new HashSet<>();
+		}
+		return include;
 	}
 }

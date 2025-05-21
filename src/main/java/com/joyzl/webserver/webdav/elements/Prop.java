@@ -1,6 +1,6 @@
 package com.joyzl.webserver.webdav.elements;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * 资源相关的属性
@@ -12,7 +12,11 @@ public interface Prop {
 	 * <!ELEMENT prop ANY >
 	 */
 
-	public Map<String, Object> getProp();
+	List<Property> prop();
 
-	public void setProp(Map<String, Object> values);
+	List<Property> getProp();
+
+	void setProp(List<Property> values);
+
+	boolean hasProp();
 }

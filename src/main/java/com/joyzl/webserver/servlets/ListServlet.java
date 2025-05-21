@@ -9,9 +9,9 @@ import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.network.web.MIMEType;
-import com.joyzl.network.web.ServletPath;
-import com.joyzl.network.web.WEBServlet;
+import com.joyzl.webserver.web.MIMEType;
+import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/ls.cgi")
 public class ListServlet extends WEBServlet {

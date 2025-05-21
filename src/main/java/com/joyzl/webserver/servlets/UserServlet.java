@@ -3,8 +3,8 @@ package com.joyzl.webserver.servlets;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.CROSServlet;
-import com.joyzl.network.web.ServletPath;
+import com.joyzl.webserver.web.CROSServlet;
+import com.joyzl.webserver.web.ServletPath;
 
 /**
  * 服务管理接口

@@ -14,14 +14,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.joyzl.network.web.AuthenticateBasic;
-import com.joyzl.network.web.AuthenticateBearer;
-import com.joyzl.network.web.AuthenticateDigest;
-import com.joyzl.network.web.FileResourceServlet;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Server;
+import com.joyzl.webserver.entities.Webdav;
+import com.joyzl.webserver.web.AuthenticateBasic;
+import com.joyzl.webserver.web.AuthenticateBearer;
+import com.joyzl.webserver.web.AuthenticateDigest;
+import com.joyzl.webserver.web.FileResourceServlet;
+import com.joyzl.webserver.webdav.FileWEBDAVServlet;
 
 /**
  * 服务管理
@@ -84,6 +86,11 @@ public final class Manager {
 		}
 	}
 
+	public static FileWEBDAVServlet instance(Webdav webdav) throws IOException {
+		final FileWEBDAVServlet servlet = new FileWEBDAVServlet(webdav.getPath(), webdav.getContent());
+		return servlet;
+	}
+
 	public static FileResourceServlet instance(Resource resource) throws IOException {
 		final FileResourceServlet servlet;
 		if (Utility.noEmpty(resource.getCache())) {
@@ -107,7 +114,7 @@ public final class Manager {
 		return servlet;
 	}
 
-	public static com.joyzl.network.web.Authenticate instance(Authenticate authenticate) throws IOException {
+	public static com.joyzl.webserver.web.Authenticate instance(Authenticate authenticate) throws IOException {
 		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());

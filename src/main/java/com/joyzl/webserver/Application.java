@@ -9,7 +9,6 @@ import com.joyzl.logger.LogSetting;
 import com.joyzl.logger.Logger;
 import com.joyzl.network.Executor;
 import com.joyzl.webserver.manage.Manager;
-import com.joyzl.webserver.manage.Serializer;
 
 /**
  * WEB HTTP Server
@@ -138,7 +137,7 @@ public class Application {
 		Executor.initialize(Utility.value(properties.getProperty("THREAD"), 0));
 		Logger.info("THREAD SIZE: " + Executor.getThreadSize());
 
-		Logger.debug(Serializer.ODBS().checkString());
+		// Logger.debug(Serializer.ODBS().checkString());
 
 		// 初始化服务集
 		Manager.initialize(properties.getProperty("SERVERS"));

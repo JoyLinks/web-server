@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.joyzl.network.Utility;
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.webserver.Utility;
 
 /**
  * 文件资源
@@ -16,7 +16,7 @@ import com.joyzl.network.http.HTTPStatus;
  */
 public class FileResourceServlet extends WEBResourceServlet {
 
-	/** 文件大小阈值，超过此限制的文件无须压缩或缓存 */
+	/** 文件大小阈值(16M)，超过此限制的文件无须压缩或缓存 */
 	public final static int MAX = 1024 * 1024 * 16;
 
 	/** 资源对象缓存 */
@@ -54,7 +54,7 @@ public class FileResourceServlet extends WEBResourceServlet {
 	}
 
 	public FileResourceServlet(String base, File root, File cache) {
-		this.base = correctBase(base);
+		this.base = Utility.correctBase(base);
 		this.root = root;
 		if (cache != null) {
 			// 构建缓存目录，如果不存在
@@ -71,7 +71,7 @@ public class FileResourceServlet extends WEBResourceServlet {
 	protected WEBResource find(String path) {
 		WEBResource resource = resources.get(path);
 		if (resource == null) {
-			final File file = resolveFile(path);
+			final File file = Utility.resolveFile(root, base, path);
 			if (file.exists()) {
 				if (file.isDirectory()) {
 					// DIR
@@ -123,13 +123,13 @@ public class FileResourceServlet extends WEBResourceServlet {
 			// 查找指定目录
 			final File file = new File(error, status.code() + ".html");
 			if (file.exists()) {
-				return new FileResource(resolvePath(file), file, false);
+				return new FileResource(Utility.resolvePath(root, base, file), file, false);
 			}
 		}
 		// 查找根目录
 		final File file = new File(root, status.code() + ".html");
 		if (file.exists()) {
-			return new FileResource(resolvePath(file), file, false);
+			return new FileResource(Utility.resolvePath(root, base, file), file, false);
 		}
 		return null;
 	}
@@ -138,238 +138,23 @@ public class FileResourceServlet extends WEBResourceServlet {
 	 * 构建文件为资源对象，资源对象提供WEB所需的标头和内容
 	 */
 	protected WEBResource makeResource(File file) {
-		// 不缓存 不压缩
-		// 不缓存 要压缩
-		// 要缓存 不压缩
-		// 要缓存 要压缩
+		// 1.不缓存 不压缩
+		// 2.不缓存 要压缩
+		// 3.要缓存 不压缩
+		// 4.要缓存 要压缩
 		if (canCache(file)) {
 			if (canCompress(file)) {
-				return new FileCacheCompressResource(resolvePath(file), file, isWeak());
+				return new FileCacheCompressResource(Utility.resolvePath(root, base, file), file, isWeak());
 			} else {
-				return new FileCacheResource(resolvePath(file), file, isWeak());
+				return new FileCacheResource(Utility.resolvePath(root, base, file), file, isWeak());
 			}
 		} else {
 			if (canCompress(file)) {
-				return new FileCompressResource(resolvePath(file), file, cache, isWeak());
+				return new FileCompressResource(Utility.resolvePath(root, base, file), file, cache, isWeak());
 			} else {
-				return new FileResource(resolvePath(file), file, isWeak());
+				return new FileResource(Utility.resolvePath(root, base, file), file, isWeak());
 			}
 		}
-	}
-
-	/**
-	 * 修正并移除基础路径通配符
-	 */
-	protected String correctBase(String base) {
-		if (base != null) {
-			if (base.length() == 0 || "*".equals(base) || "/".equals(base) || "/*".equals(base)) {
-				return null;
-			}
-			if (base.charAt(0) == '*') {
-				return null;
-			}
-			if (base.charAt(base.length() - 1) == '*') {
-				return base.substring(0, base.length() - 1);
-			}
-			final int star = base.indexOf('*');
-			if (star > 0) {
-				return base.substring(star);
-			}
-		}
-		return base;
-	}
-
-	/**
-	 * 路径回溯后返回标准化路径，移除路径中的"."和".."
-	 * <p>
-	 * 路径回溯攻击：通过设计攻击路径，通过回溯符".."以此访问超出指定资源根目录之外的文件，例如存储密码的文件。
-	 * 为防止此攻击行为应在定位资源文件之前应执行路径回溯。
-	 * </p>
-	 */
-	public static String normalize(String path) {
-		if (path.length() == 0) {
-			return path;
-		}
-		if (path.length() == 1) {
-			if (".".equals(path)) {
-				return "/";
-			}
-			return path;
-		}
-		if (path.length() == 2) {
-			if ("/.".equals(path) || "./".equals(path) || "..".equals(path)) {
-				return "/";
-			}
-			return path;
-		}
-		if (path.length() == 3) {
-			if ("/..".equals(path) || "/./".equals(path) || "../".equals(path)) {
-				return "/";
-			}
-			return path;
-		}
-
-		// /root/.
-		// /root/..
-		// /root/text/./../img.png
-
-		char c;
-		int last = -1;
-		StringBuilder sb = new StringBuilder(path.length());
-		for (int end = path.length() - 1, index = 0; index <= end; index++) {
-			c = path.charAt(index);
-			if (c == '/') {
-				if (index < end) {
-					c = path.charAt(++index);
-					if (c == '.') {
-						if (index < end) {
-							c = path.charAt(++index);
-							if (c == '/') {
-								if (index < end) {
-									// */./*
-									index--;
-									continue;
-								} else {
-									// */./
-									sb.append('/');
-									break;
-								}
-							} else if (c == '.') {
-								if (index < end) {
-									c = path.charAt(++index);
-									if (c == '/') {
-										if (index < end) {
-											// */../*
-											if (last > 0) {
-												sb.setLength(last - 1);
-												last = -1;
-											} else {
-												// 二次回退，须查找
-												last = sb.length();
-												while (--last >= 0) {
-													if (sb.charAt(last) == '/') {
-														sb.setLength(last);
-														break;
-													}
-												}
-												last = -1;
-											}
-											index--;
-											continue;
-										} else {
-											// */../
-											if (last > 0) {
-												sb.setLength(last);
-												break;
-											} else {
-												// "/"
-											}
-										}
-									} else {
-										last = index - 2;
-										sb.append('/');
-										sb.append('.');
-										sb.append('.');
-									}
-								} else {
-									// */..
-									sb.setLength(last);
-									break;
-								}
-							} else {
-								last = index - 1;
-								sb.append('/');
-								sb.append('.');
-							}
-						} else {
-							// */.
-							sb.append('/');
-							break;
-						}
-					} else {
-						last = index;
-						sb.append('/');
-					}
-				}
-			}
-			sb.append(c);
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * 请求路径转换为实际文件（或目录）；<br>
-	 * 调用此方法之前意味着path已经与含有通配符的base匹配，此方法不会重复检查path是否匹配base。
-	 * 
-	 * @param root 资源根目录
-	 * @param path 请求的完整路径
-	 * @param base 请求的资源路径前缀
-	 */
-	protected File resolveFile(String path) {
-		// "/" *
-		// URL "http://192.168.0.1"
-		// - URI "/"
-		// - PTH "/"
-		// URL "http://192.168.0.1/content/main.html"
-		// - URI /content/main.html
-		// - PTH /content/main.html
-		// URL "http://192.168.0.1/eno"
-		// - URI "/eno/index.html"
-		// - PTH "/eno/index.html"
-
-		if (base == null || base.length() == 0) {
-			if (path.length() > 1) {
-				return new File(root, path);
-			} else {
-				return root;
-			}
-		}
-
-		// "/xx" *
-		// "/xx/" *
-		// URL "http://192.168.0.1/xx/"
-		// - URI "/xx/"
-		// - PTH "/"
-		// URL "http://192.168.0.1/xx/content/main.html"
-		// - URI "/xx/content/main.html"
-		// - PTH "/content/main.html"
-
-		// "/.well-known/access.log"
-
-		if (path.length() == base.length()) {
-			return root;
-		}
-		if (path.length() - base.length() == 1) {
-			if (path.charAt(path.length() - 1) == '/') {
-				return root;
-			}
-		}
-		return new File(root, path.substring(base.length()));
-
-		// * ".png"
-		// * "/image.png"
-		// 视为无base全path定位
-
-		// "/image/" * ".png"
-		// 视为"/image/" *
-	}
-
-	/**
-	 * 资源文件转换为资源路径<br>
-	 * 调用此方法意味着已经在资源根目录定位到文件，此方法不会检查file是否位于root目录中
-	 * 
-	 * @param file 资源文件
-	 * @return 资源路径 URL 的 PATH 部
-	 */
-	protected String resolvePath(File file) {
-		String path = file.getPath().substring(root.getPath().length()).replace('\\', '/');
-		if (base == null || base.length() == 0) {
-			return path;
-		}
-		if (base.charAt(base.length() - 1) == '/') {
-			return base + path;
-		}
-		return base + '/' + path;
 	}
 
 	/**

@@ -7,14 +7,14 @@ import java.util.Map.Entry;
 import com.joyzl.network.buffer.DataBufferOutput;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTP1;
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.network.web.MIMEType;
-import com.joyzl.network.web.ServletPath;
-import com.joyzl.network.web.WEBServlet;
+import com.joyzl.webserver.web.MIMEType;
+import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/limited3/env.cgi")
 public class TestLimited3EnvServlet extends WEBServlet {
@@ -33,21 +33,21 @@ public class TestLimited3EnvServlet extends WEBServlet {
 
 		writer.write("REQUEST_METHOD = ");
 		writer.write(request.getMethod());
-		writer.write(HTTPCoder.LF);
+		writer.write(HTTP1Coder.LF);
 
 		writer.write("REMOTE_USER = ");
 		writer.write("bda");
-		writer.write(HTTPCoder.LF);
+		writer.write(HTTP1Coder.LF);
 
 		if (request.hasParameters()) {
 			for (Entry<String, String[]> entry : request.getParametersMap().entrySet()) {
 				writer.write(entry.getKey());
 				writer.write("=");
 				writer.write(String.join(",", entry.getValue()));
-				writer.write(HTTPCoder.LF);
+				writer.write(HTTP1Coder.LF);
 			}
 		}
-		writer.write(HTTPCoder.LF);
+		writer.write(HTTP1Coder.LF);
 		writer.flush();
 
 		// TODO 请求参数保持顺序

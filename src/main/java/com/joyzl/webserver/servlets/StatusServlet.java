@@ -4,8 +4,8 @@ import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.web.ServletPath;
-import com.joyzl.network.web.WEBServlet;
+import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/status.cgi")
 public class StatusServlet extends WEBServlet {

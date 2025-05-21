@@ -7,15 +7,15 @@ import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTP1ClientHandler;
 import com.joyzl.network.http.HTTPClient;
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Host;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.network.web.MIMEType;
-import com.joyzl.network.web.ServletPath;
-import com.joyzl.network.web.WEBServlet;
+import com.joyzl.webserver.web.MIMEType;
+import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/location.cgi")
 public class LocationServlet extends WEBServlet {
@@ -38,13 +38,13 @@ public class LocationServlet extends WEBServlet {
 					System.out.println(response.getHeader(HTTP1.Location));
 					return;
 				} else {
-					System.out.println(HTTPCoder.toString((DataBuffer) response.getContent()));
+					System.out.println(HTTP1Coder.toString((DataBuffer) response.getContent()));
 				}
 				try {
 					final DataBuffer buffer = DataBuffer.instance();
-					HTTPCoder.writeCommand(buffer, response);
-					HTTPCoder.writeHeaders(buffer, response);
-					HTTPCoder.writeContent(buffer, response);
+					HTTP1Coder.writeCommand(buffer, response);
+					HTTP1Coder.writeHeaders(buffer, response);
+					HTTP1Coder.writeContent(buffer, response);
 					response.setContent(buffer);
 				} catch (IOException e) {
 

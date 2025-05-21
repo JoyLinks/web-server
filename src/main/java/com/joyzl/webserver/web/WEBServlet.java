@@ -9,11 +9,12 @@ import com.joyzl.network.Utility;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.chain.ChainChannel;
 import com.joyzl.network.http.Connection;
+import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.Date;
 import com.joyzl.network.http.FormDataCoder;
 import com.joyzl.network.http.HTTP1;
-import com.joyzl.network.http.HTTPCoder;
+import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.QueryCoder;
@@ -42,35 +43,35 @@ public abstract class WEBServlet extends Servlet {
 			// response.setStatus(HTTPStatus.OK);
 			switch (request.getMethod()) {
 				case HTTP1.GET:
-					get((Request) request, (Response) response);
+					get(request, response);
 					break;
 				case HTTP1.HEAD:
-					head((Request) request, (Response) response);
+					head(request, response);
 					break;
 				case HTTP1.POST:
 					FormDataCoder.read(request);
-					post((Request) request, (Response) response);
+					post(request, response);
 					break;
 				case HTTP1.PUT:
-					put((Request) request, (Response) response);
+					put(request, response);
 					break;
 				case HTTP1.PATCH:
-					patch((Request) request, (Response) response);
+					patch(request, response);
 					break;
 				case HTTP1.DELETE:
-					delete((Request) request, (Response) response);
+					delete(request, response);
 					break;
 				case HTTP1.TRACE:
-					trace((Request) request, (Response) response);
+					trace(request, response);
 					break;
 				case HTTP1.OPTIONS:
-					options((Request) request, (Response) response);
+					options(request, response);
 					break;
 				case HTTP1.CONNECT:
-					connect((Request) request, (Response) response);
+					connect(request, response);
 					break;
 				default:
-					response.setStatus(HTTPStatus.BAD_REQUEST);
+					response.setStatus(HTTPStatus.NOT_IMPLEMENTED);
 			}
 
 			// 设置响应后关闭标志
@@ -85,6 +86,14 @@ public abstract class WEBServlet extends Servlet {
 
 	protected void response(ChainChannel chain, Response response) {
 		if (response.getStatus() > 0) {
+			// 自动补齐实体长度头
+			if (!response.hasContent()) {
+				// 能否避免检查集合中是否存在Content-Length?
+				// HEAD请求时即便没有内容也不能覆盖Content-Length
+				if (!response.hasHeader(ContentLength.NAME)) {
+					response.addHeader(ContentLength.NAME, ContentLength.ZERO);
+				}
+			}
 			// 以下默认处理回复发送消息头
 			response.addHeader(SERVER);
 			response.addHeader(DATE);
@@ -128,12 +137,15 @@ public abstract class WEBServlet extends Servlet {
 	protected void trace(Request request, Response response) throws Exception {
 		// 响应内容类型为 ContentType: message/http
 		response.addHeader(ContentType.NAME, MIMEType.MESSAGE_HTTP);
-		// Test ca531a5 需求为 CHUNKED
-		// response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
+
 		// 将请求首行和头部作为内容原样返回
 		final DataBuffer buffer = DataBuffer.instance();
-		HTTPCoder.writeCommand(buffer, request);
-		HTTPCoder.writeHeaders(buffer, request);
+		HTTP1Coder.writeCommand(buffer, request);
+		HTTP1Coder.writeHeaders(buffer, request);
 		response.setContent(buffer);
+
+		// Test ca531a5 需求为 CHUNKED
+		// response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
+		response.addHeader(ContentLength.NAME, Integer.toString(buffer.readable()));
 	}
 }

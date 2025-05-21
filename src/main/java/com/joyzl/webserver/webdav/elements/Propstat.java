@@ -1,7 +1,7 @@
 package com.joyzl.webserver.webdav.elements;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * 属性和状态
@@ -23,22 +23,47 @@ public class Propstat extends Element implements Prop, Status, Error, ResponseDe
 	    </D:propstat> 
 	 */
 
-	private Map<String, Object> prop = new HashMap<>();
+	private List<Property> prop;
 	private String description;
+	private String version;
 	private String status = OK;
 	private String error;
 
+	public Propstat() {
+	}
+
+	public Propstat(String version) {
+		this.version = version;
+	}
+
 	@Override
-	public Map<String, Object> getProp() {
+	public List<Property> getProp() {
 		return prop;
 	}
 
 	@Override
-	public void setProp(Map<String, Object> values) {
+	public void setProp(List<Property> values) {
 		if (prop != values) {
-			prop.clear();
-			prop.putAll(values);
+			if (prop == null) {
+				prop = values;
+			} else {
+				prop.clear();
+				prop.addAll(values);
+			}
 		}
+	}
+
+	@Override
+	public List<Property> prop() {
+		if (prop == null) {
+			prop = new ArrayList<>();
+		}
+		return prop;
+	}
+
+	@Override
+	public boolean hasProp() {
+		return prop != null && prop.size() > 0;
 	}
 
 	@Override
@@ -69,5 +94,15 @@ public class Propstat extends Element implements Prop, Status, Error, ResponseDe
 	@Override
 	public void setError(String value) {
 		error = value;
+	}
+
+	@Override
+	public String version() {
+		return version;
+	}
+
+	@Override
+	public void version(String value) {
+		version = value;
 	}
 }
