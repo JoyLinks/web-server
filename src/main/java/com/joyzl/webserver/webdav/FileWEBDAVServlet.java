@@ -289,14 +289,15 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			return;
 		}
 
-		Path path = Utility.resolvePath(root, base, request.getPath());
+		final String host = request.getHeader(HTTP1.Host);
 		final Multistatus multistatus = new Multistatus(request.getVersion());
+		Path path = Utility.resolvePath(root, base, request.getPath());
 		com.joyzl.webserver.webdav.elements.Response r;
 
 		if (propfind == null || propfind.isAllprop()) {
 			// 返回死属性和定义的活属性 (include)
 
-			r = response(multistatus, path);
+			r = response(multistatus, path, host);
 			defaultAttributes(r, path, propfind.getInclude());
 			if (r.ok()) {
 				if (r.dir()) {
@@ -305,7 +306,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							final Iterator<Path> iterator = stream.iterator();
 							while (iterator.hasNext()) {
 								path = iterator.next();
-								r = response(multistatus, path);
+								r = response(multistatus, path, host);
 								defaultAttributes(r, path, propfind.getInclude());
 							}
 						}
@@ -315,7 +316,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							iterator.next();// 忽略第一个（遍历根）
 							while (iterator.hasNext()) {
 								path = iterator.next();
-								r = response(multistatus, path);
+								r = response(multistatus, path, host);
 								defaultAttributes(r, path, propfind.getInclude());
 							}
 						}
@@ -325,7 +326,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		} else if (propfind.isPropname()) {
 			// 获取所有属性名称(不含属性值)
 
-			r = response(multistatus, path);
+			r = response(multistatus, path, host);
 			attributeNames(r, path);
 			if (r.ok()) {
 				if (r.dir()) {
@@ -334,7 +335,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							final Iterator<Path> iterator = stream.iterator();
 							while (iterator.hasNext()) {
 								path = iterator.next();
-								r = response(multistatus, path);
+								r = response(multistatus, path, host);
 								attributeNames(r, path);
 							}
 						}
@@ -344,7 +345,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							iterator.next();// 忽略第一个（遍历根）
 							while (iterator.hasNext()) {
 								path = iterator.next();
-								r = response(multistatus, path);
+								r = response(multistatus, path, host);
 								attributeNames(r, path);
 							}
 						}
@@ -354,7 +355,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		} else if (propfind.hasProp()) {
 			// 获取指定属性值
 
-			r = response(multistatus, path);
+			r = response(multistatus, path, host);
 			attributes(r, path, propfind.getProp());
 			if (r.ok()) {
 				if (r.dir()) {
@@ -363,7 +364,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							final Iterator<Path> iterator = stream.iterator();
 							while (iterator.hasNext()) {
 								path = iterator.next();
-								r = response(multistatus, path);
+								r = response(multistatus, path, host);
 								attributes(r, path, propfind.getProp());
 							}
 						}
@@ -373,7 +374,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							iterator.next();// 忽略第一个（遍历根）
 							while (iterator.hasNext()) {
 								path = iterator.next();
-								r = response(multistatus, path);
+								r = response(multistatus, path, host);
 								attributes(r, path, propfind.getProp());
 							}
 						}
@@ -409,8 +410,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				} else if (type == JSON) {
 					update = JSONCoder.read(PropertyUpdate.class, request);
 				} else {
-					// 未指定请求接口类型JSON/XML
-					// 请求和响应均需要此格式
 					response.setStatus(HTTPStatus.BAD_REQUEST);
 					return;
 				}
@@ -438,8 +437,9 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					return;
 				}
 
+				final String host = request.getHeader(HTTP1.Host);
 				final Multistatus multistatus = new Multistatus(request.getVersion());
-				com.joyzl.webserver.webdav.elements.Response r = response(multistatus, path);
+				com.joyzl.webserver.webdav.elements.Response r = response(multistatus, path, host);
 
 				if (update.hasProp()) {
 					Propstat propstat1 = new Propstat(r.version());
@@ -584,6 +584,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				}
 			}
 
+			final String host = request.getHeader(HTTP1.Host);
 			final Multistatus multistatus = new Multistatus(request.getVersion());
 			try {
 				Files.walkFileTree(path, new SimpleFileVisitor<>() {
@@ -592,7 +593,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 						try {
 							Files.delete(file);
 						} catch (IOException e) {
-							response(multistatus, file, e);
+							response(multistatus, file, host, e);
 						}
 						return FileVisitResult.CONTINUE;
 					}
@@ -603,17 +604,17 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							try {
 								Files.delete(dir);
 							} catch (IOException ex) {
-								response(multistatus, dir, ex);
+								response(multistatus, dir, host, ex);
 							}
 						} else {
-							response(multistatus, dir, e);
+							response(multistatus, dir, host, e);
 						}
 						return FileVisitResult.CONTINUE;
 					}
 
 					@Override
 					public FileVisitResult visitFileFailed(Path file, IOException e) {
-						response(multistatus, file, e);
+						response(multistatus, file, host, e);
 						return FileVisitResult.CONTINUE;
 					}
 				});
@@ -748,6 +749,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			}
 		} else if (depth > 1) {
 			if (Files.isDirectory(source, options)) {
+				final String host = request.getHeader(HTTP1.Host);
 				final Multistatus multistatus = new Multistatus(request.getVersion());
 				try {
 					Files.walkFileTree(source, new SimpleFileVisitor<>() {
@@ -756,7 +758,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							try {
 								Files.copy(dir, target.resolve(source.relativize(dir)), StandardCopyOption.COPY_ATTRIBUTES);
 							} catch (IOException e) {
-								response(multistatus, dir, e);
+								response(multistatus, dir, host, e);
 							}
 							return FileVisitResult.CONTINUE;
 						}
@@ -766,14 +768,14 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							try {
 								Files.copy(file, target.resolve(source.relativize(file)), StandardCopyOption.COPY_ATTRIBUTES);
 							} catch (IOException e) {
-								response(multistatus, file, e);
+								response(multistatus, file, host, e);
 							}
 							return FileVisitResult.CONTINUE;
 						}
 
 						@Override
 						public FileVisitResult visitFileFailed(Path file, IOException e) {
-							response(multistatus, file, e);
+							response(multistatus, file, host, e);
 							return FileVisitResult.CONTINUE;
 						}
 					});
@@ -904,6 +906,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		}
 
 		if (Files.isDirectory(source, options)) {
+			final String host = request.getHeader(HTTP1.Host);
 			final Multistatus multistatus = new Multistatus(request.getVersion());
 			try {
 				Files.walkFileTree(source, new SimpleFileVisitor<>() {
@@ -914,7 +917,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							// Files.move(dir,target.resolve(source.relativize(dir)));
 							Files.createDirectory(target.resolve(source.relativize(dir)));
 						} catch (IOException e) {
-							response(multistatus, dir, e);
+							response(multistatus, dir, host, e);
 						}
 						return FileVisitResult.CONTINUE;
 					}
@@ -924,14 +927,14 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 						try {
 							Files.move(file, target.resolve(source.relativize(file)));
 						} catch (IOException e) {
-							response(multistatus, file, e);
+							response(multistatus, file, host, e);
 						}
 						return FileVisitResult.CONTINUE;
 					}
 
 					@Override
 					public FileVisitResult visitFileFailed(Path file, IOException e) {
-						response(multistatus, file, e);
+						response(multistatus, file, host, e);
 						return FileVisitResult.CONTINUE;
 					}
 
@@ -1022,14 +1025,14 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
-	private com.joyzl.webserver.webdav.elements.Response response(Multistatus multistatus, Path path) {
-		return response(multistatus, path, null);
+	private com.joyzl.webserver.webdav.elements.Response response(Multistatus multistatus, Path path, String host) {
+		return response(multistatus, path, host, null);
 	}
 
-	private com.joyzl.webserver.webdav.elements.Response response(Multistatus multistatus, Path path, Exception e) {
+	private com.joyzl.webserver.webdav.elements.Response response(Multistatus multistatus, Path path, String host, Exception e) {
 		final com.joyzl.webserver.webdav.elements.Response response = new com.joyzl.webserver.webdav.elements.Response();
 		response.version(multistatus.version());
-		response.setHref("http://192.168.2.12" + Utility.resolvePath(root, base, path));
+		response.setHref("http://" + host + Utility.resolvePath(root, base, path));
 
 		if (e != null) {
 			e.printStackTrace();
