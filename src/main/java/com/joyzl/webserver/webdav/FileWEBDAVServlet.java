@@ -1083,7 +1083,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			propstat1.prop().add(new Property(WEBDAV.DISPLAY_NAME, path.getFileName()));
 		}
 		if (names.contains(WEBDAV.CREATION_DATE)) {
-			propstat1.prop().add(new Property(WEBDAV.CREATION_DATE, attributes.creationTime()));
+			propstat1.prop().add(new Property(WEBDAV.CREATION_DATE, Date.toText(attributes.creationTime().toMillis())));
 		}
 		if (attributes.isDirectory()) {
 			if (names.contains(WEBDAV.RESOURCE_TYPE)) {
@@ -1094,7 +1094,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				propstat1.prop().add(new Property(WEBDAV.GET_CONTENT_LANGUAGE));
 			}
 			if (names.contains(WEBDAV.GET_LAST_MODIFIED)) {
-				propstat1.prop().add(new Property(WEBDAV.GET_LAST_MODIFIED, attributes.lastModifiedTime()));
+				propstat1.prop().add(new Property(WEBDAV.GET_LAST_MODIFIED, Date.toText(attributes.lastModifiedTime().toMillis())));
 			}
 			if (names.contains(WEBDAV.GET_CONTENT_LENGTH)) {
 				propstat1.prop().add(new Property(WEBDAV.GET_CONTENT_LENGTH, attributes.size()));
@@ -1183,7 +1183,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 		final Propstat propstat1 = new Propstat(response.version());
 		propstat1.prop().add(new Property(WEBDAV.DISPLAY_NAME, path.getFileName()));
-		propstat1.prop().add(new Property(WEBDAV.CREATION_DATE, attributes.creationTime()));
+		propstat1.prop().add(new Property(WEBDAV.CREATION_DATE, Date.toText(attributes.creationTime().toMillis())));
 		if (attributes.isDirectory()) {
 			response.dir(true);
 			propstat1.prop().add(new Property(WEBDAV.RESOURCE_TYPE, Collection.INSTANCE));
@@ -1193,7 +1193,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			propstat1.prop().add(new Property(WEBDAV.GET_CONTENT_LENGTH, attributes.size()));
 			propstat1.prop().add(new Property(WEBDAV.GET_CONTENT_TYPE, contentType(path)));
 			propstat1.prop().add(new Property(WEBDAV.GET_ETAG, ETag.makeWeak(attributes.size(), attributes.lastModifiedTime().toMillis())));
-			propstat1.prop().add(new Property(WEBDAV.GET_LAST_MODIFIED, attributes.lastModifiedTime()));
+			propstat1.prop().add(new Property(WEBDAV.GET_LAST_MODIFIED, Date.toText(attributes.lastModifiedTime().toMillis())));
 		}
 		propstat1.prop().add(new Property(WEBDAV.LOCK_DISCOVERY));
 		propstat1.prop().add(new Property(WEBDAV.SUPPORTED_LOCK));

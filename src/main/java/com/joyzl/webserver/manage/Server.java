@@ -9,12 +9,12 @@ import com.joyzl.network.http.HTTPServer;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.authenticate.Authenticates;
 import com.joyzl.webserver.entities.Address;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Webdav;
 import com.joyzl.webserver.manage.Access.AccessCommonLogger;
-import com.joyzl.webserver.web.Authenticates;
 import com.joyzl.webserver.web.Servlet;
 import com.joyzl.webserver.web.Wildcards;
 

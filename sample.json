@@ -40,8 +40,7 @@
 						"type": "Basic",
 						"realm": "protected resources",
 						"algorithm": "MD5",
-						"methods": [],
-						"users": "/var/www/joyzl.user"
+						"methods": []
 					}
 				],
 				"headers": {

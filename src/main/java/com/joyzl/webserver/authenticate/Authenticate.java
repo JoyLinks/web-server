@@ -1,4 +1,4 @@
-package com.joyzl.webserver.web;
+package com.joyzl.webserver.authenticate;
 
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPStatus;

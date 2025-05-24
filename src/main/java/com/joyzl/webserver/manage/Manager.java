@@ -15,13 +15,13 @@ import java.util.Collections;
 import java.util.List;
 
 import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.authenticate.AuthenticateBasic;
+import com.joyzl.webserver.authenticate.AuthenticateBearer;
+import com.joyzl.webserver.authenticate.AuthenticateDigest;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Server;
 import com.joyzl.webserver.entities.Webdav;
-import com.joyzl.webserver.web.AuthenticateBasic;
-import com.joyzl.webserver.web.AuthenticateBearer;
-import com.joyzl.webserver.web.AuthenticateDigest;
 import com.joyzl.webserver.web.FileResourceServlet;
 import com.joyzl.webserver.webdav.FileWEBDAVServlet;
 
@@ -44,11 +44,18 @@ public final class Manager {
 	public static void initialize(String servers) throws IOException, ParseException {
 		file = new File(servers);
 		if (file.exists() && file.isFile()) {
-			try (final Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-				List<?> entities = (List<?>) Serializer.JSON().readEntity(Server.class, reader);
-				if (entities != null && entities.size() > 0) {
-					for (int index = 0; index < entities.size(); index++) {
-						SERVERS.add((Server) entities.get(index));
+			if (Utility.ends(file.getPath(), ".json", true)) {
+				try (final Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+					final List<Server> entities = Serializer.JSON().readEntities(Server.class, reader);
+					if (entities != null && entities.size() > 0) {
+						SERVERS.addAll(entities);
+					}
+				}
+			} else {
+				try (final FileInputStream input = new FileInputStream(file)) {
+					final List<Server> entities = Serializer.BINARY().readEntities(input);
+					if (entities != null && entities.size() > 0) {
+						SERVERS.addAll(entities);
 					}
 				}
 			}
@@ -72,18 +79,26 @@ public final class Manager {
 		SERVERS.clear();
 	}
 
+	public static void save() throws IOException {
+		if (Utility.ends(file.getPath(), ".json", true)) {
+			try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+				Serializer.JSON().writeEntities(SERVERS, writer);
+			}
+		} else {
+			try (final FileOutputStream output = new FileOutputStream(file, false)) {
+				Serializer.BINARY().writeEntities(SERVERS, output);
+			}
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+
 	public static List<Server> all() {
 		return Collections.unmodifiableList(SERVERS);
 	}
 
 	public static void add(Server server) {
 		SERVERS.add(server);
-	}
-
-	public static void save() throws Exception {
-		try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			Serializer.JSON().writeEntity(SERVERS, writer);
-		}
 	}
 
 	public static FileWEBDAVServlet instance(Webdav webdav) throws IOException {
@@ -114,32 +129,25 @@ public final class Manager {
 		return servlet;
 	}
 
-	public static com.joyzl.webserver.web.Authenticate instance(Authenticate authenticate) throws IOException {
+	public static com.joyzl.webserver.authenticate.Authenticate instance(Authenticate authenticate) throws IOException {
 		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
-			a.setUsers(authenticate.getUsers());
 			return a;
 		}
 		if (AuthenticateDigest.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateDigest a = new AuthenticateDigest(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
-			a.setUsers(authenticate.getUsers());
 			return a;
 		}
 		if (AuthenticateBearer.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateBearer a = new AuthenticateBearer(authenticate.getPath());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
-			a.setUsers(authenticate.getUsers());
 			return a;
 		}
 		throw new IllegalArgumentException("Authenticate.Type:" + authenticate.getType());
-	}
-
-	public static List<Server> servers() {
-		return SERVERS;
 	}
 }

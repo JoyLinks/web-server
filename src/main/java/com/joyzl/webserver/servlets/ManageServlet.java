@@ -36,7 +36,7 @@ public class ManageServlet extends CROSServlet {
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		Serializer.JSON().writeEntity(Manager.servers(), writer);
+		Serializer.JSON().writeEntity(Manager.all(), writer);
 		writer.flush();
 
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);

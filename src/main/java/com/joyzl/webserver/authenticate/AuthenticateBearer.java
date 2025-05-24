@@ -1,4 +1,4 @@
-package com.joyzl.webserver.web;
+package com.joyzl.webserver.authenticate;
 
 import java.io.IOException;
 import java.util.Map;

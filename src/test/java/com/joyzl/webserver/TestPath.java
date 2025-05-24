@@ -39,5 +39,4 @@ class TestPath {
 		assertEquals(Utility.normalizePath("/root/../../../img.png"), "/img.png");
 		assertEquals(Utility.normalizePath("/../../../img.png"), "/img.png");
 	}
-
 }
