@@ -263,7 +263,7 @@ public class Utility extends com.joyzl.network.Utility {
 	/**
 	 * @see {@link #resolveFile(File, String, String)}
 	 */
-	public static Path resolvePath(Path root, String base, String path) {
+	public static Path resolveFile(Path root, String base, String path) {
 		if (base == null || base.length() == 0) {
 			if (path.length() > 1) {
 				return Path.of(root.toString(), path);

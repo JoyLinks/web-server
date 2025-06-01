@@ -9,6 +9,9 @@ import com.joyzl.webserver.webdav.Destination;
 
 class TestDestination {
 
+	/**
+	 * 验证Destination头对象是否正确解析URI各个部分
+	 */
 	@Test
 	void test() {
 		final Destination destination = new Destination();

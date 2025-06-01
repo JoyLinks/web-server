@@ -55,7 +55,6 @@ public class AuthenticateBasic extends Authenticate {
 			if (a.startsWith(TYPE)) {
 				a = a.substring(TYPE.length() + 1);
 				a = new String(Base64.getDecoder().decode(a), StandardCharsets.UTF_8);
-
 				int colon = a.indexOf(HTTP1Coder.COLON);
 				if (colon > 0) {
 					final User user = Users.get(a.substring(0, colon));

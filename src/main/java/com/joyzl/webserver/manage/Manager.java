@@ -14,11 +14,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.authenticate.AuthenticateBasic;
 import com.joyzl.webserver.authenticate.AuthenticateBearer;
 import com.joyzl.webserver.authenticate.AuthenticateDigest;
 import com.joyzl.webserver.entities.Authenticate;
+import com.joyzl.webserver.entities.Location;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Server;
 import com.joyzl.webserver.entities.Webdav;
@@ -101,12 +103,16 @@ public final class Manager {
 		SERVERS.add(server);
 	}
 
-	public static FileWEBDAVServlet instance(Webdav webdav) throws IOException {
+	static FileWEBDAVServlet instance(Webdav webdav) throws IOException {
 		final FileWEBDAVServlet servlet = new FileWEBDAVServlet(webdav.getPath(), webdav.getContent());
 		return servlet;
 	}
 
-	public static FileResourceServlet instance(Resource resource) throws IOException {
+	static com.joyzl.webserver.servlets.Location instance(Location location) throws IOException {
+		return new com.joyzl.webserver.servlets.Location(location.getPath(), location.getLocation(), HTTPStatus.fromCode(location.getStatus()));
+	}
+
+	static FileResourceServlet instance(Resource resource) throws IOException {
 		final FileResourceServlet servlet;
 		if (Utility.noEmpty(resource.getCache())) {
 			servlet = new FileResourceServlet(resource.getPath(), resource.getContent(), resource.getCache());
@@ -129,21 +135,24 @@ public final class Manager {
 		return servlet;
 	}
 
-	public static com.joyzl.webserver.authenticate.Authenticate instance(Authenticate authenticate) throws IOException {
+	static com.joyzl.webserver.authenticate.Authenticate instance(Authenticate authenticate) throws IOException {
 		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getPath());
+			a.setPreflight(authenticate.getPreflight());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
 			return a;
 		}
 		if (AuthenticateDigest.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateDigest a = new AuthenticateDigest(authenticate.getPath());
+			a.setPreflight(authenticate.getPreflight());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
 			return a;
 		}
 		if (AuthenticateBearer.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateBearer a = new AuthenticateBearer(authenticate.getPath());
+			a.setPreflight(authenticate.getPreflight());
 			a.setAlgorithm(authenticate.getAlgorithm());
 			a.setRealm(authenticate.getRealm());
 			return a;

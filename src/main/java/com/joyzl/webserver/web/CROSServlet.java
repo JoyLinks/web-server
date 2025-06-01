@@ -8,12 +8,11 @@ package com.joyzl.webserver.web;
 import com.joyzl.network.Utility;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
-import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 
 /**
- * 基于 CROS RFC6454 请求/响应的 Servlet
+ * 基于 CROS(Cross-origin resource sharing) RFC6454 请求/响应的 Servlet
  *
  * @author ZhangXi
  * @date 2020年7月30日
@@ -24,46 +23,57 @@ public abstract class CROSServlet extends WEBServlet {
 
 	@Override
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
-		checkOrigin(request, response);
-		super.service(chain, request, response);
+		if (checkOrigin(request, response)) {
+			super.service(chain, request, response);
+		}
 	}
 
 	@Override
 	protected void options(Request request, Response response) {
-		// 预检请求始终返回 200
-		response.setStatus(HTTPStatus.OK);
+		// 预检(preflight)请求始终返回 200
+		// response.setStatus(HTTPStatus.OK);
 
-		// Access-Control-Request-Headers: name, name
-		// 浏览器预检请求时报告可能发送的标头
-		// value = request.getHeader(HTTP.Access_Control_Request_Headers);
-		// Access-Control-Request-Method: GET
-		// 浏览器预检请求时报告可能使用的方法
-		// value = request.getHeader(HTTP.Access_Control_Request_Method);
+		if (request.hasHeader(HTTP1.Origin)) {
+			// Access-Control-Request-Headers: name, name
+			// 浏览器预检请求时报告可能发送的标头
+			// value = request.getHeader(HTTP.Access_Control_Request_Headers);
+			// Access-Control-Request-Method: GET
+			// 浏览器预检请求时报告可能使用的方法
+			// value = request.getHeader(HTTP.Access_Control_Request_Method);
 
-		response.addHeader(HTTP1.Access_Control_Allow_Methods, allowMethods());
-		response.addHeader(HTTP1.Access_Control_Allow_Headers, allowHeaders());
-		response.addHeader(HTTP1.Access_Control_Expose_Headers, exposeHeaders());
-		response.addHeader(HTTP1.Access_Control_Max_Age, maxAge());
-		if (allowCredentials()) {
-			response.addHeader(HTTP1.Access_Control_Allow_Credentials, "true");
+			response.addHeader(HTTP1.Access_Control_Allow_Methods, allowMethods());
+			response.addHeader(HTTP1.Access_Control_Allow_Headers, allowHeaders());
+			response.addHeader(HTTP1.Access_Control_Expose_Headers, exposeHeaders());
+			response.addHeader(HTTP1.Access_Control_Max_Age, maxAge());
+			if (allowCredentials()) {
+				response.addHeader(HTTP1.Access_Control_Allow_Credentials, "true");
+			}
+		} else {
+			response.addHeader(HTTP1.Allow, allowMethods());
 		}
 	}
 
-	protected void checkOrigin(Request request, Response response) {
-		String value = request.getHeader(HTTP1.Origin);
-		if (Utility.equal(ANY, allowOrigin())) {
-			// 宽松默认，如果允许所有，即便缺失Origin标头也通过
-			// 客户端程序在不严格时缺失Origin标头
-			response.addHeader(HTTP1.Access_Control_Allow_Origin, ANY);
-		} else {
-			if (Utility.noEmpty(value)) {
+	protected boolean checkOrigin(Request request, Response response) {
+		final String origin = request.getHeader(HTTP1.Origin);
+		if (Utility.noEmpty(origin)) {
+			if (Utility.equal(ANY, allowOrigin())) {
+				// 宽松默认，如果允许所有，即便缺失Origin标头也通过
+				// 客户端程序在不严格时缺失Origin标头
+				response.addHeader(HTTP1.Access_Control_Allow_Origin, origin);
+			} else {
 				if (allowOrigin() != null) {
-					if (value.contains(allowOrigin())) {
-						response.addHeader(HTTP1.Access_Control_Allow_Origin, value);
+					if (origin.contains(allowOrigin())) {
+						response.addHeader(HTTP1.Access_Control_Allow_Origin, origin);
+					} else {
+						return false;
 					}
 				}
 			}
+			if (allowCredentials()) {
+				response.addHeader(HTTP1.Access_Control_Allow_Credentials, "true");
+			}
 		}
+		return true;
 	}
 
 	/**
@@ -79,6 +89,7 @@ public abstract class CROSServlet extends WEBServlet {
 
 	/**
 	 * 跨源请求允许的标头，默认白名单的标头：Accept,Accept-Language,Content-Language,Content-Type,Range，无须列出；
+	 * Content-Type:application/x-www-form-urlencoded,multipart/form-data,text/plain时无须列出
 	 * Authorization标头如果允许始终要列出，即便已有 "*"
 	 * 
 	 * <pre>

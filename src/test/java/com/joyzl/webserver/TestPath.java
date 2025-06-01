@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 
 class TestPath {
 
+	/**
+	 * URI 路径回溯
+	 */
 	@Test
 	void testPath() {
 		assertEquals(Utility.normalizePath("/"), "/");

@@ -12,6 +12,9 @@ import com.joyzl.webserver.manage.Users;
 
 class TestUser {
 
+	/**
+	 * 验证用户与请求 HOST 和 URI PATH 匹配关系，用户可设定允许请求的 HOST 和 URI PATH
+	 */
 	@Test
 	void test() throws Exception {
 		final User user = new User();

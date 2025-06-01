@@ -16,6 +16,7 @@ public abstract class Domain {
 	private final List<String> servlets = new ArrayList<>();
 	private final List<Webdav> webdavs = new ArrayList<>();
 	private final List<Resource> resources = new ArrayList<>();
+	private final List<Location> locations = new ArrayList<>();
 	private final List<Authenticate> authenticates = new ArrayList<>();
 	private final Map<String, String> headers = new HashMap<>();
 	private String access;
@@ -51,6 +52,23 @@ public abstract class Domain {
 		if (values != webdavs) {
 			webdavs.clear();
 			webdavs.addAll(values);
+		}
+	}
+
+	/**
+	 * 获取资源组
+	 */
+	public List<Location> getLocations() {
+		return locations;
+	}
+
+	/**
+	 * 设置资源组
+	 */
+	public void setLocations(List<Location> values) {
+		if (values != locations) {
+			locations.clear();
+			locations.addAll(values);
 		}
 	}
 

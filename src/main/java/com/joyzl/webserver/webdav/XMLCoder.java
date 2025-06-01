@@ -13,10 +13,12 @@ import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.Request;
 import com.joyzl.webserver.web.MIMEType;
+import com.joyzl.webserver.webdav.elements.ActiveLock;
 import com.joyzl.webserver.webdav.elements.Collection;
 import com.joyzl.webserver.webdav.elements.Element;
 import com.joyzl.webserver.webdav.elements.Error;
 import com.joyzl.webserver.webdav.elements.Include;
+import com.joyzl.webserver.webdav.elements.LockDiscovery;
 import com.joyzl.webserver.webdav.elements.LockInfo;
 import com.joyzl.webserver.webdav.elements.LockScope;
 import com.joyzl.webserver.webdav.elements.LockType;
@@ -258,6 +260,17 @@ class XMLCoder extends WEBDAV {
 		return reader.getName();
 	}
 
+	public static void write(LockDiscovery lockdiscovery, com.joyzl.network.http.Response response) throws IOException {
+		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_XML);
+		try (final DataBufferOutput output = new DataBufferOutput();
+			final XMLWriter writer = new XMLWriter(output);) {
+			write(lockdiscovery, writer);
+			writer.flush();
+			response.setContent(output.buffer());
+			response.addHeader(ContentLength.NAME, Integer.toString(output.buffer().readable()));
+		}
+	}
+
 	public static void write(Multistatus multistatus, com.joyzl.network.http.Response response) throws IOException {
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_XML);
 		try (final DataBufferOutput output = new DataBufferOutput();
@@ -267,6 +280,14 @@ class XMLCoder extends WEBDAV {
 			response.setContent(output.buffer());
 			response.addHeader(ContentLength.NAME, Integer.toString(output.buffer().readable()));
 		}
+	}
+
+	private static void write(LockDiscovery lockdiscovery, XMLWriter writer) throws IOException {
+		writer.writeProlog("1.0", "utf-8");
+		writer.writeElement("D", PROP);
+		writer.writeAttribute("xmlns:D", "DAV:");
+		writeLockDiscovery(lockdiscovery, writer);
+		writer.endElement("D", PROP);
 	}
 
 	private static void write(Multistatus multistatus, XMLWriter writer) throws IOException {
@@ -362,6 +383,70 @@ class XMLCoder extends WEBDAV {
 			}
 		}
 		writer.endElement("D", PROP);
+	}
+
+	private static void writeLockDiscovery(LockDiscovery lockdiscovery, XMLWriter writer) throws IOException {
+		writer.writeElement("D", LOCK_DISCOVERY);
+		if (lockdiscovery.hasActive()) {
+			for (ActiveLock activeLock : lockdiscovery.actives()) {
+				writer.writeElement("D", ACTIVELOCK);
+
+				// <D:locktype><D:write/></D:locktype>
+				writer.writeElement("D", LOCKTYPE);
+				writer.writeElement("D", WRITE);
+				writer.endElement("D", WRITE);
+				writer.endElement("D", LOCKTYPE);
+
+				// <D:lockscope><D:exclusive/></D:lockscope>
+				writer.writeElement("D", LOCKSCOPE);
+				if (activeLock.getLockScope() == LockScope.EXCLUSIVE) {
+					writer.writeElement("D", EXCLUSIVE);
+					writer.endElement("D", EXCLUSIVE);
+				} else if (activeLock.getLockScope() == LockScope.SHARED) {
+					writer.writeElement("D", SHARED);
+					writer.endElement("D", SHARED);
+				}
+				writer.endElement("D", LOCKSCOPE);
+
+				// <D:depth>infinity</D:depth>
+				writer.writeElement("D", DEPTH);
+				if (activeLock.getDepth() == 0) {
+					writer.writeContent("0");
+				} else if (activeLock.getDepth() == 1) {
+					writer.writeContent("1");
+				} else {
+					writer.writeContent(Depth.INFINITY);
+				}
+				writer.endElement("D", DEPTH);
+
+				// <D:timeout>Second-604800</D:timeout>
+				writer.writeElement("D", TIMEOUT);
+				writer.writeContent("Second-" + activeLock.getTimeout());
+				writer.endElement("D", TIMEOUT);
+
+				// <D:owner><D:href>http://example.org/~ejw/contact.html</D:href></D:owner>
+				writer.writeElement("D", OWNER);
+				writer.writeContent(activeLock.getOwner());
+				writer.endElement("D", OWNER);
+
+				// <D:locktoken><D:href>urn:uuid:e71d4fae-5dec-22d6-fea5-00a0c91e6be4</:href>/D:locktoken>
+				writer.writeElement("D", LOCKTOKEN);
+				writer.writeElement("D", HREF);
+				writer.writeContent(activeLock.getLockToken());
+				writer.endElement("D", HREF);
+				writer.endElement("D", LOCKTOKEN);
+
+				// <D:lockroot><D:href>http://example.com/workspace/webdav/proposal.oc</D:href></D:lockroot>
+				writer.writeElement("D", LOCKROOT);
+				writer.writeElement("D", HREF);
+				writer.writeContent(activeLock.getLockRoot());
+				writer.endElement("D", HREF);
+				writer.endElement("D", LOCKROOT);
+
+				writer.endElement("D", ACTIVELOCK);
+			}
+		}
+		writer.endElement("D", LOCK_DISCOVERY);
 	}
 
 	private static void writeError(Error e, XMLWriter writer) throws IOException {

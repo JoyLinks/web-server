@@ -13,8 +13,9 @@ import com.joyzl.network.http.Response;
 public abstract class Authenticate {
 
 	private final String path;
-	private String algorithm;
 	private String[] methods;
+	private boolean preflight;
+	private String algorithm;
 	private String realm;
 
 	public Authenticate(String path) {
@@ -96,5 +97,19 @@ public abstract class Authenticate {
 	 */
 	public void setMethods(String... values) {
 		methods = values;
+	}
+
+	/**
+	 * 是否允许预检，请求OPTIONS时无须验证，允许请求方法集应包含OPTIONS
+	 */
+	public boolean getPreflight() {
+		return preflight;
+	}
+
+	/**
+	 * 设置是否允许预检请求
+	 */
+	public void setPreflight(boolean value) {
+		preflight = value;
 	}
 }

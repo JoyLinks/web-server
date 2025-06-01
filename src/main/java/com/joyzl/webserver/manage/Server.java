@@ -12,6 +12,7 @@ import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.authenticate.Authenticates;
 import com.joyzl.webserver.entities.Address;
 import com.joyzl.webserver.entities.Authenticate;
+import com.joyzl.webserver.entities.Location;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Webdav;
 import com.joyzl.webserver.manage.Access.AccessCommonLogger;
@@ -43,21 +44,34 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 
 		SERVLETS.clear();
 		Utility.scanServlets(SERVLETS, getServlets());
-		for (Resource resource : getResources()) {
-			if (Utility.noEmpty(resource.getContent())) {
-				if (Utility.isEmpty(resource.getPath())) {
-					SERVLETS.bind("*", Manager.instance(resource));
+
+		// LOCATION
+		for (Location location : getLocations()) {
+			if (Utility.noEmpty(location.getLocation())) {
+				if (Utility.isEmpty(location.getPath())) {
+					SERVLETS.bind(Wildcards.STAR, Manager.instance(location));
 				} else {
-					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
+					SERVLETS.bind(location.getPath(), Manager.instance(location));
 				}
 			}
 		}
+		// WEBDAV
 		for (Webdav webdav : getWebdavs()) {
 			if (Utility.noEmpty(webdav.getContent())) {
 				if (Utility.isEmpty(webdav.getPath())) {
-					SERVLETS.bind("*", Manager.instance(webdav));
+					SERVLETS.bind(Wildcards.STAR, Manager.instance(webdav));
 				} else {
 					SERVLETS.bind(webdav.getPath(), Manager.instance(webdav));
+				}
+			}
+		}
+		// WEB Resource
+		for (Resource resource : getResources()) {
+			if (Utility.noEmpty(resource.getContent())) {
+				if (Utility.isEmpty(resource.getPath())) {
+					SERVLETS.bind(Wildcards.STAR, Manager.instance(resource));
+				} else {
+					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
 				}
 			}
 		}

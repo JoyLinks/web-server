@@ -110,26 +110,31 @@ public class Users {
 	 * @return true / false
 	 */
 	public static boolean check(Request request, User user) {
-		if (user.URIs() == null) {
+		if (user == null) {
 			return false;
 		}
-		URI uri;
-		for (int index = 0; index < user.URIs().length; index++) {
-			uri = user.URIs()[index];
-			if (uri.getHost() != null) {
-				if (Utility.same(uri.getHost(), request.getHeader(HTTP1.Host))) {
-					// HOST OK
-				} else {
-					continue;
-				}
+		if (user.isEnable()) {
+			if (user.URIs() == null) {
+				return false;
 			}
+			URI uri;
+			for (int index = 0; index < user.URIs().length; index++) {
+				uri = user.URIs()[index];
+				if (uri.getHost() != null) {
+					if (Utility.same(uri.getHost(), request.getHeader(HTTP1.Host))) {
+						// HOST OK
+					} else {
+						continue;
+					}
+				}
 
-			if (uri.getPath() != null) {
-				if (request.pathStart(uri.getPath())) {
+				if (uri.getPath() != null) {
+					if (request.pathStart(uri.getPath())) {
+						return true;
+					}
+				} else {
 					return true;
 				}
-			} else {
-				return true;
 			}
 		}
 		return false;

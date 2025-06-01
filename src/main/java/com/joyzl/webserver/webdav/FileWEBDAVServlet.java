@@ -26,6 +26,7 @@ import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import com.joyzl.network.buffer.DataBuffer;
@@ -44,7 +45,9 @@ import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.web.MIMEType;
+import com.joyzl.webserver.webdav.elements.ActiveLock;
 import com.joyzl.webserver.webdav.elements.Collection;
+import com.joyzl.webserver.webdav.elements.LockDiscovery;
 import com.joyzl.webserver.webdav.elements.LockInfo;
 import com.joyzl.webserver.webdav.elements.Multistatus;
 import com.joyzl.webserver.webdav.elements.Property;
@@ -57,6 +60,8 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 	private final static int XML = 1, JSON = 2;
 	private final LinkOption[] options = new LinkOption[] { LinkOption.NOFOLLOW_LINKS };
 
+	/** 资源锁 */
+	private final Locks LOCKS = new Locks();
 	/** 允许所有支持的属性 */
 	private final boolean allProperties;
 	/** 基础URI */
@@ -76,15 +81,25 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void get(Request request, Response response) throws Exception {
+		locate(request, response, true);
+	}
+
+	@Override
+	protected void head(Request request, Response response) throws Exception {
+		locate(request, response, false);
+	}
+
+	/** locate -> response */
+	private void locate(Request request, Response response, boolean content) throws IOException {
 		if (request.hasContent()) {
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
 		}
 
-		final Path path = Utility.resolvePath(root, base, request.getPath());
+		final Path path = Utility.resolveFile(root, base, request.getPath());
 		if (Files.exists(path, options)) {
 			if (Files.isDirectory(path, options)) {
-
+				// TODO
 			} else {
 				final FileTime time = Files.getLastModifiedTime(path, options);
 				final String etag = ETag.makeWeak(Files.size(path), time.toMillis());
@@ -102,7 +117,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					if (Utility.equal(value, etag)) {
 						response.setStatus(HTTPStatus.NOT_MODIFIED);
 					} else {
-						response(response, path);
+						response(response, path, content);
 					}
 					return;
 				}
@@ -111,7 +126,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				value = request.getHeader(HTTP1.If_Match);
 				if (Utility.noEmpty(value)) {
 					if (Utility.equal(value, etag)) {
-						response(response, path);
+						response(response, path, content);
 					} else {
 						response.setStatus(HTTPStatus.PRECONDITION_FAILED);
 					}
@@ -124,7 +139,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					if (Utility.equal(value, modified)) {
 						response.setStatus(HTTPStatus.NOT_MODIFIED);
 					} else {
-						response(response, path);
+						response(response, path, content);
 					}
 					return;
 				}
@@ -133,21 +148,22 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				value = request.getHeader(HTTP1.If_Unmodified_Since);
 				if (Utility.noEmpty(value)) {
 					if (Utility.equal(value, modified)) {
-						response(response, path);
+						response(response, path, content);
 					} else {
 						response.setStatus(HTTPStatus.PRECONDITION_FAILED);
 					}
 					return;
 				}
 
-				response(response, path);
+				response(response, path, content);
 			}
 		} else {
 			response.setStatus(HTTPStatus.NOT_FOUND);
 		}
 	}
 
-	private void response(Response response, Path path) throws IOException {
+	/** locate -> response */
+	private void response(Response response, Path path, boolean content) throws IOException {
 		final long length = Files.size(path);
 
 		// Content-Encoding: identity
@@ -162,20 +178,29 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			// Accept-Ranges: bytes
 			response.addHeader(HTTP1.Accept_Ranges, Range.UNIT);
 		}
-		response.setContent(Files.newInputStream(path, options));
+		if (content) {
+			response.setContent(Files.newInputStream(path, options));
+		}
 	}
 
 	@Override
 	protected void put(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
-
-		final Path path = Utility.resolvePath(root, base, request.getPath());
+		final Path path = Utility.resolveFile(root, base, request.getPath());
 		if (root.equals(path)) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
+		}
+		final If IF = If.parse(request.getHeader(If.NAME));
+		if (IF != null) {
+			if (ifLock(IF, path, null)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+		} else {
+			if (LOCKS.lock(path)) {
+				response.setStatus(HTTPStatus.LOCKED);
+				return;
+			}
 		}
 
 		if (Files.exists(path, options)) {
@@ -183,7 +208,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 				return;
 			} else {
-				response.setStatus(HTTPStatus.CREATED);
+				// response.setStatus(HTTPStatus.CREATED);
 				try (SeekableByteChannel channel = Files.newByteChannel(path, StandardOpenOption.WRITE)) {
 					if (request.hasContent()) {
 						final DataBuffer buffer = (DataBuffer) request.getContent();
@@ -232,21 +257,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 	}
 
 	@Override
-	protected void head(Request request, Response response) throws Exception {
-		if (request.hasContent()) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
-		// TODO 未处理 HEAD
-	}
-
-	@Override
 	protected void propfind(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
-
 		final int type = checkType(request);
 		final Propfind propfind;
 		if (request.hasContent()) {
@@ -261,7 +272,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					response.setStatus(HTTPStatus.BAD_REQUEST);
 					return;
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// 格式错误
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
@@ -291,10 +302,39 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 		final String host = request.getHeader(HTTP1.Host);
 		final Multistatus multistatus = new Multistatus(request.getVersion());
-		Path path = Utility.resolvePath(root, base, request.getPath());
+		Path path = Utility.resolveFile(root, base, request.getPath());
 		com.joyzl.webserver.webdav.elements.Response r;
 
-		if (propfind == null || propfind.isAllprop()) {
+		if (propfind == null) {
+			// 返回死属性和定义的活属性
+
+			r = response(multistatus, path, host);
+			defaultAttributes(r, path, null);
+			if (r.ok()) {
+				if (r.dir()) {
+					if (depth == 1) {
+						try (final Stream<Path> stream = Files.list(path)) {
+							final Iterator<Path> iterator = stream.iterator();
+							while (iterator.hasNext()) {
+								path = iterator.next();
+								r = response(multistatus, path, host);
+								defaultAttributes(r, path, null);
+							}
+						}
+					} else {
+						try (final Stream<Path> stream = Files.walk(path, depth)) {
+							final Iterator<Path> iterator = stream.iterator();
+							iterator.next();// 忽略第一个（遍历根）
+							while (iterator.hasNext()) {
+								path = iterator.next();
+								r = response(multistatus, path, host);
+								defaultAttributes(r, path, null);
+							}
+						}
+					}
+				}
+			}
+		} else if (propfind.isAllprop()) {
 			// 返回死属性和定义的活属性 (include)
 
 			r = response(multistatus, path, host);
@@ -396,11 +436,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void proppatch(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
-
 		final int type = checkType(request);
 		final PropertyUpdate update;
 		if (request.hasContent()) {
@@ -414,7 +449,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					return;
 				}
 			} catch (IOException e) {
-				// 格式错误
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -423,10 +457,22 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			return;
 		}
 
-		final Path path = Utility.resolvePath(root, base, request.getPath());
+		final Path path = Utility.resolveFile(root, base, request.getPath());
 		if (root.equals(path)) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
+		}
+		final If IF = If.parse(request.getHeader(If.NAME));
+		if (IF != null) {
+			if (ifLock(IF, path, null)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+		} else {
+			if (LOCKS.lock(path)) {
+				response.setStatus(HTTPStatus.LOCKED);
+				return;
+			}
 		}
 
 		if (update != null) {
@@ -526,16 +572,12 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void mkcol(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
 		if (request.hasContent()) {
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
 		}
 
-		final Path path = Utility.resolvePath(root, base, request.getPath());
+		final Path path = Utility.resolveFile(root, base, request.getPath());
 		if (root.equals(path)) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
@@ -555,16 +597,12 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
 		if (request.hasContent()) {
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
 		}
 
-		final Path path = Utility.resolvePath(root, base, request.getPath());
+		final Path path = Utility.resolveFile(root, base, request.getPath());
 		if (root.equals(path)) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
@@ -572,6 +610,18 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		if (Files.notExists(path, options)) {
 			response.setStatus(HTTPStatus.NOT_FOUND);
 			return;
+		}
+		final If IF = If.parse(request.getHeader(If.NAME));
+		if (IF != null) {
+			if (ifLock(IF, path, null)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+		} else {
+			if (LOCKS.lock(path)) {
+				response.setStatus(HTTPStatus.LOCKED);
+				return;
+			}
 		}
 
 		response.setStatus(HTTPStatus.NO_CONTENT);
@@ -652,10 +702,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void copy(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
 		if (request.hasContent()) {
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
@@ -672,8 +718,8 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			return;
 		}
 
-		final Path source = Utility.resolvePath(root, base, request.getPath());
-		final Path target = Utility.resolvePath(root, base, Utility.normalizePath(destination.getPath()));
+		final Path source = Utility.resolveFile(root, base, request.getPath());
+		final Path target = Utility.resolveFile(root, base, Utility.normalizePath(destination.getPath()));
 		if (root.equals(source)) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
@@ -689,6 +735,18 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		if (Files.notExists(source, options)) {
 			response.setStatus(HTTPStatus.NOT_FOUND);
 			return;
+		}
+		final If IF = If.parse(request.getHeader(If.NAME));
+		if (IF != null) {
+			if (ifLock(IF, null, target)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+		} else {
+			if (LOCKS.lock(target)) {
+				response.setStatus(HTTPStatus.LOCKED);
+				return;
+			}
 		}
 
 		// Overwrite:T|F
@@ -813,10 +871,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void move(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
-			return;
-		}
 		if (request.hasContent()) {
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
@@ -842,8 +896,8 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			return;
 		}
 
-		final Path source = Utility.resolvePath(root, base, request.getPath());
-		final Path target = Utility.resolvePath(root, base, Utility.normalizePath(destination.getPath()));
+		final Path source = Utility.resolveFile(root, base, request.getPath());
+		final Path target = Utility.resolveFile(root, base, Utility.normalizePath(destination.getPath()));
 		if (root.equals(source)) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
@@ -859,6 +913,18 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		if (Files.notExists(source, options)) {
 			response.setStatus(HTTPStatus.NOT_FOUND);
 			return;
+		}
+		final If IF = If.parse(request.getHeader(If.NAME));
+		if (IF != null) {
+			if (ifLock(IF, source, target)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+		} else {
+			if (LOCKS.lock(source) || LOCKS.lock(target)) {
+				response.setStatus(HTTPStatus.LOCKED);
+				return;
+			}
 		}
 
 		// Overwrite:T|F
@@ -974,20 +1040,23 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	@Override
 	protected void lock(Request request, Response response) throws Exception {
-		if (request.getQuery() != null || request.getAnchor() != null) {
-			response.setStatus(HTTPStatus.BAD_REQUEST);
+		final int type = checkType(request);
+		final Path path = Utility.resolveFile(root, base, request.getPath());
+		if (root.equals(path)) {
+			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
 		}
 
 		if (request.hasContent()) {
+			// 请求创建锁
+
 			// Depth: 0|infinity
 			final int depth = Depth.get(request);
 			if (depth < 0 || depth > 0 && depth != Integer.MAX_VALUE) {
-				response.setStatus(HTTPStatus.UNPROCESSABLE_ENTITY);
+				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
 
-			final int type = checkType(request);
 			final LockInfo lockInfo;
 			try {
 				if (type == XML) {
@@ -999,7 +1068,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					return;
 				}
 			} catch (IOException e) {
-				// 格式错误
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -1009,20 +1077,234 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				return;
 			}
 
-			// final LockDiscovery lockdiscovery = new LockDiscovery();
+			if (Files.exists(path, options)) {
+				//
+			} else {
+				try {
+					Files.createFile(path);
+					response.setStatus(HTTPStatus.CREATED);
+				} catch (FileAlreadyExistsException e) {
+					response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+					return;
+				} catch (AccessDeniedException e) {
+					response.setStatus(HTTPStatus.FORBIDDEN);
+					return;
+				} catch (SecurityException e) {
+					response.setStatus(HTTPStatus.FORBIDDEN);
+					return;
+				} catch (IOException e) {
+					response.setStatus(HTTPStatus.CONFLICT);
+					return;
+				}
+			}
 
+			final String host = request.getHeader(HTTP1.Host);
+			final LockDiscovery lockdiscovery = new LockDiscovery();
+			final ActiveLock activeLock = new ActiveLock(lockInfo);
+			activeLock.setLockToken("urn:uuid:" + UUID.randomUUID());
+			activeLock.setLockRoot("http://" + host + request.getPath());
+			activeLock.setDepth(depth);
+
+			// Timeout:
+			final Timeout timeout = Timeout.parse(request.getHeader(Timeout.NAME));
+			if (timeout == null) {
+				// 默认1天
+				activeLock.setTimeout(60 * 60 * 24);
+			} else {
+				long second = timeout.getSecond();
+				if (second > 0) {
+					activeLock.setTimeout(second);
+				} else if (timeout.isInfinite()) {
+					activeLock.setTimeout(Long.MAX_VALUE);
+				} else {
+					activeLock.setTimeout(60 * 60 * 24);
+				}
+			}
+
+			if (LOCKS.add(path, activeLock)) {
+				lockdiscovery.actives().add(activeLock);
+				response.addHeader(HTTP1.Lock_Token, activeLock.getLockToken());
+			} else {
+				response.setStatus(HTTPStatus.LOCKED);
+			}
+			if (type == XML) {
+				XMLCoder.write(lockdiscovery, response);
+			} else if (type == JSON) {
+				JSONCoder.write(lockdiscovery, response);
+			}
 		} else {
+			// 请求刷新锁
 
+			// If:仅单个锁(Token)
+			final If IF = If.parse(request.getHeader(If.NAME));
+			if (IF == null) {
+				response.setStatus(HTTPStatus.BAD_REQUEST);
+				return;
+			}
+
+			// 查找锁
+			ActiveLock activeLock = null;
+			while (IF.nextGroup()) {
+				while (IF.nextValue()) {
+					if (IF.isToken()) {
+						if (!IF.isNot()) {
+							activeLock = LOCKS.get(IF.getValue());
+							break;
+						}
+					}
+				}
+			}
+			if (activeLock == null) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+
+			// Timeout:
+			final Timeout timeout = Timeout.parse(request.getHeader(Timeout.NAME));
+			if (timeout == null) {
+				// 默认延长1天
+				activeLock.setTimeout(60 * 60 * 24);
+			} else {
+				long second = timeout.getSecond();
+				if (second > 0) {
+					activeLock.setTimeout(second);
+				} else if (timeout.isInfinite()) {
+					activeLock.setTimeout(Long.MAX_VALUE);
+				} else {
+					activeLock.setTimeout(60 * 60 * 24);
+				}
+			}
+
+			final LockDiscovery lockdiscovery = new LockDiscovery();
+			lockdiscovery.actives().add(activeLock);
+			response.addHeader(HTTP1.Lock_Token, activeLock.getLockToken());
+			if (type == XML) {
+				XMLCoder.write(lockdiscovery, response);
+			} else if (type == JSON) {
+				JSONCoder.write(lockdiscovery, response);
+			}
 		}
-
-		// TODO 暂不支持 LOCK
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
 	@Override
 	protected void unlock(Request request, Response response) throws Exception {
-		// TODO 暂不支持 UNLOCK
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+		// Lock-Token:
+		String token = request.getHeader(HTTP1.Lock_Token);
+		if (token == null) {
+			response.setStatus(HTTPStatus.BAD_REQUEST);
+			return;
+		} else {
+			// "<token>" -> "token"
+			int begin = token.indexOf('<');
+			int end = token.lastIndexOf('>');
+			if (begin >= 0 && end > begin) {
+				token = token.substring(begin + 1, end);
+			}
+		}
+		// If:
+
+		final ActiveLock activeLock = LOCKS.remove(token);
+		if (activeLock == null) {
+			response.setStatus(HTTPStatus.CONFLICT);
+		} else {
+			response.setStatus(HTTPStatus.NO_CONTENT);
+		}
+	}
+
+	/** 评估IF和资源锁定，返回true表示资源因锁定而失败 */
+	private boolean ifLock(If IF, Path path1, Path path2) {
+		// 注意：锁定资源的token出现在If头中，并且If评估为有效，因此不能仅考察评估结果
+		// COPY：需求解锁目标资源，源资源未被修改
+		// MOVE：需求解锁目标资源和源资源
+		// 评估资源锁定无须判断锁是否过期
+
+		final ActiveLock[] locks1 = path1 != null ? LOCKS.get(path1) : null;
+		final ActiveLock[] locks2 = path2 != null ? LOCKS.get(path2) : null;
+
+		int k, m = 0;
+		Path path;
+		ActiveLock[] locks;
+		String resource, etag, token;
+		boolean or = false, and;
+
+		while (IF.nextGroup()) {
+			resource = IF.getTag();
+			if (resource == null) {
+				path = path1;
+				locks = locks1;
+			} else {
+				path = Utility.resolveFile(root, base, resource);
+				if (path1 != null && path.equals(path1)) {
+					locks = locks1;
+				} else if (path2 != null && path.equals(path2)) {
+					locks = locks2;
+				} else {
+					locks = locks2;
+				}
+			}
+
+			and = true;
+			etag = null;
+			while (IF.nextValue()) {
+				if (IF.isToken()) {
+					if (locks != null) {
+						token = IF.getValue();
+						for (k = 0; k < locks.length; k++) {
+							if (token.equals(locks[k].getLockToken())) {
+								m++;
+								break;
+							}
+						}
+						if (k < locks.length) {
+							if (IF.isNot()) {
+								and = false;
+							}
+						} else {
+							if (!IF.isNot()) {
+								and = false;
+							}
+						}
+					} else {
+						// m++;
+						if (!IF.isNot()) {
+							and = false;
+						}
+					}
+				} else if (IF.isETag()) {
+					try {
+						if (etag == null) {
+							etag = ETag.makeWeak(Files.size(path), Files.getLastModifiedTime(path, options).toMillis());
+						}
+						if (etag.equals(IF.getValue())) {
+							if (IF.isNot()) {
+								and = false;
+							}
+						} else {
+							if (!IF.isNot()) {
+								and = false;
+							}
+						}
+					} catch (IOException e) {
+						if (!IF.isNot()) {
+							and = false;
+						}
+					}
+				}
+			}
+			or = or || and;
+		}
+
+		if (or) {
+			if (locks1 != null && locks2 != null) {
+				return m < 2;
+			}
+			if (locks1 != null || locks2 != null) {
+				return m < 1;
+			}
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	private com.joyzl.webserver.webdav.elements.Response response(Multistatus multistatus, Path path, String host) {

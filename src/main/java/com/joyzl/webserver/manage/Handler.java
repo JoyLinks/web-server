@@ -26,6 +26,16 @@ public final class Handler extends HTTPServerHandler {
 
 	@Override
 	public void received(HTTPSlave slave, Request request, Response response) {
+		// TODO TEST
+		// System.out.println(request);
+		// for (Map.Entry<String, String> entry :
+		// request.getHeaders().entrySet()) {
+		// System.out.println(entry.getKey() + ":" + entry.getValue());
+		// }
+		// if (request.hasContent()) {
+		// HTTP1Coder.toString((DataBuffer) request.getContent());
+		// }
+
 		// Logger.debug(request);
 		if (server.deny(slave.getRemoteAddress())) {
 			server.access().record(slave, request);
@@ -107,6 +117,14 @@ public final class Handler extends HTTPServerHandler {
 				}
 			}
 		}
+
+		// TODO TEST
+		// System.out.println(response);
+		// for (Map.Entry<String, String> entry :
+		// response.getHeaders().entrySet()) {
+		// System.out.println(entry.getKey() + ":" + entry.getValue());
+		// }
+
 		server.access().record(slave, response);
 		slave.send(response);
 		// Logger.debug(response);

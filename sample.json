@@ -3,6 +3,7 @@
 		"port": 80,
 		"servlets": [],
 		"resources": [],
+		"locations": [],
 		"authenticates": [],
 		"headers": [],
 		"roster": [],
@@ -12,13 +13,20 @@
 				"names": [
 					"www.joyzl.com"
 				],
-				"webdavs":[
+				"webdavs": [
 					{
-						"path":"/webdav",
-						"content": "/var/www/webdav"
+						"path": "/webdav",
+						"content": "/var/www/webdav",
+						"preflight": true
 					}
 				],
 				"servlets": [],
+				"locations": [
+					{
+						"path": "/webdav",
+						"location": "/webdav/"
+					}
+				],
 				"resources": [
 					{
 						"path": "*",

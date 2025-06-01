@@ -12,6 +12,7 @@ public class Authenticate {
 	private String realm;
 	private String users;
 	private String algorithm;
+	private boolean preflight;
 
 	/**
 	 * 获取须验证的路径，指定路径及其子路径须身份验证
@@ -81,5 +82,19 @@ public class Authenticate {
 	 */
 	public void setAlgorithm(String value) {
 		algorithm = value;
+	}
+
+	/**
+	 * 是否允许预检，请求OPTIONS时无须验证，允许请求方法集应包含OPTIONS
+	 */
+	public boolean getPreflight() {
+		return preflight;
+	}
+
+	/**
+	 * 设置是否允许预检请求
+	 */
+	public void setPreflight(boolean value) {
+		preflight = value;
 	}
 }

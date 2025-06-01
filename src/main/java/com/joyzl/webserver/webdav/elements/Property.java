@@ -5,7 +5,7 @@ package com.joyzl.webserver.webdav.elements;
  * 
  * @author ZhangXi 2025年5月20日
  */
-public class Property {
+public class Property extends Element {
 
 	public final static int NORMAL = 0, SET = 1, REMOVE = 2;
 

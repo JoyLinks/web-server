@@ -28,6 +28,7 @@ public final class Wildcards<T> {
 
 	/** 通配符 */
 	public static final char ANY = '*';
+	public static final String STAR = "*";
 
 	private Item<T>[] ITEMS;
 
@@ -69,120 +70,75 @@ public final class Wildcards<T> {
 		ITEMS = (Item<T>[]) Array.newInstance(Item.class, 0);
 	}
 
+	// 20250527 路径配置为"path":"/webdav/*"
+	// 测试WEBDAV时发现Windows在添加网络位置时
+	// 请求"http://192.168.2.12/webdav/"实际为"http://192.168.2.12/webdav"
+	// 请求"http://192.168.2.12"实际为""http://192.168.2.12/"
+	// 方案1：匹配时忽略路径配置中的尾部'/'
+	// 方案2：LocationServlet
+
 	static class Item<T> {
-		final boolean wildcard;
-		final String prefix;
-		final String suffix;
+		final int wildcard;
+		final String text;
 		final T t;
 
 		public Item(T t, String text) {
 			this.t = t;
+			this.text = text;
+			wildcard = text.indexOf(ANY);
+		}
 
-			int index = text.indexOf(ANY);
-			if (index > 0) {
-				wildcard = true;
-				if (index + 1 == text.length()) {
-					// /actions/*
-					prefix = text.substring(0, index);
-					suffix = null;
-				} else {
-					// /actions/*.do
-					prefix = text.substring(0, index);
-					suffix = text.substring(index + 1);
-				}
-			} else if (index == 0) {
-				// *.html
-				// *.do
-				wildcard = true;
-				prefix = null;
-				suffix = text.substring(index + 1);
-			} else {
-				// /action.html
-				wildcard = false;
-				prefix = suffix = text;
-			}
+		/** 前缀字符数 */
+		int prefix() {
+			return wildcard < 0 ? 0 : wildcard;
+		}
+
+		/** 后缀字符数 */
+		int suffix() {
+			return wildcard < 0 ? 0 : text.length() - wildcard - 1;
 		}
 
 		@Override
 		public String toString() {
-			if (wildcard) {
-				if (suffix == null) {
-					return prefix + ANY;
-				}
-				if (prefix == null) {
-					return ANY + suffix;
-				}
-				return prefix + ANY + prefix;
-			}
-			return prefix;
+			return text;
 		}
 
 		final boolean match(String key) {
-			if (wildcard) {
-				if (suffix == null) {
-					// 前缀匹配
-					if (prefix == key) {
-						return true;
-					}
-					if (prefix.length() <= key.length()) {
-						for (int index = 0; index < prefix.length(); index++) {
-							if (prefix.charAt(index) != key.charAt(index)) {
-								return false;
-							}
-						}
-						return true;
-					} else {
-						return false;
-					}
-				} else if (prefix == null) {
-					// 后缀匹配
-					if (suffix == key) {
-						return true;
-					}
-					if (suffix.length() <= key.length()) {
-						final int start = key.length() - suffix.length();
-						for (int index = 0; index < suffix.length(); index++) {
-							if (suffix.charAt(index) != key.charAt(start + index)) {
-								return false;
-							}
-						}
-						return true;
-					} else {
-						return false;
-					}
-				} else {
-					// 前后缀匹配
-					if (prefix.length() + suffix.length() <= key.length()) {
-						for (int index = 0; index < prefix.length(); index++) {
-							if (prefix.charAt(index) != key.charAt(index)) {
-								return false;
-							}
-						}
-						final int start = key.length() - suffix.length();
-						for (int index = 0; index < suffix.length(); index++) {
-							if (suffix.charAt(index) != key.charAt(start + index)) {
-								return false;
-							}
-						}
-						return true;
-					} else {
-						return false;
-					}
-				}
-			} else {
-				// 完全匹配
-				if (prefix == key) {
-					return true;
-				}
-				if (prefix.length() == key.length()) {
-					for (int index = 0; index < prefix.length(); index++) {
-						if (prefix.charAt(index) != key.charAt(index)) {
-							return false;
-						}
-					}
-					return true;
-				} else {
+			// 匹配有效降：全字符匹配 > 前缀和后缀匹配 > 前缀匹配 > 后缀匹配
+			// - /test.html
+			// 6 /test/*.html
+			// 6 /test/*
+			// 0 *.html
+			// 0 *.do
+			// 0 *
+
+			if (wildcard < 0) {
+				// 全字符匹配
+				if (key.length() != text.length()) {
 					return false;
+				}
+				return key.regionMatches(0, text, 0, text.length());
+			} else {
+				if (wildcard > 0) {
+					// 前缀匹配
+					if (key.length() < wildcard) {
+						return false;
+					}
+					if (key.regionMatches(0, text, 0, wildcard)) {
+						// CONTINUE
+					} else {
+						return false;
+					}
+				}
+				if (text.length() - wildcard > 1) {
+					// 后缀匹配
+					int size = text.length() - wildcard - 1;
+					if (key.length() - wildcard < size) {
+						return false;
+					}
+					return key.regionMatches(key.length() - size, text, wildcard + 1, size);
+				} else {
+					return true;
 				}
 			}
 		}
@@ -192,26 +148,20 @@ public final class Wildcards<T> {
 			// 否则"/*"和"/actions/*"后者永远无法匹配
 			@Override
 			public int compare(Item<?> a, Item<?> b) {
-				if (a.wildcard) {
-					if (b.wildcard) {
-						final int length1 = (a.prefix == null ? 0 : a.prefix.length()) + (a.suffix == null ? 0 : a.suffix.length());
-						final int length2 = (b.prefix == null ? 0 : b.prefix.length()) + (b.suffix == null ? 0 : b.suffix.length());
-						if (length1 > length2) {
-							return -1;
-						} else if (length1 < length2) {
-							return 1;
-						}
-						final String texta = (a.prefix == null ? "" : a.prefix) + (a.suffix == null ? "" : a.suffix);
-						final String textb = (b.prefix == null ? "" : b.prefix) + (b.suffix == null ? "" : b.suffix);
-						return texta.compareTo(textb);
+				if (a.wildcard < 0) {
+					if (b.wildcard < 0) {
+						return b.text.length() - a.text.length();
 					} else {
-						return 1;
+						return -1;
 					}
 				} else {
-					if (b.wildcard) {
-						return -1;
+					if (b.wildcard < 0) {
+						return 1;
 					} else {
-						return a.prefix.compareTo(b.prefix);
+						if (b.wildcard == a.wildcard) {
+							return b.text.length() - a.text.length();
+						}
+						return b.wildcard - a.wildcard;
 					}
 				}
 			}

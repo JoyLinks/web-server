@@ -10,20 +10,36 @@
 				"content": "D:\\GitHub\\HTTP-TEST\\webdav"
 			}
 		],
+		"locations": [
+			{
+				"path": "/webdav",
+				"location": "/webdav/"
+			},
+			{
+				"path": "/joyzl",
+				"location": "http://www.joyzl.com"
+			}
+		],
 		"resources": [
+			{
+				"path": "/.well-known/access.log",
+				"content": "access/access.log"
+			},
 			{
 				"cache": "D:\\GitHub\\HTTP-TEST\\sites\\cache",
 				"content": "D:\\GitHub\\HTTP-TEST\\sites",
 				"error": "D:\\GitHub\\HTTP-TEST\\sites\\error",
 				"browse": false,
 				"weak": false
-			},
-			{
-				"path": "/.well-known/access.log",
-				"content": "access/access.log"
 			}
 		],
 		"authenticates": [
+			{
+				"type": "Digest",
+				"realm": "JOYZL WEBDAV",
+				"preflight": true,
+				"path": "/webdav1/"
+			},
 			{
 				"type": "Basic",
 				"realm": "Fried Twice",

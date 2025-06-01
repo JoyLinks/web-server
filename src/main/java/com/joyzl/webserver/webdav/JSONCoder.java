@@ -25,17 +25,16 @@ class JSONCoder {
 	final static ODBSJson JSON;
 	static {
 		final ODBS odbs = ODBS.initialize(Element.class.getPackageName());
-		System.out.println(odbs.checkString());
+		// System.out.println(odbs.checkString());
 		JSON = new ODBSJson(odbs);
 	}
 
-	@SuppressWarnings("unchecked")
 	static <T extends Element> T read(Class<T> element, Request request) throws IOException, ParseException {
 		if (request.getContent() instanceof DataBuffer) {
 			try (//
 				final DataBufferInput in = new DataBufferInput((DataBuffer) request.getContent());
 				final Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-				return (T) JSON.readEntity(element, reader);
+				return JSON.readEntity(element, reader);
 			}
 		}
 		return null;
