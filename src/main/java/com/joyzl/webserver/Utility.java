@@ -261,12 +261,24 @@ public class Utility extends com.joyzl.network.Utility {
 	}
 
 	/**
+	 * 请求路径转换为实际文件（或目录）；<br>
+	 * 此方法将检查请求资源路径并分离路径部分。
+	 * 
 	 * @see {@link #resolveFile(File, String, String)}
 	 */
 	public static Path resolveFile(Path root, String base, String path) {
+		// 检查PATH是否完整URI，并定位PATH部分
+		int i = path.indexOf(':');
+		if (i > 0) {
+			i = path.indexOf('/', i + 3);
+			if (i < 0) {
+				i = 0;
+			}
+		}
+
 		if (base == null || base.length() == 0) {
 			if (path.length() > 1) {
-				return Path.of(root.toString(), path);
+				return Path.of(root.toString(), path.substring(i));
 			} else {
 				return root;
 			}
@@ -279,7 +291,7 @@ public class Utility extends com.joyzl.network.Utility {
 				return root;
 			}
 		}
-		return Path.of(root.toString(), path.substring(base.length()));
+		return Path.of(root.toString(), path.substring(i + base.length()));
 	}
 
 	/**

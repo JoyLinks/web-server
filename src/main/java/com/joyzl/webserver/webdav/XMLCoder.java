@@ -205,7 +205,8 @@ class XMLCoder extends WEBDAV {
 				if (reader.hasContent()) {
 					throw new IOException("WEBDAV无效的PROPERTY");
 				}
-				parent.prop().add(getName(reader));
+				// parent.prop().add(getName(reader));
+				parent.prop().add(reader.getName());
 			} else {
 				throw new IOException("WEBDAV无效的PROPERTY");
 			}
@@ -217,7 +218,8 @@ class XMLCoder extends WEBDAV {
 		final int depth = reader.depth();
 		while (reader.nextElement() && reader.depth() > depth) {
 			property = new Property(type);
-			property.setName(getName(reader));
+			// property.setName(getName(reader));
+			property.setName(reader.getName());
 			if (reader.isEnd()) {
 				if (reader.hasContent()) {
 					property.setValue(reader.getContent());
@@ -230,7 +232,8 @@ class XMLCoder extends WEBDAV {
 		}
 	}
 
-	private static String getName(XMLReader reader) throws IOException {
+	@Deprecated
+	static String getName(XMLReader reader) throws IOException {
 		// 注意：将规范之外的命名空间合并到名称中
 		if (reader.hasPrefix()) {
 			if (!reader.isPrefix("D")) {
@@ -344,11 +347,14 @@ class XMLCoder extends WEBDAV {
 		// 自定义命名空间 <prop1 xmlns="http://example.com/neon/litmus/">value1</prop1>
 		// 注意：自定义命名空间已合并到名称中
 
-		String name, xmlns;
 		writer.writeElement("D", PROP);
 		if (parent.hasProp()) {
 			for (Property property : parent.prop()) {
-				if (RESOURCE_TYPE.equals(property.getName())) {
+				if (property instanceof LockDiscovery lockdiscovery) {
+					// <lockdiscovery>...</lockdiscovery>
+
+					writeLockDiscovery(lockdiscovery, writer);
+				} else if (RESOURCE_TYPE.equals(property.getName())) {
 					// <resourcetype><collection/></resourcetype>
 
 					writer.writeElement("D", property.getName());
@@ -359,26 +365,27 @@ class XMLCoder extends WEBDAV {
 					writer.endElement("D", property.getName());
 				} else {
 					// 拆解含有命名空间的名称
-					int s = property.getName().indexOf(' ');
-					if (s > 0) {
-						name = property.getName().substring(0, s);
-						xmlns = property.getName().substring(s + 1);
-						xmlns = xmlns.replace('(', '/');
-						xmlns = xmlns.replace(')', ':');
+					// String name, xmlns;
+					// int s = property.getName().indexOf(' ');
+					// if (s > 0) {
+					// name = property.getName().substring(0, s);
+					// xmlns = property.getName().substring(s + 1);
+					// xmlns = xmlns.replace('(', '/');
+					// xmlns = xmlns.replace(')', ':');
+					// } else {
+					// name = property.getName();
+					// xmlns = null;
+					// }
+					// writer.writeElement(name);
+					// if (xmlns != null) {
+					// writer.writeAttribute("xmlns", xmlns);
+					// }
 
-					} else {
-						name = property.getName();
-						xmlns = null;
-					}
-
-					writer.writeElement(name);
-					if (xmlns != null) {
-						writer.writeAttribute("xmlns", xmlns);
-					}
+					writer.writeElement(property.getName());
 					if (property.getValue() != null) {
 						writer.writeContent(property.getValue().toString());
 					}
-					writer.endElement(name);
+					writer.endElement(property.getName());
 				}
 			}
 		}

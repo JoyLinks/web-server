@@ -449,6 +449,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 					return;
 				}
 			} catch (IOException e) {
+				e.printStackTrace();
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -1221,8 +1222,8 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		final ActiveLock[] locks1 = path1 != null ? LOCKS.get(path1) : null;
 		final ActiveLock[] locks2 = path2 != null ? LOCKS.get(path2) : null;
 
-		int k, m = 0;
 		Path path;
+		int k, m = 0;
 		ActiveLock[] locks;
 		String resource, etag, token;
 		boolean or = false, and;
@@ -1234,9 +1235,9 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 				locks = locks1;
 			} else {
 				path = Utility.resolveFile(root, base, resource);
-				if (path1 != null && path.equals(path1)) {
+				if (path1 != null && path1.startsWith(path)) {
 					locks = locks1;
-				} else if (path2 != null && path.equals(path2)) {
+				} else if (path2 != null && path2.startsWith(path)) {
 					locks = locks2;
 				} else {
 					locks = locks2;
@@ -1265,7 +1266,6 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 							}
 						}
 					} else {
-						// m++;
 						if (!IF.isNot()) {
 							and = false;
 						}
@@ -1390,11 +1390,13 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		}
 		response.getPropstats().add(propstat1);
 
-		if (names.contains(WEBDAV.LOCK_DISCOVERY)) {
-			propstat1.prop().add(new Property(WEBDAV.LOCK_DISCOVERY));
-		}
 		if (names.contains(WEBDAV.SUPPORTED_LOCK)) {
 			propstat1.prop().add(new Property(WEBDAV.SUPPORTED_LOCK));
+		}
+		if (names.contains(WEBDAV.LOCK_DISCOVERY)) {
+			final LockDiscovery lockDiscovery = new LockDiscovery();
+			lockDiscovery.setActives(LOCKS.get(path));
+			propstat1.prop().add(lockDiscovery);
 		}
 
 		if (!propstat1.hasProp() || propstat1.prop().size() < names.size()) {
@@ -1477,8 +1479,12 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			propstat1.prop().add(new Property(WEBDAV.GET_ETAG, ETag.makeWeak(attributes.size(), attributes.lastModifiedTime().toMillis())));
 			propstat1.prop().add(new Property(WEBDAV.GET_LAST_MODIFIED, Date.toText(attributes.lastModifiedTime().toMillis())));
 		}
-		propstat1.prop().add(new Property(WEBDAV.LOCK_DISCOVERY));
+
 		propstat1.prop().add(new Property(WEBDAV.SUPPORTED_LOCK));
+		final LockDiscovery lockDiscovery = new LockDiscovery();
+		lockDiscovery.setActives(LOCKS.get(path));
+		propstat1.prop().add(lockDiscovery);
+
 		response.getPropstats().add(propstat1);
 
 		final UserDefinedFileAttributeView user = Files.getFileAttributeView(path, UserDefinedFileAttributeView.class, options);
@@ -1544,10 +1550,9 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			propstat.prop().add(new Property(WEBDAV.GET_ETAG));
 			propstat.prop().add(new Property(WEBDAV.GET_LAST_MODIFIED));
 			propstat.prop().add(new Property(WEBDAV.RESOURCE_TYPE));
-
-			propstat.prop().add(new Property(WEBDAV.LOCK_DISCOVERY));
-			propstat.prop().add(new Property(WEBDAV.SUPPORTED_LOCK));
 		}
+		propstat.prop().add(new Property(WEBDAV.LOCK_DISCOVERY));
+		propstat.prop().add(new Property(WEBDAV.SUPPORTED_LOCK));
 		response.getPropstats().add(propstat);
 
 		final UserDefinedFileAttributeView user = Files.getFileAttributeView(path, UserDefinedFileAttributeView.class, options);

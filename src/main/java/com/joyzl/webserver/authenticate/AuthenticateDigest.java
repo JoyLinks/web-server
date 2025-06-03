@@ -52,6 +52,15 @@ public class AuthenticateDigest extends Authenticate {
 
 	@Override
 	public boolean verify(Request request, Response response) {
+
+		// ******* Running test 11: owner_modify ********
+		// X-Litmus: locks: 11 (owner_modify)
+		// String value = request.getHeader("X-Litmus");
+		// if (value == null) {
+		// value = request.getHeader("X-Litmus-Second");
+		// }
+		// System.out.println(value);
+
 		final Authorization authorization = Authorization.parse(request.getHeader(Authorization.NAME));
 		if (authorization != null) {
 			// 校验提示信息

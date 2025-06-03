@@ -24,6 +24,14 @@ public class LockDiscovery extends Property {
 		}
 	}
 
+	public void setActives(ActiveLock... values) {
+		if (values != null && values.length > 0) {
+			for (int i = 0; i < values.length; i++) {
+				actives().add(values[i]);
+			}
+		}
+	}
+
 	public List<ActiveLock> actives() {
 		if (actives == null) {
 			actives = new ArrayList<>();

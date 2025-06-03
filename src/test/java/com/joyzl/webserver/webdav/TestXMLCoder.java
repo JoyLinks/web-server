@@ -120,6 +120,28 @@ class TestXMLCoder {
 	}
 
 	@Test
+	void testPROPPATCH2() throws Exception {
+		final String xml = """
+				<?xml version="1.0" encoding="utf-8" ?>
+				<D:propertyupdate xmlns:D="DAV:" xmlns:Z="urn:schemas-microsoft-com:">
+					<D:set>
+					<D:prop>
+					<Z:Win32CreationTime>Fri, 10 May 2024 08:43:02 GMT</Z:Win32CreationTime>
+					<Z:Win32LastAccessTime>Tue, 03 Jun 2025 08:17:59 GMT</Z:Win32LastAccessTime>
+					<Z:Win32LastModifiedTime>Fri, 10 May 2024 08:43:02 GMT</Z:Win32LastModifiedTime>
+					<Z:Win32FileAttributes>00000000</Z:Win32FileAttributes>
+					</D:prop>
+					</D:set>
+				</D:propertyupdate>
+				""";
+		Element element = XMLCoder.read(input(xml));
+		assertTrue(element instanceof PropertyUpdate);
+
+		PropertyUpdate property = XMLCoder.readPropertyUpdate(input(xml));
+		assertEquals(property.getProp().size(), 4);
+	}
+
+	@Test
 	void testLOCK() throws IOException {
 		final String xml = """
 				<?xml version="1.0" encoding="utf-8" ?>

@@ -4,11 +4,16 @@ import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.Header;
 import com.joyzl.network.http.Request;
 
+/**
+ * 解析目标地址(URI)
+ * 
+ * @author ZhangXi 2025年6月3日
+ */
 public class Destination extends Header {
 
 	public final static String NAME = HTTP1.Destination;
 
-	private String url;
+	private String uri;
 	// SCHEME://HOST:PORT/PATH?QUERY#ANCHOR
 	private int host = -1, port, path = -1, query, anchor;
 
@@ -19,12 +24,12 @@ public class Destination extends Header {
 
 	@Override
 	public String getHeaderValue() {
-		return url;
+		return uri;
 	}
 
 	@Override
 	public void setHeaderValue(String value) {
-		url = value;
+		uri = value;
 		host = path = -1;
 		port = query = anchor = 0;
 		if (value != null) {
@@ -60,7 +65,7 @@ public class Destination extends Header {
 	 * 检查URL中的path部分是否与指定的路径匹配，此方法用于避免前缀匹配时创建新字符串对象
 	 */
 	public boolean pathStart(String base) {
-		return url.startsWith(base, path);
+		return uri.startsWith(base, path);
 	}
 
 	/**
@@ -68,7 +73,7 @@ public class Destination extends Header {
 	 */
 	public String getScheme() {
 		if (host > 0) {
-			return url.substring(0, host - 3);
+			return uri.substring(0, host - 3);
 		}
 		return null;
 	}
@@ -79,10 +84,10 @@ public class Destination extends Header {
 	public String getHost() {
 		if (host >= 0) {
 			if (port > host) {
-				return url.substring(host, port - 1);
+				return uri.substring(host, port - 1);
 			} else //
 			if (path > host) {
-				return url.substring(host, path);
+				return uri.substring(host, path);
 			}
 		}
 		return null;
@@ -94,9 +99,9 @@ public class Destination extends Header {
 	public int getPort() {
 		if (port > 0) {
 			if (path > 0) {
-				return Integer.parseUnsignedInt(url, port, path, 10);
+				return Integer.parseUnsignedInt(uri, port, path, 10);
 			}
-			return Integer.parseUnsignedInt(url, port, url.length(), 10);
+			return Integer.parseUnsignedInt(uri, port, uri.length(), 10);
 		}
 		return 0;
 	}
@@ -107,21 +112,21 @@ public class Destination extends Header {
 	public String getPath() {
 		if (path == 0) {
 			if (query > 0) {
-				return url.substring(path, query);
+				return uri.substring(path, query);
 			}
 			if (anchor > 0) {
-				return url.substring(path, anchor);
+				return uri.substring(path, anchor);
 			}
-			return url;
+			return uri;
 		}
 		if (path > 0) {
 			if (query > 0) {
-				return url.substring(path, query);
+				return uri.substring(path, query);
 			}
 			if (anchor > 0) {
-				return url.substring(path, anchor);
+				return uri.substring(path, anchor);
 			}
-			return url.substring(path);
+			return uri.substring(path);
 		}
 		return null;
 	}
@@ -132,9 +137,9 @@ public class Destination extends Header {
 	public String getQuery() {
 		if (query > 0) {
 			if (anchor > 0) {
-				return url.substring(query, anchor);
+				return uri.substring(query, anchor);
 			}
-			return url.substring(query);
+			return uri.substring(query);
 		}
 		return null;
 	}
@@ -144,7 +149,7 @@ public class Destination extends Header {
 	 */
 	public String getAnchor() {
 		if (anchor > 0) {
-			return url.substring(anchor);
+			return uri.substring(anchor);
 		}
 		return null;
 	}

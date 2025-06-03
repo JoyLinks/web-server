@@ -74,23 +74,28 @@ public class Locks {
 		k.lock();
 		try {
 			ActiveLock[] locks = PATHS.get(path);
-			if (locks != null) {
-				int i = 0, t = 0;
-				for (; i < locks.length; i++) {
-					if (locks[i].valid()) {
-						TEMP[t++] = locks[i];
-					} else {
-						LOCKS.remove(locks[i].getLockToken());
-					}
+			while (locks == null) {
+				if ((path = path.getParent()) == null) {
+					return false;
 				}
-				if (t > 0) {
-					if (t < i) {
-						PATHS.put(path, locks = Arrays.copyOf(TEMP, t));
-					}
-					return true;
+				locks = PATHS.get(path);
+			}
+
+			int i = 0, t = 0;
+			for (; i < locks.length; i++) {
+				if (locks[i].valid()) {
+					TEMP[t++] = locks[i];
 				} else {
-					PATHS.remove(path);
+					LOCKS.remove(locks[i].getLockToken());
 				}
+			}
+			if (t > 0) {
+				if (t < i) {
+					PATHS.put(path, locks = Arrays.copyOf(TEMP, t));
+				}
+				return true;
+			} else {
+				PATHS.remove(path);
 			}
 			return false;
 		} finally {
@@ -114,7 +119,7 @@ public class Locks {
 		}
 	}
 
-	/** 获取资源的锁 */
+	/** 获取资源的锁，向上查找至根 */
 	public ActiveLock[] get(Path path) {
 		k.lock();
 		try {
