@@ -19,6 +19,7 @@ import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.authenticate.AuthenticateBasic;
 import com.joyzl.webserver.authenticate.AuthenticateBearer;
 import com.joyzl.webserver.authenticate.AuthenticateDigest;
+import com.joyzl.webserver.authenticate.AuthenticateNone;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Location;
 import com.joyzl.webserver.entities.Resource;
@@ -122,7 +123,10 @@ public final class Service {
 
 		servlet.setErrorPages(resource.getError());
 		servlet.setBrowse(resource.isBrowse());
+		servlet.setCreate(resource.isCreate());
+		servlet.setDelete(resource.isDelete());
 		servlet.setWeak(resource.isWeak());
+
 		if (resource.getDefaults() != null) {
 			servlet.setDefaults(resource.getDefaults());
 		}
@@ -136,6 +140,13 @@ public final class Service {
 	}
 
 	static com.joyzl.webserver.authenticate.Authenticate instance(Authenticate authenticate) throws IOException {
+		if (AuthenticateNone.TYPE.equalsIgnoreCase(authenticate.getType())) {
+			final AuthenticateNone a = new AuthenticateNone(authenticate.getPath());
+			a.setPreflight(authenticate.getPreflight());
+			a.setAlgorithm(authenticate.getAlgorithm());
+			a.setRealm(authenticate.getRealm());
+			return a;
+		}
 		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
 			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getPath());
 			a.setPreflight(authenticate.getPreflight());

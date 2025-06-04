@@ -18,6 +18,8 @@ public class Resource {
 	private List<String> compresses;
 	private List<String> caches;
 	private boolean browse;
+	private boolean create;
+	private boolean delete;
 	private boolean weak;
 
 	/**
@@ -144,5 +146,33 @@ public class Resource {
 	 */
 	public void setBrowse(boolean value) {
 		browse = value;
+	}
+
+	/**
+	 * 获取是否可创建资源
+	 */
+	public boolean isCreate() {
+		return create;
+	}
+
+	/**
+	 * 设置是否可创建资源
+	 */
+	public void setCreate(boolean value) {
+		create = value;
+	}
+
+	/**
+	 * 获取是否可删除资源
+	 */
+	public boolean isDelete() {
+		return delete;
+	}
+
+	/**
+	 * 设置是否可删除资源
+	 */
+	public void setDelete(boolean value) {
+		delete = value;
 	}
 }

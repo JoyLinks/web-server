@@ -113,7 +113,15 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void options(Request request, Response response) throws Exception {
-		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
+		if (isCreate()) {
+			if (isDelete()) {
+				response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,PUT,DELETE,TRACE");
+			} else {
+				response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,PUT,TRACE");
+			}
+		} else {
+			response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,TRACE");
+		}
 	}
 
 	@Override
@@ -128,6 +136,11 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void put(Request request, Response response) throws Exception {
+		if (!isCreate()) {
+			response.setStatus(HTTPStatus.FORBIDDEN);
+			return;
+		}
+
 		// Content-Range
 		if (request.hasHeader(HTTP1.Content_Range)) {
 			response.setStatus(HTTPStatus.BAD_REQUEST);
@@ -155,6 +168,11 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void patch(Request request, Response response) throws Exception {
+		if (!isCreate()) {
+			response.setStatus(HTTPStatus.FORBIDDEN);
+			return;
+		}
+
 		// RFC 5789 PATCH
 		final String path = Utility.normalizePath(request.getPath());
 		WEBResource resource = find(path);
@@ -216,6 +234,11 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
+		if (!isDelete()) {
+			response.setStatus(HTTPStatus.FORBIDDEN);
+			return;
+		}
+
 		final String path = Utility.normalizePath(request.getPath());
 		final WEBResource resource = find(path);
 		if (resource != null) {
@@ -510,4 +533,8 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	protected abstract WEBResource create(String path, DataBuffer content);
 
 	protected abstract boolean delete(String path);
+
+	protected abstract boolean isDelete();
+
+	protected abstract boolean isCreate();
 }

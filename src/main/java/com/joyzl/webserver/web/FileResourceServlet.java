@@ -38,8 +38,12 @@ public class FileResourceServlet extends WEBResourceServlet {
 	private String[] compresses = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".xml" };
 	/** 缓存的文件扩展名 */
 	private String[] caches = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2" };
-	/** 是否列示目录文件 */
+	/** 允许列示目录文件 */
 	private boolean browse = false;
+	/** 允许创建文件 */
+	private boolean create = false;
+	/** 允许删除文件 */
+	private boolean delete = false;
 	/** 是否使用弱验证 */
 	private boolean weak = true;
 
@@ -416,6 +420,34 @@ public class FileResourceServlet extends WEBResourceServlet {
 	 */
 	public void setBrowse(boolean value) {
 		browse = value;
+	}
+
+	/**
+	 * 获取是否可创建资源
+	 */
+	public boolean isCreate() {
+		return create;
+	}
+
+	/**
+	 * 设置是否可创建资源
+	 */
+	public void setCreate(boolean value) {
+		create = value;
+	}
+
+	/**
+	 * 获取是否可删除资源
+	 */
+	public boolean isDelete() {
+		return delete;
+	}
+
+	/**
+	 * 设置是否可删除资源
+	 */
+	public void setDelete(boolean value) {
+		delete = value;
 	}
 
 	/**
