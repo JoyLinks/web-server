@@ -8,8 +8,8 @@ import java.util.Properties;
 import com.joyzl.logger.LogSetting;
 import com.joyzl.logger.Logger;
 import com.joyzl.network.Executor;
-import com.joyzl.webserver.manage.Manager;
-import com.joyzl.webserver.manage.Users;
+import com.joyzl.webserver.service.Service;
+import com.joyzl.webserver.service.Users;
 
 /**
  * WEB HTTP Server
@@ -144,23 +144,23 @@ public class Application {
 		Users.initialize(properties.getProperty("USERS"));
 
 		// 初始化服务集
-		Manager.initialize(properties.getProperty("SERVERS"));
+		Service.initialize(properties.getProperty("SERVERS"));
 	}
 
 	void start() throws Exception {
 		Logger.info("START");
-		Manager.start();
+		Service.start();
 	}
 
 	void stop() throws Exception {
 		Logger.info("STOP");
-		Manager.stop();
+		Service.stop();
 	}
 
 	void destroy() throws Exception {
 		Logger.info("DESTROY");
 		try {
-			Manager.destroy();
+			Service.destroy();
 		} finally {
 			Executor.shutdown();
 		}

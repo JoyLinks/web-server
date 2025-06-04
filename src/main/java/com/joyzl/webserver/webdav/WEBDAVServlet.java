@@ -5,7 +5,7 @@ import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.webserver.web.CROSServlet;
+import com.joyzl.webserver.servlet.CROSServlet;
 
 /**
  * WEBDAV

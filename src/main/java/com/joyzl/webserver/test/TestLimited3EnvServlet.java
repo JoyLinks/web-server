@@ -1,4 +1,4 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.test;
 
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -9,42 +9,18 @@ import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.webserver.web.MIMEType;
-import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.servlet.ServletPath;
 import com.joyzl.webserver.web.WEBServlet;
 
-@ServletPath(path = "/a5-test/env.cgi")
-public class TestEnvServlet extends WEBServlet {
+@ServletPath(path = "/a5-test/limited3/env.cgi")
+public class TestLimited3EnvServlet extends WEBServlet {
 
 	protected void get(Request request, Response response) throws Exception {
-		final DataBufferOutput output = new DataBufferOutput();
-		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-
-		if (request.hasParameters()) {
-			for (Entry<String, String[]> entry : request.getParametersMap().entrySet()) {
-				writer.write(entry.getKey());
-				writer.write("=");
-				writer.write(String.join(",", entry.getValue()));
-				writer.write(HTTP1Coder.LF);
-			}
-		}
-
-		writer.write("QUERY_STRING = ");
-		writer.write(request.getQuery().substring(1));
-		writer.write(HTTP1Coder.LF);
-
-		writer.write("HTTP_USER_AGENT = ");
-		writer.write(request.getHeader(HTTP1.User_Agent));
-		writer.write(HTTP1Coder.LF);
-
-		writer.close();
-
-		response.setContent(output.buffer());
-		response.addHeader(ContentType.NAME, MIMEType.TEXT_HTML);
-		response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
+		response.setStatus(HTTPStatus.NOT_IMPLEMENTED);
 	}
 
 	protected void head(Request request, Response response) throws Exception {
@@ -94,6 +70,6 @@ public class TestEnvServlet extends WEBServlet {
 	}
 
 	protected void options(Request request, Response response) throws Exception {
-		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, POST, TRACE");
+		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE");
 	}
 }

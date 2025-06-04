@@ -1,10 +1,10 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.test;
 
 import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.servlet.ServletPath;
 import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/status.cgi")

@@ -13,11 +13,11 @@ import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.buffer.DataBufferOutput;
 import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.ContentType;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.odbs.ODBS;
 import com.joyzl.odbs.ODBSJson;
-import com.joyzl.webserver.web.MIMEType;
 import com.joyzl.webserver.webdav.elements.Element;
 
 class JSONCoder {

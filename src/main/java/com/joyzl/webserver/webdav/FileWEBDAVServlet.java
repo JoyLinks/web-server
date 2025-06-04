@@ -39,12 +39,12 @@ import com.joyzl.network.http.ETag;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Range;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.webserver.Utility;
-import com.joyzl.webserver.web.MIMEType;
 import com.joyzl.webserver.webdav.elements.ActiveLock;
 import com.joyzl.webserver.webdav.elements.Collection;
 import com.joyzl.webserver.webdav.elements.LockDiscovery;
@@ -99,7 +99,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		final Path path = Utility.resolveFile(root, base, request.getPath());
 		if (Files.exists(path, options)) {
 			if (Files.isDirectory(path, options)) {
-				// TODO
+				response.setStatus(HTTPStatus.NO_CONTENT);
 			} else {
 				final FileTime time = Files.getLastModifiedTime(path, options);
 				final String etag = ETag.makeWeak(Files.size(path), time.toMillis());

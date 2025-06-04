@@ -7,9 +7,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.joyzl.odbs.ODBSReflect;
-import com.joyzl.webserver.web.Servlet;
-import com.joyzl.webserver.web.ServletPath;
-import com.joyzl.webserver.web.Wildcards;
+import com.joyzl.webserver.servlet.Servlet;
+import com.joyzl.webserver.servlet.ServletPath;
+import com.joyzl.webserver.servlet.Wildcards;
 
 /**
  * 实用方法集

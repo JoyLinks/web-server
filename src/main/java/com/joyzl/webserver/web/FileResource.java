@@ -8,6 +8,8 @@ import java.io.InputStream;
 import com.joyzl.network.http.AcceptEncoding;
 import com.joyzl.network.http.Date;
 import com.joyzl.network.http.ETag;
+import com.joyzl.network.http.LanguageCodes;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Range.ByteRange;
 
 /**

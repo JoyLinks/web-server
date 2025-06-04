@@ -1,4 +1,4 @@
-package com.joyzl.webserver.manage;
+package com.joyzl.webserver.service;
 
 import java.net.SocketAddress;
 import java.util.HashMap;
@@ -15,9 +15,9 @@ import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Location;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Webdav;
-import com.joyzl.webserver.manage.Access.AccessCommonLogger;
-import com.joyzl.webserver.web.Servlet;
-import com.joyzl.webserver.web.Wildcards;
+import com.joyzl.webserver.service.Access.AccessCommonLogger;
+import com.joyzl.webserver.servlet.Servlet;
+import com.joyzl.webserver.servlet.Wildcards;
 
 public final class Server extends com.joyzl.webserver.entities.Server {
 
@@ -49,9 +49,9 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		for (Location location : getLocations()) {
 			if (Utility.noEmpty(location.getLocation())) {
 				if (Utility.isEmpty(location.getPath())) {
-					SERVLETS.bind(Wildcards.STAR, Manager.instance(location));
+					SERVLETS.bind(Wildcards.STAR, Service.instance(location));
 				} else {
-					SERVLETS.bind(location.getPath(), Manager.instance(location));
+					SERVLETS.bind(location.getPath(), Service.instance(location));
 				}
 			}
 		}
@@ -59,9 +59,9 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		for (Webdav webdav : getWebdavs()) {
 			if (Utility.noEmpty(webdav.getContent())) {
 				if (Utility.isEmpty(webdav.getPath())) {
-					SERVLETS.bind(Wildcards.STAR, Manager.instance(webdav));
+					SERVLETS.bind(Wildcards.STAR, Service.instance(webdav));
 				} else {
-					SERVLETS.bind(webdav.getPath(), Manager.instance(webdav));
+					SERVLETS.bind(webdav.getPath(), Service.instance(webdav));
 				}
 			}
 		}
@@ -69,16 +69,16 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 		for (Resource resource : getResources()) {
 			if (Utility.noEmpty(resource.getContent())) {
 				if (Utility.isEmpty(resource.getPath())) {
-					SERVLETS.bind(Wildcards.STAR, Manager.instance(resource));
+					SERVLETS.bind(Wildcards.STAR, Service.instance(resource));
 				} else {
-					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
+					SERVLETS.bind(resource.getPath(), Service.instance(resource));
 				}
 			}
 		}
 
 		AUTHENTICATES.clear();
 		for (Authenticate authenticate : getAuthenticates()) {
-			AUTHENTICATES.addAuthenticate(Manager.instance(authenticate));
+			AUTHENTICATES.addAuthenticate(Service.instance(authenticate));
 		}
 
 		HOSTS.clear();

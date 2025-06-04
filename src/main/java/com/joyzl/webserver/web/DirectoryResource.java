@@ -7,6 +7,7 @@ import java.io.InputStream;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.http.AcceptEncoding;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Range.ByteRange;
 
 /**

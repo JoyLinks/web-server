@@ -1,4 +1,4 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.test;
 
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -6,11 +6,11 @@ import java.nio.charset.StandardCharsets;
 import com.joyzl.network.buffer.DataBufferOutput;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.webserver.web.MIMEType;
-import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.servlet.ServletPath;
 import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/ls.cgi")

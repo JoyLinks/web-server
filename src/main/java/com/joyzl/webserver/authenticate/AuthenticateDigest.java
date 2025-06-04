@@ -16,7 +16,7 @@ import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.entities.User;
-import com.joyzl.webserver.manage.Users;
+import com.joyzl.webserver.service.Users;
 
 /**
  * Digest 身份验证 RFC7616

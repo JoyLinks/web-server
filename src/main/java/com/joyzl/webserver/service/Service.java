@@ -1,4 +1,4 @@
-package com.joyzl.webserver.manage;
+package com.joyzl.webserver.service;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,12 +32,12 @@ import com.joyzl.webserver.webdav.FileWEBDAVServlet;
  * 
  * @author ZhangXi 2024年11月12日
  */
-public final class Manager {
+public final class Service {
 
 	private static final List<Server> SERVERS = new ArrayList<>();
 	private static File file;
 
-	private Manager() {
+	private Service() {
 	}
 
 	/**
@@ -108,8 +108,8 @@ public final class Manager {
 		return servlet;
 	}
 
-	static com.joyzl.webserver.servlets.Location instance(Location location) throws IOException {
-		return new com.joyzl.webserver.servlets.Location(location.getPath(), location.getLocation(), HTTPStatus.fromCode(location.getStatus()));
+	static com.joyzl.webserver.servlet.Location instance(Location location) throws IOException {
+		return new com.joyzl.webserver.servlet.Location(location.getPath(), location.getLocation(), HTTPStatus.fromCode(location.getStatus()));
 	}
 
 	static FileResourceServlet instance(Resource resource) throws IOException {

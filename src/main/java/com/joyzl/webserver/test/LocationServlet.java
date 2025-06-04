@@ -1,4 +1,4 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.test;
 
 import java.io.IOException;
 
@@ -10,11 +10,11 @@ import com.joyzl.network.http.HTTPClient;
 import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Host;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.webserver.web.MIMEType;
-import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.servlet.ServletPath;
 import com.joyzl.webserver.web.WEBServlet;
 
 @ServletPath(path = "/a5-test/location.cgi")

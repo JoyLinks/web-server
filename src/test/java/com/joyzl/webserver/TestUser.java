@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.Request;
 import com.joyzl.webserver.entities.User;
-import com.joyzl.webserver.manage.Users;
+import com.joyzl.webserver.service.Users;
 
 class TestUser {
 

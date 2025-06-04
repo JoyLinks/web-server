@@ -1,4 +1,4 @@
-package com.joyzl.webserver.manage;
+package com.joyzl.webserver.service;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -91,11 +91,13 @@ public class Users {
 		return Collections.unmodifiableCollection(USERS.values());
 	}
 
-	public static void add(User user) {
+	public static boolean add(User user) {
 		if (USERS.containsKey(user.getName())) {
-			throw new IllegalArgumentException("用户已存在");
+			// throw new IllegalArgumentException("用户已存在");
+			return false;
 		}
 		USERS.put(user.getName(), user);
+		return true;
 	}
 
 	public static User remove(String username) {

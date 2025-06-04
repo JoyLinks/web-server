@@ -15,7 +15,7 @@ import com.joyzl.network.http.Response;
 import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.network.http.WWWAuthenticate;
 import com.joyzl.webserver.entities.User;
-import com.joyzl.webserver.manage.Users;
+import com.joyzl.webserver.service.Users;
 
 /**
  * Basic 身份验证 RFC 7617

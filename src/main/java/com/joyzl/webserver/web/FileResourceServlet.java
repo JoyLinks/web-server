@@ -1,11 +1,13 @@
 package com.joyzl.webserver.web;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.webserver.Utility;
 
@@ -132,6 +134,58 @@ public class FileResourceServlet extends WEBResourceServlet {
 			return new FileResource(Utility.resolvePath(root, base, file), file, false);
 		}
 		return null;
+	}
+
+	@Override
+	protected WEBResource create(String path, DataBuffer content) {
+		final File file = Utility.resolveFile(root, base, path);
+		if (file.equals(root)) {
+			return null;
+		}
+		if (file.isDirectory()) {
+			return null;
+		}
+		if (content == null) {
+			try (FileOutputStream output = new FileOutputStream(file)) {
+			} catch (IOException e) {
+				return null;
+			}
+		} else {
+			try (FileOutputStream output = new FileOutputStream(file)) {
+				content.transfer(output.getChannel());
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		final WEBResource resource = makeResource(file);
+		resources.put(path, resource);
+		return resource;
+	}
+
+	@Override
+	protected boolean delete(String path) {
+		final WEBResource resource = resources.remove(path);
+		final File file;
+		if (resource != null) {
+			if (resource instanceof FileResource f) {
+				file = f.getFile();
+			} else if (resource instanceof DirectoryResource d) {
+				file = d.getDirectory();
+			} else {
+				file = null;
+			}
+		} else {
+			file = Utility.resolveFile(root, base, path);
+		}
+		if (file != null) {
+			if (file.equals(root)) {
+				return false;
+			}
+			if (file.delete()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

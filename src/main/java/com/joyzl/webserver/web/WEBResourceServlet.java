@@ -7,6 +7,7 @@ package com.joyzl.webserver.web;
 
 import java.io.IOException;
 
+import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.http.AcceptEncoding;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentEncoding;
@@ -17,6 +18,7 @@ import com.joyzl.network.http.ETag;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.MultipartRange;
 import com.joyzl.network.http.MultipartRange.MultipartRanges;
 import com.joyzl.network.http.Range;
@@ -97,6 +99,9 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	// Location
 	// 如果请求资源需要重定向，例如请求目录 /eno 将其重定向为 /eno/
 
+	// Accept-Patch
+	// Accept-Patch: text/example;charset=utf-8
+
 	// 建议分块大小
 	private int BLOCK_BYTES = HTTP1Coder.BLOCK_BYTES;
 	// 最大请求大小
@@ -109,12 +114,7 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	@Override
 	protected void options(Request request, Response response) throws Exception {
 		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
-	}
 
-	@Override
-	protected void delete(Request request, Response response) throws Exception {
-		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
 	}
 
 	@Override
@@ -129,14 +129,105 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void put(Request request, Response response) throws Exception {
-		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+		// Content-Range
+		if (request.hasHeader(HTTP1.Content_Range)) {
+			response.setStatus(HTTPStatus.BAD_REQUEST);
+			return;
+		}
+
+		// Content-Type 忽略
+
+		final String path = Utility.normalizePath(request.getPath());
+		WEBResource resource = find(path);
+		if (resource == null) {
+			response.setStatus(HTTPStatus.CREATED);
+		} else {
+			response.setStatus(HTTPStatus.NO_CONTENT);
+		}
+
+		resource = create(path, (DataBuffer) request.getContent());
+		if (resource == null) {
+			response.setStatus(HTTPStatus.CONFLICT);
+		} else {
+			response.addHeader(HTTP1.ETag, resource.getETag());
+			response.addHeader(HTTP1.Content_Location, resource.getContentLocation());
+		}
 	}
 
 	@Override
 	protected void patch(Request request, Response response) throws Exception {
-		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+		// RFC 5789 PATCH
+		final String path = Utility.normalizePath(request.getPath());
+		WEBResource resource = find(path);
+
+		if (resource == null) {
+			if (request.hasHeader(HTTP1.If_Match)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+			if (request.hasHeader(HTTP1.If_Unmodified_Since)) {
+				response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+				return;
+			}
+
+			// CREATE
+			resource = create(path, (DataBuffer) request.getContent());
+			if (resource == null) {
+				response.setStatus(HTTPStatus.CONFLICT);
+			} else {
+				response.addHeader(HTTP1.ETag, resource.getETag());
+				response.addHeader(HTTP1.Content_Location, resource.getContentLocation());
+			}
+		} else {
+			// If-Match
+			String value = request.getHeader(HTTP1.If_Match);
+			if (Utility.noEmpty(value)) {
+				if (Utility.equal(value, resource.getETag())) {
+					// CONTINUE
+				} else {
+					response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+					return;
+				}
+			}
+			// If-Unmodified-Since
+			value = request.getHeader(HTTP1.If_Unmodified_Since);
+			if (Utility.noEmpty(value)) {
+				if (Utility.equal(value, resource.getLastModified())) {
+					// CONTINUE
+				} else {
+					response.setStatus(HTTPStatus.PRECONDITION_FAILED);
+					return;
+				}
+			}
+
+			// Content-Range
+
+		}
+
+		// TODO PATCH
+		// 404 Not Found
+		// 409 Conflict
+		// 412 Precondition Failed
+		// 415 Unsupported Media Type
+		// 422 Unprocessable Entity
+
+		// Content-Location: /file.txt
+		// ETag: "e0023aa4f"
+	}
+
+	@Override
+	protected void delete(Request request, Response response) throws Exception {
+		final String path = Utility.normalizePath(request.getPath());
+		final WEBResource resource = find(path);
+		if (resource != null) {
+			if (delete(path)) {
+				response.setStatus(HTTPStatus.NO_CONTENT);
+			} else {
+				response.setStatus(HTTPStatus.CONFLICT);
+			}
+		} else {
+			response.setStatus(HTTPStatus.NOT_FOUND);
+		}
 	}
 
 	/**
@@ -413,7 +504,11 @@ public abstract class WEBResourceServlet extends WEBServlet {
 		}
 	}
 
-	protected abstract WEBResource find(String uri);
+	protected abstract WEBResource find(String path);
 
 	protected abstract WEBResource find(HTTPStatus status);
+
+	protected abstract WEBResource create(String path, DataBuffer content);
+
+	protected abstract boolean delete(String path);
 }

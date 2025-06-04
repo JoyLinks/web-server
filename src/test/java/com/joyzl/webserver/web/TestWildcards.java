@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import com.joyzl.webserver.servlet.Wildcards;
+
 /**
  * Wildcards 用于URI通配符匹配的正确性和性能测试
  * 

@@ -1,4 +1,4 @@
-package com.joyzl.webserver.manage;
+package com.joyzl.webserver.service;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -19,6 +19,11 @@ public final class Roster {
 	private final Map<InetAddress, Address> ALLOWS = new HashMap<>();
 	private final Map<InetAddress, Address> DENIES = new HashMap<>();
 
+	// 白名单优先级高于黑名单
+	// 如果配置白名单则除此之外的所有地址被阻止
+	// 如果配置黑名单则除此之外的所有地址都允许
+
+	/** 地址是否禁止 */
 	public final boolean isDeny(SocketAddress address) {
 		if (ALLOWS.isEmpty()) {
 			if (DENIES.isEmpty()) {
@@ -33,6 +38,7 @@ public final class Roster {
 		}
 	}
 
+	/** 地址是否允许 */
 	public final boolean isAllow(SocketAddress address) {
 		if (ALLOWS.isEmpty()) {
 			if (DENIES.isEmpty()) {
@@ -48,7 +54,7 @@ public final class Roster {
 	}
 
 	public final void add(Address address) throws UnknownHostException {
-		final InetAddress a = InetAddress.getByName(address.getHost());
+		final InetAddress a = InetAddress.getByName(address.getAddress());
 		if (address.isAllow()) {
 			ALLOWS.put(a, address);
 		} else {
@@ -57,7 +63,7 @@ public final class Roster {
 	}
 
 	public final void remove(Address address) throws UnknownHostException {
-		final InetAddress a = InetAddress.getByName(address.getHost());
+		final InetAddress a = InetAddress.getByName(address.getAddress());
 		if (address.isAllow()) {
 			ALLOWS.remove(a, address);
 		} else {

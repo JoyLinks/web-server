@@ -1,4 +1,4 @@
-package com.joyzl.webserver.manage;
+package com.joyzl.webserver.service;
 
 import java.net.SocketAddress;
 
@@ -10,9 +10,9 @@ import com.joyzl.webserver.entities.Address;
 import com.joyzl.webserver.entities.Authenticate;
 import com.joyzl.webserver.entities.Resource;
 import com.joyzl.webserver.entities.Webdav;
-import com.joyzl.webserver.manage.Access.AccessCommonLogger;
-import com.joyzl.webserver.web.Servlet;
-import com.joyzl.webserver.web.Wildcards;
+import com.joyzl.webserver.service.Access.AccessCommonLogger;
+import com.joyzl.webserver.servlet.Servlet;
+import com.joyzl.webserver.servlet.Wildcards;
 
 public class Host extends com.joyzl.webserver.entities.Host {
 
@@ -32,25 +32,25 @@ public class Host extends com.joyzl.webserver.entities.Host {
 		for (Resource resource : getResources()) {
 			if (Utility.noEmpty(resource.getContent())) {
 				if (Utility.isEmpty(resource.getPath())) {
-					SERVLETS.bind("*", Manager.instance(resource));
+					SERVLETS.bind("*", Service.instance(resource));
 				} else {
-					SERVLETS.bind(resource.getPath(), Manager.instance(resource));
+					SERVLETS.bind(resource.getPath(), Service.instance(resource));
 				}
 			}
 		}
 		for (Webdav webdav : getWebdavs()) {
 			if (Utility.noEmpty(webdav.getContent())) {
 				if (Utility.isEmpty(webdav.getPath())) {
-					SERVLETS.bind("*", Manager.instance(webdav));
+					SERVLETS.bind("*", Service.instance(webdav));
 				} else {
-					SERVLETS.bind(webdav.getPath(), Manager.instance(webdav));
+					SERVLETS.bind(webdav.getPath(), Service.instance(webdav));
 				}
 			}
 		}
 
 		AUTHENTICATES.clear();
 		for (Authenticate authenticate : getAuthenticates()) {
-			AUTHENTICATES.addAuthenticate(Manager.instance(authenticate));
+			AUTHENTICATES.addAuthenticate(Service.instance(authenticate));
 		}
 
 		if (Utility.noEmpty(getAccess())) {

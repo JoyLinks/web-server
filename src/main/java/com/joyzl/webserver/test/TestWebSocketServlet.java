@@ -1,11 +1,11 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.test;
 
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.WEBSocketHandler;
 import com.joyzl.network.http.WEBSocketMessage;
-import com.joyzl.webserver.web.ServletPath;
+import com.joyzl.webserver.servlet.ServletPath;
 import com.joyzl.webserver.web.WEBSocket;
 
 @ServletPath(path = "/ws")

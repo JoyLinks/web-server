@@ -1,4 +1,4 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.servlet;
 
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
@@ -7,7 +7,6 @@ import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.web.WEBServlet;
-import com.joyzl.webserver.web.Wildcards;
 
 /**
  * 请求重定向

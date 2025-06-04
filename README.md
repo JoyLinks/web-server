@@ -13,7 +13,21 @@ JOYZL network 是历经十年以上持续开发和不断优化且完全开源的
 * 支持 TLS 1.3、TLS 1.2 传输层安全协议；
 * 支持 WEB Site 资源发布服务；
 * 支持 WEBDAV Class 1、2、3 分布式编辑与版本管理服务；
+* 支持请求地址黑名单或白名单过滤。
 
+## WEB Site 网站发布
+
+配置静态网站资源发布，支持多域名和虚拟目录，支持资源压缩和内存缓存。
+
+## WEBDAV 文件资源
+
+配置 WEBDAV 访问服务器文件资源，支持 PROPFIND PROPPATCH MKCOL DELETE GET PUT COPY MOVE LOCK UNLOCK 请求方法。
+资源锁(Resource Lock)仅在服务运行期间有效，重启后丢失；单个资源最多可同时创建64个共享锁。
+支持XML和JSON实体格式，通过请求时指定 Content-Type:application/xml 或 Content-Type:application/json 以指定格式实体执行请求和响应。
+
+## Authorization 身份验证
+
+配置任意资源路径要求客户端身份验证，已集成 Basic 和 Digest 身份验证方式。
 
 
 ### 语言代码（Language Codes）
@@ -25,3 +39,7 @@ JOYZL network 是历经十年以上持续开发和不断优化且完全开源的
 [MDN WEB Docs](https://developer.mozilla.org)
 
 [WebDAV test suite litmus](https://github.com/tolsen/litmus)
+
+[h2spec](https://github.com/summerwind/h2spec)
+
+[WebServer Tester](https://github.com/ibnesayeed/webserver-tester)

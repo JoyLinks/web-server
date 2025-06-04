@@ -3,13 +3,14 @@
  * 重庆骄智科技有限公司
  * Copyright © JOY-Links Company. All rights reserved.
  */
-package com.joyzl.webserver.web;
+package com.joyzl.webserver.servlet;
 
 import com.joyzl.network.Utility;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
+import com.joyzl.webserver.web.WEBServlet;
 
 /**
  * 基于 CROS(Cross-origin resource sharing) RFC6454 请求/响应的 Servlet
@@ -120,7 +121,8 @@ public abstract class CROSServlet extends WEBServlet {
 	 * </pre>
 	 */
 	protected String allowMethods() {
-		return "OPTIONS, GET, POST";
+		// return "OPTIONS, GET, POST";
+		return ANY;
 	}
 
 	/**

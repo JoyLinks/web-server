@@ -1,4 +1,4 @@
-package com.joyzl.webserver.servlets;
+package com.joyzl.webserver.manage;
 
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -10,57 +10,64 @@ import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.buffer.DataBufferOutput;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.http.TransferEncoding;
-import com.joyzl.webserver.web.CROSServlet;
-import com.joyzl.webserver.web.MIMEType;
-import com.joyzl.webserver.web.ServletPath;
 import com.joyzl.webserver.entities.Server;
-import com.joyzl.webserver.manage.Manager;
-import com.joyzl.webserver.manage.Serializer;
+import com.joyzl.webserver.service.Serializer;
+import com.joyzl.webserver.service.Service;
+import com.joyzl.webserver.servlet.CROSServlet;
+import com.joyzl.webserver.servlet.ServletPath;
 
 /**
- * 服务管理接口
+ * 服务配置接口
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manager/*")
+@ServletPath(path = "/manager/service")
 public class ManageServlet extends CROSServlet {
 
-	// 获取计数
-	// 获取配置，调整配置，重置服务
-	// 黑白名单
-	// 访问日志查询
-	// 管理 Basic 和 Digict 用户
+	// 获取服务配置
+	@Override
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		Serializer.JSON().writeEntity(Manager.all(), writer);
+		Serializer.JSON().writeEntities(Service.all(), writer);
 		writer.flush();
 
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
-		response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
 		response.setContent(output.buffer());
 	}
 
+	// 保存服务配置
+	@Override
 	protected void put(Request request, Response response) throws Exception {
-		if (response.getContent() != null) {
+		if (response.getContent() == null) {
+			response.setStatus(HTTPStatus.BAD_REQUEST);
+			return;
+		}
+
+		final List<Server> servers;
+		try {
 			final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
 			final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
-			@SuppressWarnings("unchecked")
-			final List<Server> servers = (List<Server>) Serializer.JSON().readEntity(Server.class, reader);
-			if (servers != null && servers.size() > 0) {
+			servers = Serializer.JSON().readEntities(Server.class, reader);
+		} catch (Exception e) {
+			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
+			return;
+		}
 
-			}
+		if (servers != null) {
+
+		} else {
+			response.setStatus(HTTPStatus.UNPROCESSABLE_ENTITY);
 		}
 	}
 
+	// 重置服务
+	@Override
 	protected void post(Request request, Response response) throws Exception {
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
-	}
-
-	protected void delete(Request request, Response response) throws Exception {
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
+		// 重置指定Server
+		// 重置所有Server
 	}
 }

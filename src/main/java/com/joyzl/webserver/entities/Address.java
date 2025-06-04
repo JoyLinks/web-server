@@ -8,20 +8,35 @@ package com.joyzl.webserver.entities;
 public class Address {
 
 	private boolean allow;
-	private String host;
+	private String address;
+	private String[] host;
 
 	/**
 	 * 获取主机地址
 	 */
-	public String getHost() {
+	public String[] getHost() {
 		return host;
 	}
 
 	/**
 	 * 设置主机地址
 	 */
-	public void setHost(String value) {
-		host = value;
+	public void setHost(String... values) {
+		host = values;
+	}
+
+	/**
+	 * 获取地址
+	 */
+	public String getAddress() {
+		return address;
+	}
+
+	/**
+	 * 设置地址
+	 */
+	public void setAddress(String value) {
+		address = value;
 	}
 
 	/**
