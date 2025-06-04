@@ -20,7 +20,9 @@
 						"preflight": true
 					}
 				],
-				"servlets": [],
+				"servlets": [
+					{}
+				],
 				"locations": [
 					{
 						"path": "/webdav",
@@ -43,6 +45,15 @@
 					}
 				],
 				"authenticates": [
+					{
+						"path": "/",
+						"type": "None",
+						"realm": "WEB Site",
+						"methods": [
+							"GET",
+							"HEAD"
+						]
+					},
 					{
 						"path": "/limited",
 						"type": "Basic",

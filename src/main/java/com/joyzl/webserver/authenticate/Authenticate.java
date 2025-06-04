@@ -96,7 +96,14 @@ public abstract class Authenticate {
 	 * 设置允许的请求方法，如果未指定则默认允许所有
 	 */
 	public void setMethods(String... values) {
-		methods = values;
+		if (values == null) {
+			methods = null;
+		} else {
+			methods = new String[values.length];
+			for (int i = 0; i < values.length; i++) {
+				methods[i] = HTTP1.METHODS.get(values[i]);
+			}
+		}
 	}
 
 	/**

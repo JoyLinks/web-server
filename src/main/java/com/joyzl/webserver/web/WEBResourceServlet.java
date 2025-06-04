@@ -114,7 +114,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	@Override
 	protected void options(Request request, Response response) throws Exception {
 		response.addHeader(HTTP1.Allow, "OPTIONS, GET, HEAD, TRACE");
-
 	}
 
 	@Override
