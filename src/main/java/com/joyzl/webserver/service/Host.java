@@ -50,7 +50,7 @@ public class Host extends com.joyzl.webserver.entities.Host {
 
 		AUTHENTICATES.clear();
 		for (Authenticate authenticate : getAuthenticates()) {
-			AUTHENTICATES.addAuthenticate(Service.instance(authenticate));
+			AUTHENTICATES.add(Service.instance(authenticate));
 		}
 
 		if (Utility.noEmpty(getAccess())) {
@@ -65,7 +65,7 @@ public class Host extends com.joyzl.webserver.entities.Host {
 	}
 
 	public boolean check(Request request, Response response) {
-		return AUTHENTICATES.check(request, response);
+		return AUTHENTICATES.verify(request, response);
 	}
 
 	public final Servlet findServlet(String uri) {

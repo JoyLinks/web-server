@@ -1,13 +1,13 @@
 package com.joyzl.webserver.authenticate;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.joyzl.network.Utility;
-import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
+import com.joyzl.webserver.Utility;
 
 /**
  * 身份验证集合
@@ -16,10 +16,10 @@ import com.joyzl.network.http.Response;
  */
 public class Authenticates {
 
-	private final List<Authenticate> AUTHENTICATES = new ArrayList<>();
+	private volatile Authenticate[] authenticates = new Authenticate[0];
 
-	public boolean check(Request request, Response response) {
-		if (AUTHENTICATES.isEmpty()) {
+	public boolean verify(Request request, Response response) {
+		if (authenticates.length == 0) {
 			return true;
 		}
 
@@ -31,57 +31,60 @@ public class Authenticates {
 		// 身份验证失败可能返回有助于继续验证的信息
 		// 跨域请求时应提供相应支持的标头
 
+		boolean result = true;
 		Authenticate authenticate;
-		for (int index = 0; index < AUTHENTICATES.size(); index++) {
-			authenticate = AUTHENTICATES.get(index);
+		for (int index = 0; index < authenticates.length; index++) {
+			authenticate = authenticates[index];
 			if (request.pathStart(authenticate.getPath())) {
-				if (authenticate.allow(request, response)) {
-					if (authenticate.getPreflight()) {
-						if (HTTP1.OPTIONS.equals(request.getMethod())) {
-							// 预检允许
-							return true;
-						}
-					}
+				if (authenticate.require(request.getMethod())) {
 					if (authenticate.verify(request, response)) {
 						return true;
-					}
-					if (authenticate.getPreflight()) {
-						final String origin = request.getHeader(HTTP1.Origin);
-						if (Utility.noEmpty(origin)) {
-							// 跨域允许
-							response.addHeader(HTTP1.Access_Control_Allow_Origin, origin);
-							response.addHeader(HTTP1.Access_Control_Allow_Credentials, "true");
-						}
+					} else {
+						result = false;
 					}
 				}
-				// 身份验证前提条件失败
-				return false;
 			}
 		}
-		// 请求路径无须身份验证
-		return true;
+		return result;
 	}
 
-	public List<Authenticate> getAuthenticates() {
-		return Collections.unmodifiableList(AUTHENTICATES);
+	public List<Authenticate> all() {
+		return Collections.unmodifiableList(Arrays.asList(authenticates));
 	}
 
-	public void setAuthenticates(List<Authenticate> values) {
-		if (AUTHENTICATES != values) {
-			AUTHENTICATES.clear();
-			AUTHENTICATES.addAll(values);
+	public void set(Collection<Authenticate> values) {
+		synchronized (this) {
+			authenticates = values.toArray(new Authenticate[values.size()]);
 		}
 	}
 
-	public void addAuthenticate(Authenticate value) {
-		AUTHENTICATES.add(value);
+	public void add(Collection<Authenticate> values) {
+		synchronized (this) {
+			authenticates = Utility.arrayAdd(authenticates, values);
+		}
 	}
 
-	public void removeAuthenticate(Authenticate value) {
-		AUTHENTICATES.remove(value);
+	public void add(Authenticate value) {
+		synchronized (this) {
+			authenticates = Utility.arrayAdd(authenticates, value);
+		}
+	}
+
+	public void remove(Collection<Authenticate> values) {
+		synchronized (this) {
+			authenticates = Utility.arrayRemove(authenticates, values);
+		}
+	}
+
+	public void remove(Authenticate value) {
+		synchronized (this) {
+			authenticates = Utility.arrayRemove(authenticates, value);
+		}
 	}
 
 	public void clear() {
-		AUTHENTICATES.clear();
+		synchronized (this) {
+			authenticates = new Authenticate[0];
+		}
 	}
 }

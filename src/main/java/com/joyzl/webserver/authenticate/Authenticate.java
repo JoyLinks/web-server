@@ -1,45 +1,46 @@
 package com.joyzl.webserver.authenticate;
 
 import com.joyzl.network.http.HTTP1;
-import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 
 /**
- * 资源校验
+ * 资源请求者身份验证，未明确指定请求方法时则所有方法须验证，反正仅验证指定的方法。
  * 
  * @author ZhangXi 2024年11月26日
  */
 public abstract class Authenticate {
 
+	/** 匹配起始路径 */
 	private final String path;
+	/** 须验证的方法 */
 	private String[] methods;
-	private boolean preflight;
+	/** 加密算法 */
 	private String algorithm;
+	/** 领域提示 */
 	private String realm;
 
 	public Authenticate(String path) {
-		if (path == null) {
-			this.path = "";
+		if (path == null || path.length() == 0) {
+			this.path = "/";
 		} else {
 			this.path = path;
 		}
 	}
 
 	/**
-	 * 请求方法是否允许
+	 * 请求方法是否受保护须验证
 	 */
-	public boolean allow(Request request, Response response) {
+	public boolean require(String method) {
 		if (methods == null || methods.length == 0) {
+			// 未明确指定则所有方法须验证
 			return true;
 		}
 		for (int index = 0; index < methods.length; index++) {
-			if (request.getMethod().equalsIgnoreCase(methods[index])) {
+			if (method.equalsIgnoreCase(methods[index])) {
 				return true;
 			}
 		}
-		response.setStatus(HTTPStatus.METHOD_NOT_ALLOWED);
-		response.addHeader(HTTP1.Allow, String.join(", ", methods));
 		return false;
 	}
 
@@ -104,19 +105,5 @@ public abstract class Authenticate {
 				methods[i] = HTTP1.METHODS.get(values[i]);
 			}
 		}
-	}
-
-	/**
-	 * 是否允许预检，请求OPTIONS时无须验证，允许请求方法集应包含OPTIONS
-	 */
-	public boolean getPreflight() {
-		return preflight;
-	}
-
-	/**
-	 * 设置是否允许预检请求
-	 */
-	public void setPreflight(boolean value) {
-		preflight = value;
 	}
 }

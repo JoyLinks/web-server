@@ -327,4 +327,123 @@ public class Utility extends com.joyzl.network.Utility {
 		}
 		return base + '/' + p;
 	}
+
+	//////////
+
+	/**
+	 * 在数组中添加元素，返回包含新元素的新数组
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] arrayAdd(T[] source, T value) {
+		final Object[] items;
+		if (source.length == 0) {
+			items = new Object[] { value };
+		} else {
+			items = new Object[source.length + 1];
+			System.arraycopy(source, 0, items, 0, source.length);
+			items[items.length - 1] = value;
+		}
+		return (T[]) items;
+	}
+
+	/**
+	 * 在数组中添加元素，返回包含新元素的新数组
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] arrayAdd(T[] source, Collection<T> values) {
+		if (values.isEmpty()) {
+			return source;
+		}
+		final Object[] items = new Object[source.length + values.size()];
+		System.arraycopy(source, 0, items, 0, source.length);
+		int index = source.length;
+		for (Object item : values) {
+			items[index++] = item;
+		}
+		return (T[]) items;
+	}
+
+	/**
+	 * 在数组中查找元素，返回元素的索引
+	 */
+	public static <T> int arrayFind(T[] source, T value) {
+		if (value == null) {
+			for (int i = 0; i < source.length; i++) {
+				if (source[i] == null) {
+					return i;
+				}
+			}
+		} else {
+			for (int i = 0; i < source.length; i++) {
+				if (value.equals(source[i])) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * 在数组中移除元素，返回移除元素的新数组
+	 */
+	public static <T> T[] arrayRemove(T[] source, T value) {
+		int index = 0;
+		if (value == null) {
+			for (; index < source.length; index++) {
+				if (source[index] == null) {
+					break;
+				}
+			}
+		} else {
+			for (; index < source.length; index++) {
+				if (value.equals(source[index])) {
+					break;
+				}
+			}
+		}
+		if (index < source.length) {
+			return arrayRemove(source, index);
+		}
+		return source;
+	}
+
+	/**
+	 * 在数组中移除元素，返回移除元素的新数组
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] arrayRemove(T[] source, int index) {
+		final Object[] items = new Object[source.length - 1];
+		if (index == 0) {
+			System.arraycopy(source, 1, items, 0, items.length);
+		} else if (index == source.length - 1) {
+			System.arraycopy(source, 0, items, 0, items.length);
+		} else {
+			System.arraycopy(source, 0, items, 0, index);
+			System.arraycopy(source, index + 1, items, index, source.length - index);
+		}
+		return (T[]) items;
+	}
+
+	/**
+	 * 在数组中移除元素，返回移除元素的新数组
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] arrayRemove(T[] source, Collection<T> values) {
+		Object[] items = new Object[source.length];
+		int size = 0;
+		for (int index = 0; index < source.length; index++) {
+			if (values.contains(source[index])) {
+				continue;
+			}
+			size++;
+		}
+		if (size > 0) {
+			Object[] news = new Object[size];
+			System.arraycopy(items, 0, news, 0, size);
+			items = news;
+		} else {
+			items = new Object[0];
+		}
+		return (T[]) items;
+	}
 }

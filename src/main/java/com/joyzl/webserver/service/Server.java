@@ -78,7 +78,7 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 
 		AUTHENTICATES.clear();
 		for (Authenticate authenticate : getAuthenticates()) {
-			AUTHENTICATES.addAuthenticate(Service.instance(authenticate));
+			AUTHENTICATES.add(Service.instance(authenticate));
 		}
 
 		HOSTS.clear();
@@ -113,7 +113,7 @@ public final class Server extends com.joyzl.webserver.entities.Server {
 	}
 
 	public boolean check(Request request, Response response) {
-		return AUTHENTICATES.check(request, response);
+		return AUTHENTICATES.verify(request, response);
 	}
 
 	public Host findHost(String host) {

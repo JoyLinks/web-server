@@ -4,15 +4,15 @@ import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 
 /**
- * 无须身份验证，既无条件通过
+ * 拒绝请求，既身份验证无条件拒绝
  * 
  * @author ZhangXi 2025年6月4日
  */
-public class AuthenticateNone extends Authenticate {
+public class AuthenticateDeny extends Authenticate {
 
-	public final static String TYPE = "None";
+	public final static String TYPE = "Deny";
 
-	public AuthenticateNone(String path) {
+	public AuthenticateDeny(String path) {
 		super(path);
 	}
 
@@ -23,6 +23,6 @@ public class AuthenticateNone extends Authenticate {
 
 	@Override
 	public boolean verify(Request request, Response response) {
-		return true;
+		return false;
 	}
 }
