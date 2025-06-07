@@ -63,7 +63,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 	/** 资源锁 */
 	private final Locks LOCKS = new Locks();
 	/** 允许所有支持的属性 */
-	private final boolean allProperties;
+	private final boolean allProperty;
 	/** 基础URI */
 	private final String base;
 	/** 根目录 */
@@ -76,7 +76,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 	public FileWEBDAVServlet(String base, String root, boolean all) {
 		this.base = Utility.correctBase(base);
 		this.root = Path.of(root);
-		this.allProperties = all;
+		this.allProperty = all;
 	}
 
 	@Override
@@ -1569,7 +1569,7 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 			}
 		}
 
-		if (allProperties) {
+		if (allProperty) {
 			propstat.prop().add(new Property(WEBDAV.LAST_ACCESS_TIME));
 			final PosixFileAttributeView posix = Files.getFileAttributeView(path, PosixFileAttributeView.class);
 			if (posix != null) {
@@ -1632,5 +1632,17 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 
 	private CharBuffer convertCharBuffer(ByteBuffer value) {
 		return StandardCharsets.UTF_8.decode(value);
+	}
+
+	public boolean isAllProperty() {
+		return allProperty;
+	}
+
+	public String getPath() {
+		return base;
+	}
+
+	public Path getRoot() {
+		return root;
 	}
 }

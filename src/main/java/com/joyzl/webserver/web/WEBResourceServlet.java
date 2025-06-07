@@ -113,12 +113,8 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void options(Request request, Response response) throws Exception {
-		if (isCreate()) {
-			if (isDelete()) {
-				response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,PUT,DELETE,TRACE");
-			} else {
-				response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,PUT,TRACE");
-			}
+		if (isEditable()) {
+			response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,PUT,DELETE,TRACE");
 		} else {
 			response.addHeader(HTTP1.Allow, "OPTIONS,GET,HEAD,TRACE");
 		}
@@ -136,7 +132,7 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void put(Request request, Response response) throws Exception {
-		if (!isCreate()) {
+		if (!isEditable()) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
 		}
@@ -168,7 +164,7 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void patch(Request request, Response response) throws Exception {
-		if (!isCreate()) {
+		if (!isEditable()) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
 		}
@@ -234,7 +230,7 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
-		if (!isDelete()) {
+		if (!isEditable()) {
 			response.setStatus(HTTPStatus.FORBIDDEN);
 			return;
 		}
@@ -534,7 +530,5 @@ public abstract class WEBResourceServlet extends WEBServlet {
 
 	protected abstract boolean delete(String path);
 
-	protected abstract boolean isDelete();
-
-	protected abstract boolean isCreate();
+	protected abstract boolean isEditable();
 }

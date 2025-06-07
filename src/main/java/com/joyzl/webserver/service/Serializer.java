@@ -18,8 +18,6 @@ public final class Serializer {
 
 	static {
 		_ODBS = ODBS.initialize("com.joyzl.webserver/com.joyzl.webserver.entities");
-		_ODBS.override(com.joyzl.webserver.service.Server.class);
-		_ODBS.override(com.joyzl.webserver.service.Host.class);
 
 		// 构建二进制序列化对象
 		BINARY = new ODBSBinary(ODBS());

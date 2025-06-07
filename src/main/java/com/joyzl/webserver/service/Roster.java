@@ -4,8 +4,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.joyzl.webserver.entities.Address;
 
@@ -16,12 +16,18 @@ import com.joyzl.webserver.entities.Address;
  */
 public final class Roster {
 
-	private final Map<InetAddress, Address> ALLOWS = new HashMap<>();
-	private final Map<InetAddress, Address> DENIES = new HashMap<>();
+	private final Map<String, Address> ADDRESS = new ConcurrentHashMap<>();
+
+	private final Map<InetAddress, Address> ALLOWS = new ConcurrentHashMap<>();
+	private final Map<InetAddress, Address> DENIES = new ConcurrentHashMap<>();
 
 	// 白名单优先级高于黑名单
 	// 如果配置白名单则除此之外的所有地址被阻止
 	// 如果配置黑名单则除此之外的所有地址都允许
+	// Server / Host
+
+	private Roster() {
+	}
 
 	/** 地址是否禁止 */
 	public final boolean isDeny(SocketAddress address) {

@@ -1,5 +1,7 @@
 package com.joyzl.webserver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,38 +16,52 @@ import org.junit.jupiter.api.Test;
 
 import com.joyzl.network.http.HTTP1Coder;
 
-class FileTest {
+class TestFile {
 
 	@Test
-	void test() {
-		File file = new File("");
-		System.out.println(file.getAbsolutePath());
+	void testFile() {
+
+		File empty = new File("");
+		// System.out.println(file.getAbsolutePath());
 		// D:\GitHub\web-server
-		// assertTrue(file.exists());
+		assertFalse(empty.exists());
+		assertEquals(empty.getPath(), "");
 
-		file = new File(".");
-		System.out.println(file.getAbsolutePath());
+		File current = new File(".");
+		// System.out.println(file.getAbsolutePath());
 		// D:\GitHub\web-server\.
-		assertTrue(file.exists());
+		assertTrue(current.exists());
+		assertEquals(current.getPath(), ".");
 
-		file = new File("content");
-		System.out.println(file.getAbsolutePath());
+		// assertTrue(empty.equals(current));
+		// assertEquals(empty., current.getAbsoluteFile());
+
+		File content = new File("content");
+		// System.out.println(file.getAbsolutePath());
 		// D:\GitHub\web-server\content
+		assertEquals(content.getPath(), "content");
 
-		file = new File("src");
-		System.out.println(file.getAbsolutePath());
+		File src1 = new File("src");
+		// System.out.println(file.getAbsolutePath());
 		// D:\GitHub\web-server\src
-		assertTrue(file.exists());
-		assertTrue(file.isDirectory());
+		assertTrue(src1.exists());
+		assertTrue(src1.isDirectory());
+		assertEquals(src1.getPath(), "src");
 
-		file = new File("src\\");
-		assertTrue(file.exists());
-		assertTrue(file.isDirectory());
+		File src2 = new File("src\\");
+		assertTrue(src2.exists());
+		assertTrue(src2.isDirectory());
+		assertEquals(src2.getPath(), "src");
 
-		file = new File("src/");
-		assertTrue(file.exists());
-		assertTrue(file.isDirectory());
-		System.out.println(file.getName());
+		File src3 = new File("src/");
+		assertTrue(src3.exists());
+		assertTrue(src3.isDirectory());
+		// System.out.println(file.getName());
+		assertEquals(src3.getPath(), "src");
+
+		assertEquals(src1, src2);
+		assertEquals(src1, src3);
+
 	}
 
 	@Test
@@ -99,7 +115,7 @@ class FileTest {
 		}
 
 		// 测试次数
-		final int count = 1000;
+		final int count = 100;
 
 		// 从文件读取
 		long time = System.currentTimeMillis();

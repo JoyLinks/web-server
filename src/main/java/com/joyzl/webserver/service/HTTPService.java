@@ -1,0 +1,24 @@
+package com.joyzl.webserver.service;
+
+import java.io.IOException;
+
+import com.joyzl.network.http.HTTPServer;
+
+public final class HTTPService extends Service {
+
+	private HTTPServer server;
+
+	public HTTPService(HostService s, String ip, int port, int backlog) throws IOException {
+		super(s);
+		if (backlog > 0) {
+			server = new HTTPServer(this, ip, port, backlog);
+		} else {
+			server = new HTTPServer(this, ip, port);
+		}
+	}
+
+	@Override
+	public void close() {
+		server.close();
+	}
+}

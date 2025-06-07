@@ -38,11 +38,13 @@ public class AuthenticateDigest extends Authenticate {
 	final static String AUTH_INT = "auth-int";
 	/** 身份验证 qop="auth" */
 	final static String AUTH = "auth";
-	/** 领域字符串的字节形态 */
-	private byte[] REALM;
 
-	public AuthenticateDigest(String path) {
-		super(path);
+	/** 领域字符串的字节形态 */
+	private final byte[] REALM;
+
+	public AuthenticateDigest(String path, String realm, String algorithm, String[] methods) {
+		super(path, realm, expedite(algorithm), methods);
+		REALM = getRealm().getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
@@ -52,15 +54,6 @@ public class AuthenticateDigest extends Authenticate {
 
 	@Override
 	public boolean verify(Request request, Response response) {
-
-		// ******* Running test 11: owner_modify ********
-		// X-Litmus: locks: 11 (owner_modify)
-		// String value = request.getHeader("X-Litmus");
-		// if (value == null) {
-		// value = request.getHeader("X-Litmus-Second");
-		// }
-		// System.out.println(value);
-
 		final Authorization authorization = Authorization.parse(request.getHeader(Authorization.NAME));
 		if (authorization != null) {
 			// 校验提示信息
@@ -417,8 +410,8 @@ public class AuthenticateDigest extends Authenticate {
 		// response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
 	}
 
-	@Override
-	public void setAlgorithm(String value) {
+	/** 字符串实例加速 */
+	private static String expedite(String value) {
 		if (Utility.noEmpty(value)) {
 			if (Utility.same(SHA_512_256_NAME, value)) {
 				value = SHA_512_256_NAME;
@@ -432,12 +425,6 @@ public class AuthenticateDigest extends Authenticate {
 				value = SHA_256;
 			}
 		}
-		super.setAlgorithm(value);
-	}
-
-	@Override
-	public void setRealm(String value) {
-		super.setRealm(value == null ? "JOYZL" : value);
-		REALM = getRealm().getBytes(StandardCharsets.UTF_8);
+		return value;
 	}
 }

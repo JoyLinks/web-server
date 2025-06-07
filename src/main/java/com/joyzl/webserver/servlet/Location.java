@@ -108,7 +108,7 @@ public class Location extends WEBServlet {
 		response(slave, response);
 	}
 
-	public HTTPStatus getStatus(int value) {
+	public HTTPStatus getStatus() {
 		return status;
 	}
 

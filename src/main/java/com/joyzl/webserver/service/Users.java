@@ -22,7 +22,7 @@ import com.joyzl.network.http.Request;
 import com.joyzl.webserver.entities.User;
 
 /**
- * 用户管理
+ * 用户管理，用户调整即刻生效
  * 
  * @author ZhangXi 2025年5月24日
  */
@@ -30,6 +30,9 @@ public class Users {
 
 	private final static ConcurrentHashMap<String, User> USERS = new ConcurrentHashMap<>();
 	private static File file;
+
+	private Users() {
+	}
 
 	/**
 	 * 读取配置文件初始化服务

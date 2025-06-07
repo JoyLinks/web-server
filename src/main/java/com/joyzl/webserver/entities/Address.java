@@ -7,9 +7,14 @@ package com.joyzl.webserver.entities;
  */
 public class Address {
 
-	private boolean allow;
-	private String address;
+	/** 关联主机 */
 	private String[] host;
+	/** 允许或阻止 */
+	private boolean allow;
+	/** 网络地址 */
+	private String address;
+	/** 阻止时响应 */
+	private Integer status;
 
 	/**
 	 * 获取主机地址
@@ -65,5 +70,19 @@ public class Address {
 	 */
 	public void setDeny(boolean value) {
 		allow = !value;
+	}
+
+	/**
+	 * 获取阻止状态码
+	 */
+	public Integer getStatus() {
+		return status;
+	}
+
+	/**
+	 * 设置阻止状态码
+	 */
+	public void setStatus(Integer value) {
+		status = value;
 	}
 }

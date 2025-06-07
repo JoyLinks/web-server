@@ -1,6 +1,7 @@
 package com.joyzl.webserver;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -58,6 +59,19 @@ public class Utility extends com.joyzl.network.Utility {
 		} catch (Exception e) {
 			return defaultValue;
 		}
+	}
+
+	public static boolean equal(File file, String path) {
+		if (file == null) {
+			return path == null;
+		}
+		if (path == null) {
+			return false;
+		}
+		if (path.equalsIgnoreCase(file.getPath())) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -334,16 +348,17 @@ public class Utility extends com.joyzl.network.Utility {
 	 * 在数组中添加元素，返回包含新元素的新数组
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T[] arrayAdd(T[] source, T value) {
-		final Object[] items;
+	public static <T> T[] arrayAdd(Class<T> type, T[] source, T value) {
+		final T[] items;
 		if (source.length == 0) {
-			items = new Object[] { value };
+			items = (T[]) Array.newInstance(type, 1);
+			items[0] = value;
 		} else {
-			items = new Object[source.length + 1];
+			items = (T[]) Array.newInstance(type, source.length + 1);
 			System.arraycopy(source, 0, items, 0, source.length);
 			items[items.length - 1] = value;
 		}
-		return (T[]) items;
+		return items;
 	}
 
 	/**

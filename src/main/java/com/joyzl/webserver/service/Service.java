@@ -1,173 +1,147 @@
 package com.joyzl.webserver.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.joyzl.logger.Logger;
+import com.joyzl.network.Utility;
+import com.joyzl.network.http.ContentLength;
+import com.joyzl.network.http.HTTP1;
+import com.joyzl.network.http.HTTPServerHandler;
+import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.HTTPStatus;
-import com.joyzl.webserver.Utility;
-import com.joyzl.webserver.authenticate.AuthenticateBasic;
-import com.joyzl.webserver.authenticate.AuthenticateBearer;
-import com.joyzl.webserver.authenticate.AuthenticateDigest;
-import com.joyzl.webserver.authenticate.AuthenticateNone;
-import com.joyzl.webserver.entities.Authenticate;
-import com.joyzl.webserver.entities.Location;
-import com.joyzl.webserver.entities.Resource;
-import com.joyzl.webserver.entities.Server;
-import com.joyzl.webserver.entities.Webdav;
-import com.joyzl.webserver.web.FileResourceServlet;
-import com.joyzl.webserver.webdav.FileWEBDAVServlet;
+import com.joyzl.network.http.Request;
+import com.joyzl.network.http.Response;
+import com.joyzl.webserver.servlet.Servlet;
+import com.joyzl.webserver.web.WEBServlet;
 
 /**
- * 服务管理
+ * 基于超文本传输协议的网络服务，根据默认主机和虚拟主机的配置，分发请求到主机的服务程序。
  * 
- * @author ZhangXi 2024年11月12日
+ * @author ZhangXi 2025年6月7日
  */
-public final class Service {
+public abstract class Service extends HTTPServerHandler {
 
-	private static final List<Server> SERVERS = new ArrayList<>();
-	private static File file;
+	/** 默认主机 */
+	private final HostService defaut;
+	/** 虚拟主机映射<域名,虚拟主机> */
+	private final Map<String, HostService> virtuals = new ConcurrentHashMap<>();
 
-	private Service() {
+	public Service(HostService service) {
+		this.defaut = service;
 	}
 
-	/**
-	 * 读取配置文件初始化服务
-	 */
-	public static void initialize(String servers) throws IOException, ParseException {
-		file = new File(servers);
-		if (file.exists() && file.isFile()) {
-			if (Utility.ends(file.getPath(), ".json", true)) {
-				try (final Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-					final List<Server> entities = Serializer.JSON().readEntities(Server.class, reader);
-					if (entities != null && entities.size() > 0) {
-						SERVERS.addAll(entities);
-					}
-				}
+	@Override
+	public void connected(HTTPSlave slave) throws Exception {
+		if (defaut.deny(slave.getRemoteAddress())) {
+			// 黑名单阻止连接
+			slave.close();
+		} else {
+			super.connected(slave);
+		}
+	}
+
+	@Override
+	public void received(HTTPSlave slave, Request request, Response response) {
+		// Logger.debug(request);
+
+		if (Utility.isEmpty(request.getURL())) {
+			defaut.record(slave, request);
+			// 未指定 URL/URI
+			response(response, HTTPStatus.BAD_REQUEST);
+		} else {
+			final String name = request.getHeader(HTTP1.Host);
+			if (Utility.isEmpty(name)) {
+				defaut.record(slave, request);
+				// 未指定 Host
+				response(response, HTTPStatus.BAD_REQUEST);
 			} else {
-				try (final FileInputStream input = new FileInputStream(file)) {
-					final List<Server> entities = Serializer.BINARY().readEntities(input);
-					if (entities != null && entities.size() > 0) {
-						SERVERS.addAll(entities);
+				final Servlet servlet;
+				final HostService host = virtuals.get(name);
+				if (host == null) {
+					// DEFAULT
+					defaut.record(slave, request);
+					if (defaut.authenticate(request, response)) {
+						servlet = defaut.findServlet(request.getPath());
+						if (servlet == null) {
+							// 无匹配处理程序 Servlet
+							response(response, HTTPStatus.NOT_FOUND);
+						} else {
+							try {
+								servlet.service(slave, request, response);
+								if (response.getStatus() > 0) {
+									// HEADERS
+									// response.setAttachHeaders(defaut.getHeaders());
+									// CONTINUE
+								} else {
+									// 挂起异步
+									return;
+								}
+							} catch (Exception e) {
+								// 处理对象内部错误
+								response(response, HTTPStatus.INTERNAL_SERVER_ERROR);
+								Logger.error(e);
+							}
+						}
 					}
+				} else {
+					// HOST
+					host.record(slave, request);
+					if (host.deny(slave.getRemoteAddress())) {
+						// 黑名单阻止
+						response(response, HTTPStatus.FORBIDDEN);
+					} else {
+						if (host.authenticate(request, response)) {
+							servlet = host.findServlet(request.getPath());
+							if (servlet == null) {
+								// 无匹配处理对象 Servlet
+								response(response, HTTPStatus.NOT_FOUND);
+							} else {
+								try {
+									servlet.service(slave, request, response);
+									if (response.getStatus() > 0) {
+										// HEADERS
+										// response.setAttachHeaders(host.getHeaders());
+										// CONTINUE
+									} else {
+										// 挂起异步
+										return;
+									}
+								} catch (Exception e) {
+									// 处理对象内部错误
+									response(response, HTTPStatus.INTERNAL_SERVER_ERROR);
+									Logger.error(e);
+								}
+							}
+						}
+					}
+					host.record(slave, response);
+					slave.send(response);
+					return;
 				}
 			}
 		}
+
+		defaut.record(slave, response);
+		slave.send(response);
+		// Logger.debug(response);
 	}
 
-	public static void start() throws Exception {
-		for (Server server : SERVERS) {
-			server.start();
-		}
+	@Override
+	public void error(HTTPSlave slave, Throwable e) {
+		Logger.error(e);
 	}
 
-	public static void stop() throws Exception {
-		for (Server server : SERVERS) {
-			server.stop();
-		}
+	/** 异常响应 */
+	private void response(Response response, HTTPStatus status) {
+		response.addHeader(ContentLength.NAME, "0");
+		response.addHeader(WEBServlet.DATE);
+		response.setStatus(status);
 	}
 
-	public static void destroy() throws Exception {
-		stop();
-		SERVERS.clear();
-	}
+	public abstract void close();
 
-	public static void save() throws IOException {
-		if (Utility.ends(file.getPath(), ".json", true)) {
-			try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-				Serializer.JSON().writeEntities(SERVERS, writer);
-			}
-		} else {
-			try (final FileOutputStream output = new FileOutputStream(file, false)) {
-				Serializer.BINARY().writeEntities(SERVERS, output);
-			}
-		}
-	}
-
-	////////////////////////////////////////////////////////////////////////////////
-
-	public static List<Server> all() {
-		return Collections.unmodifiableList(SERVERS);
-	}
-
-	public static void add(Server server) {
-		SERVERS.add(server);
-	}
-
-	static FileWEBDAVServlet instance(Webdav webdav) throws IOException {
-		final FileWEBDAVServlet servlet = new FileWEBDAVServlet(webdav.getPath(), webdav.getContent());
-		return servlet;
-	}
-
-	static com.joyzl.webserver.servlet.Location instance(Location location) throws IOException {
-		return new com.joyzl.webserver.servlet.Location(location.getPath(), location.getLocation(), HTTPStatus.fromCode(location.getStatus()));
-	}
-
-	static FileResourceServlet instance(Resource resource) throws IOException {
-		final FileResourceServlet servlet;
-		if (Utility.noEmpty(resource.getCache())) {
-			servlet = new FileResourceServlet(resource.getPath(), resource.getContent(), resource.getCache());
-		} else {
-			servlet = new FileResourceServlet(resource.getPath(), resource.getContent());
-		}
-
-		servlet.setErrorPages(resource.getError());
-		servlet.setBrowse(resource.isBrowse());
-		servlet.setCreate(resource.isCreate());
-		servlet.setDelete(resource.isDelete());
-		servlet.setWeak(resource.isWeak());
-
-		if (resource.getDefaults() != null) {
-			servlet.setDefaults(resource.getDefaults());
-		}
-		if (resource.getCompresses() != null) {
-			servlet.setCompresses(resource.getCompresses());
-		}
-		if (resource.getCaches() != null) {
-			servlet.setCaches(resource.getCaches());
-		}
-		return servlet;
-	}
-
-	static com.joyzl.webserver.authenticate.Authenticate instance(Authenticate authenticate) throws IOException {
-		if (AuthenticateNone.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateNone a = new AuthenticateNone(authenticate.getPath());
-			a.setPreflight(authenticate.getPreflight());
-			a.setAlgorithm(authenticate.getAlgorithm());
-			a.setRealm(authenticate.getRealm());
-			return a;
-		}
-		if (AuthenticateBasic.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateBasic a = new AuthenticateBasic(authenticate.getPath());
-			a.setPreflight(authenticate.getPreflight());
-			a.setAlgorithm(authenticate.getAlgorithm());
-			a.setRealm(authenticate.getRealm());
-			return a;
-		}
-		if (AuthenticateDigest.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateDigest a = new AuthenticateDigest(authenticate.getPath());
-			a.setPreflight(authenticate.getPreflight());
-			a.setAlgorithm(authenticate.getAlgorithm());
-			a.setRealm(authenticate.getRealm());
-			return a;
-		}
-		if (AuthenticateBearer.TYPE.equalsIgnoreCase(authenticate.getType())) {
-			final AuthenticateBearer a = new AuthenticateBearer(authenticate.getPath());
-			a.setPreflight(authenticate.getPreflight());
-			a.setAlgorithm(authenticate.getAlgorithm());
-			a.setRealm(authenticate.getRealm());
-			return a;
-		}
-		throw new IllegalArgumentException("Authenticate.Type:" + authenticate.getType());
+	public Map<String, HostService> virtuals() {
+		return virtuals;
 	}
 }

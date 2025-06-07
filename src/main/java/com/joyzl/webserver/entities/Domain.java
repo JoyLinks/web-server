@@ -1,9 +1,11 @@
 package com.joyzl.webserver.entities;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import com.joyzl.network.Utility;
+import com.joyzl.webserver.service.HostService;
+import com.joyzl.webserver.servlet.Wildcards;
 
 /**
  * Server and Host super class
@@ -12,132 +14,56 @@ import java.util.Map;
  */
 public abstract class Domain {
 
-	private final List<Address> roster = new ArrayList<>();
-	private final List<String> servlets = new ArrayList<>();
-	private final List<Webdav> webdavs = new ArrayList<>();
-	private final List<Resource> resources = new ArrayList<>();
-	private final List<Location> locations = new ArrayList<>();
-	private final List<Authenticate> authenticates = new ArrayList<>();
-	private final Map<String, String> headers = new HashMap<>();
+	private String name;
 	private String access;
 
-	/**
-	 * 获取服务组包名
-	 */
-	public List<String> getServlets() {
-		return servlets;
+	private final List<Authentication> authorizations = new CopyOnWriteArrayList<>();
+	private final List<Servlet> servlets = new CopyOnWriteArrayList<>();
+
+	private HostService service;
+
+	public HostService service() {
+		return service;
 	}
 
-	/**
-	 * 设置服务组包名
-	 */
-	public void setServlets(List<String> values) {
-		if (values != servlets) {
-			servlets.clear();
-			servlets.addAll(values);
+	public void reset() {
+		if (service == null) {
+			service = new HostService();
+		}
+
+		service.authenticates().clear();
+		for (Authentication authentication : authorizations) {
+			if (authentication.different()) {
+				authentication.reset();
+			}
+			service.authenticates().add(authentication.service());
+		}
+
+		service.servlets().clear();
+		for (Servlet servlet : servlets) {
+			if (servlet.different()) {
+				servlet.reset();
+			}
+			if (Utility.isEmpty(servlet.getPath())) {
+				service.servlets().bind(Wildcards.STAR, servlet.service());
+			} else {
+				service.servlets().bind(servlet.getPath(), servlet.service());
+			}
 		}
 	}
 
 	/**
-	 * 获取资源编辑组
+	 * 获取服务名称
 	 */
-	public List<Webdav> getWebdavs() {
-		return webdavs;
+	public String getName() {
+		return name;
 	}
 
 	/**
-	 * 设置资源编辑组
+	 * 设置服务名称
 	 */
-	public void setWebdavs(List<Webdav> values) {
-		if (values != webdavs) {
-			webdavs.clear();
-			webdavs.addAll(values);
-		}
-	}
-
-	/**
-	 * 获取资源组
-	 */
-	public List<Location> getLocations() {
-		return locations;
-	}
-
-	/**
-	 * 设置资源组
-	 */
-	public void setLocations(List<Location> values) {
-		if (values != locations) {
-			locations.clear();
-			locations.addAll(values);
-		}
-	}
-
-	/**
-	 * 获取资源组
-	 */
-	public List<Resource> getResources() {
-		return resources;
-	}
-
-	/**
-	 * 设置资源组
-	 */
-	public void setResources(List<Resource> values) {
-		if (values != resources) {
-			resources.clear();
-			resources.addAll(values);
-		}
-	}
-
-	/**
-	 * 获取验证区
-	 */
-	public List<Authenticate> getAuthenticates() {
-		return authenticates;
-	}
-
-	/**
-	 * 设置验证区
-	 */
-	public void setAuthenticates(List<Authenticate> values) {
-		if (values != authenticates) {
-			authenticates.clear();
-			authenticates.addAll(values);
-		}
-	}
-
-	/**
-	 * 获取地址组（黑白名单）
-	 */
-	public List<Address> getRoster() {
-		return roster;
-	}
-
-	/**
-	 * 设置地址组（黑白名单）
-	 */
-	public void setRoster(List<Address> values) {
-		if (values != roster) {
-			roster.clear();
-			roster.addAll(values);
-		}
-	}
-
-	/**
-	 * 获取附加标头，附加标头将添加到每个响应
-	 */
-	public Map<String, String> getHeaders() {
-		return headers;
-	}
-
-	/**
-	 * 设置附加标头，附加标头将添加到每个响应
-	 */
-	public void setHeaders(Map<String, String> values) {
-		if (values != headers) {
-			headers.clear();
-			headers.putAll(values);
-		}
+	public void setName(String value) {
+		name = value;
 	}
 
 	/**
@@ -152,5 +78,39 @@ public abstract class Domain {
 	 */
 	public void setAccess(String value) {
 		access = value;
+	}
+
+	/**
+	 * 获取服务集
+	 */
+	public List<Servlet> getServlets() {
+		return servlets;
+	}
+
+	/**
+	 * 设置服务集
+	 */
+	public void setServlets(List<Servlet> values) {
+		if (values != servlets) {
+			servlets.clear();
+			servlets.addAll(values);
+		}
+	}
+
+	/**
+	 * 获取验证区
+	 */
+	public List<Authentication> getAuthentications() {
+		return authorizations;
+	}
+
+	/**
+	 * 设置验证区
+	 */
+	public void setAuthentications(List<Authentication> values) {
+		if (values != authorizations) {
+			authorizations.clear();
+			authorizations.addAll(values);
+		}
 	}
 }

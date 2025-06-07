@@ -3,7 +3,6 @@ package com.joyzl.webserver.web;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,47 +29,69 @@ public class FileResourceServlet extends WEBResourceServlet {
 	/** 缓存目录 */
 	private final File cache;
 	/** 错误页目录 */
-	private File error;
+	private final File error;
 
 	/** 默认文件名 */
-	private String[] defaults = new String[] { "index.html", "default.html" };
+	private final String[] defaults;
 	/** 压缩的文件扩展名 */
-	private String[] compresses = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".xml" };
+	private final String[] compresses;
 	/** 缓存的文件扩展名 */
-	private String[] caches = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2" };
+	private final String[] caches;
 	/** 允许列示目录文件 */
-	private boolean browse = false;
+	private final boolean browsable;
 	/** 允许创建文件 */
-	private boolean create = false;
-	/** 允许删除文件 */
-	private boolean delete = false;
+	private final boolean editable;
 	/** 是否使用弱验证 */
-	private boolean weak = true;
-
-	public FileResourceServlet(File root) {
-		this(null, root, null);
-	}
+	private final boolean weak;
 
 	public FileResourceServlet(String base, String root) {
-		this(base, new File(root), null);
+		this(base, root, null, null, null, null, null, false, false, true);
 	}
 
-	public FileResourceServlet(String base, String root, String cache) {
-		this(base, new File(root), new File(cache));
+	public FileResourceServlet(String base, String root, String cache, String error) {
+		this(base, root, cache, error, null, null, null, false, false, true);
 	}
 
-	public FileResourceServlet(String base, File root, File cache) {
+	public FileResourceServlet(//
+			String base, String root, String cache, String error, //
+			String[] defaults, String[] compresses, String[] caches, //
+			boolean browsable, boolean editable, boolean weak) {
 		this.base = Utility.correctBase(base);
-		this.root = root;
-		if (cache != null) {
+		this.root = root == null ? null : new File(root);
+		this.error = error == null ? null : new File(error);
+
+		if (cache == null) {
+			this.cache = null;
+		} else {
 			// 构建缓存目录，如果不存在
-			if (!cache.exists()) {
-				if (!cache.mkdirs()) {
-					cache = null;
-				}
+			final File dir = new File(cache);
+			if (dir.exists()) {
+				this.cache = dir;
+			} else if (dir.mkdirs()) {
+				this.cache = dir;
+			} else {
+				this.cache = null;
 			}
 		}
-		this.cache = cache;
+
+		if (defaults == null) {
+			defaults = new String[] { "index.html", "default.html" };
+		}
+		this.defaults = defaults;
+
+		if (compresses == null) {
+			compresses = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".xml" };
+		}
+		this.compresses = compresses;
+
+		if (caches == null) {
+			caches = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2" };
+		}
+		this.caches = caches;
+
+		this.browsable = browsable;
+		this.editable = editable;
+		this.weak = weak;
 	}
 
 	@Override
@@ -96,12 +117,12 @@ public class FileResourceServlet extends WEBResourceServlet {
 						} else {
 							// 返回目录资源
 							// 可用于重定向或返回目录列表
-							resource = new DirectoryResource(path, file, isBrowse());
+							resource = new DirectoryResource(path, file, isBrowsable());
 						}
 					} else {
 						// 返回目录资源
 						// 可用于重定向或返回目录列表
-						resource = new DirectoryResource(path + '/', file, isBrowse());
+						resource = new DirectoryResource(path + '/', file, isBrowsable());
 					}
 				} else {
 					// FILE
@@ -271,6 +292,13 @@ public class FileResourceServlet extends WEBResourceServlet {
 	}
 
 	/**
+	 * 获取资源路径
+	 */
+	public String getPath() {
+		return base;
+	}
+
+	/**
 	 * 获取文件资源主目录
 	 */
 	public File getRoot() {
@@ -292,62 +320,10 @@ public class FileResourceServlet extends WEBResourceServlet {
 	}
 
 	/**
-	 * 设置默认文件名，当访问网站地址未指定文件名时按默认文件名顺序查询默认文件资源
-	 */
-	public void setDefaults(String[] values) {
-		if (values == null) {
-			defaults = new String[0];
-		} else {
-			defaults = values;
-		}
-	}
-
-	/**
-	 * @see #setDefaults(String[])
-	 */
-	public void setDefaults(Collection<String> values) {
-		if (values == null || values.isEmpty()) {
-			defaults = new String[0];
-		} else {
-			defaults = new String[values.size()];
-			int index = 0;
-			for (String value : values) {
-				defaults[index++] = value;
-			}
-		}
-	}
-
-	/**
 	 * 获取应压缩的文件扩展名，当浏览器支持内容压缩时，这些扩展名的文件将被压缩以减少字节数量
 	 */
 	public String[] getCompresses() {
 		return compresses;
-	}
-
-	/**
-	 * 设置应压缩的文件扩展名，当浏览器支持内容压缩时，这些扩展名的文件将被压缩以减少字节数量
-	 */
-	public void setCompresses(String[] values) {
-		if (values == null) {
-			compresses = new String[0];
-		} else {
-			compresses = values;
-		}
-	}
-
-	/**
-	 * @see #setCompresses(String[])
-	 */
-	public void setCompresses(Collection<String> values) {
-		if (values == null || values.isEmpty()) {
-			compresses = new String[0];
-		} else {
-			compresses = new String[values.size()];
-			int index = 0;
-			for (String value : values) {
-				compresses[index++] = value;
-			}
-		}
 	}
 
 	/**
@@ -358,96 +334,24 @@ public class FileResourceServlet extends WEBResourceServlet {
 	}
 
 	/**
-	 * 设置应缓存的文件扩展名
-	 */
-	public void setCaches(String[] values) {
-		if (values == null) {
-			caches = new String[0];
-		} else {
-			caches = values;
-		}
-	}
-
-	/**
-	 * @see #setCaches(String[])
-	 */
-	public void setCaches(Collection<String> values) {
-		if (values == null || values.isEmpty()) {
-			caches = new String[0];
-		} else {
-			caches = new String[values.size()];
-			int index = 0;
-			for (String value : values) {
-				caches[index++] = value;
-			}
-		}
-	}
-
-	/**
-	 * 获取错误页面所在目录
+	 * 获取错误页面所在目录，其中文件按 404.html 匹配
 	 */
 	public File getErrorPages() {
 		return error;
 	}
 
 	/**
-	 * 设置错误页面所在目录，其中文件按 404.html 匹配
-	 */
-	public void setErrorPages(String value) {
-		if (value == null || value.isEmpty() || value.isBlank()) {
-			error = null;
-		} else {
-			error = new File(value);
-		}
-	}
-
-	/**
-	 * 设置错误页面所在目录，其中文件按 404.html 匹配
-	 */
-	public void setErrorPages(File value) {
-		error = value;
-	}
-
-	/**
 	 * 获取是否可列出目录中的文件
 	 */
-	public boolean isBrowse() {
-		return browse;
-	}
-
-	/**
-	 * 设置是否可列出目录中的文件
-	 */
-	public void setBrowse(boolean value) {
-		browse = value;
+	public boolean isBrowsable() {
+		return browsable;
 	}
 
 	/**
 	 * 获取是否可创建资源
 	 */
-	public boolean isCreate() {
-		return create;
-	}
-
-	/**
-	 * 设置是否可创建资源
-	 */
-	public void setCreate(boolean value) {
-		create = value;
-	}
-
-	/**
-	 * 获取是否可删除资源
-	 */
-	public boolean isDelete() {
-		return delete;
-	}
-
-	/**
-	 * 设置是否可删除资源
-	 */
-	public void setDelete(boolean value) {
-		delete = value;
+	public boolean isEditable() {
+		return editable;
 	}
 
 	/**
@@ -455,12 +359,5 @@ public class FileResourceServlet extends WEBResourceServlet {
 	 */
 	public boolean isWeak() {
 		return weak;
-	}
-
-	/**
-	 * 设置是否使用弱验证器
-	 */
-	public void setWeak(boolean value) {
-		weak = value;
 	}
 }

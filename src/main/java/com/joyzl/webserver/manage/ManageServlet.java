@@ -15,7 +15,7 @@ import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.entities.Server;
 import com.joyzl.webserver.service.Serializer;
-import com.joyzl.webserver.service.Service;
+import com.joyzl.webserver.service.Services;
 import com.joyzl.webserver.servlet.CROSServlet;
 import com.joyzl.webserver.servlet.ServletPath;
 
@@ -32,7 +32,7 @@ public class ManageServlet extends CROSServlet {
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		Serializer.JSON().writeEntities(Service.all(), writer);
+		Serializer.JSON().writeEntities(Services.all(), writer);
 		writer.flush();
 
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);

@@ -7,12 +7,10 @@ import java.util.Base64;
 
 import com.joyzl.network.Utility;
 import com.joyzl.network.http.Authorization;
-import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTP1Coder;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
-import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.network.http.WWWAuthenticate;
 import com.joyzl.webserver.entities.User;
 import com.joyzl.webserver.service.Users;
@@ -34,10 +32,11 @@ public class AuthenticateBasic extends Authenticate {
 
 	public final static String TYPE = "Basic";
 
-	private String www;
+	private final String www;
 
-	public AuthenticateBasic(String path) {
-		super(path);
+	public AuthenticateBasic(String path, String realm, String algorithm, String[] methods) {
+		super(path, realm, algorithm, methods);
+		www = TYPE + " realm=\"" + realm + "\"";
 	}
 
 	@Override
@@ -58,20 +57,18 @@ public class AuthenticateBasic extends Authenticate {
 				int colon = a.indexOf(HTTP1Coder.COLON);
 				if (colon > 0) {
 					final User user = Users.get(a.substring(0, colon));
-					if (user != null && user.isEnable()) {
-						if (Users.check(request, user)) {
-							if (user.getPassword() != null) {
-								a = a.substring(colon + 1);
-								if (getAlgorithm() == null) {
-									// 未指定密码加密方式，采用明文密码
-									if (a.contains(user.getPassword())) {
-										return true;
-									}
-								} else {
-									// 客户端按指定加密方式传递密码
-									if (Utility.equal(a, encrypt(user.getPassword()))) {
-										return true;
-									}
+					if (Users.check(request, user)) {
+						if (user.getPassword() != null) {
+							a = a.substring(colon + 1);
+							if (getAlgorithm() == null) {
+								// 未指定密码加密方式，采用明文密码
+								if (a.contains(user.getPassword())) {
+									return true;
+								}
+							} else {
+								// 客户端按指定加密方式传递密码
+								if (Utility.equal(a, encrypt(user.getPassword()))) {
+									return true;
 								}
 							}
 						}
@@ -93,14 +90,8 @@ public class AuthenticateBasic extends Authenticate {
 		response.setStatus(HTTPStatus.UNAUTHORIZED);
 		response.addHeader(WWWAuthenticate.NAME, www);
 		// TEST cs531a5
-		response.addHeader(ContentType.NAME, "text/html");
-		response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
-	}
-
-	@Override
-	public void setRealm(String vlaue) {
-		super.setRealm(vlaue);
-		www = TYPE + " realm=\"" + vlaue + HTTP1Coder.QUOTE;
+		// response.addHeader(ContentType.NAME, "text/html");
+		// response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
 	}
 
 	private String encrypt(String password) {

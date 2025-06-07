@@ -12,8 +12,8 @@ public class AuthenticateNone extends Authenticate {
 
 	public final static String TYPE = "None";
 
-	public AuthenticateNone(String path) {
-		super(path);
+	public AuthenticateNone(String path, String realm, String algorithm, String[] methods) {
+		super(path, realm, algorithm, methods);
 	}
 
 	@Override

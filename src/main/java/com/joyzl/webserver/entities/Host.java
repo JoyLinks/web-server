@@ -4,16 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 主机
+ * 虚拟主机
  * 
  * @author ZhangXi 2024年11月12日
  */
 public class Host extends Domain {
 
 	private final List<String> names = new ArrayList<>();
-
-	public void reset() throws Exception {
-	}
 
 	/**
 	 * 获取主机名

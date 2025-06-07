@@ -2,13 +2,15 @@ package com.joyzl.webserver;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
 import com.joyzl.logger.LogSetting;
 import com.joyzl.logger.Logger;
 import com.joyzl.network.Executor;
-import com.joyzl.webserver.service.Service;
+import com.joyzl.webserver.service.Serializer;
+import com.joyzl.webserver.service.Services;
 import com.joyzl.webserver.service.Users;
 
 /**
@@ -122,11 +124,25 @@ public class Application {
 				// 必须成功加载配置文件，否则无法运行
 				throw new RuntimeException(e);
 			}
+		} else {
+			// 默认配置
+			properties.setProperty("THREAD", "0");
+			properties.setProperty("ODBS", "1030");
+			properties.setProperty("SERVERS", "servers.json");
+			properties.setProperty("ROSTER", "roster.json");
+			properties.setProperty("USERS", "users.json");
+			properties.setProperty("LOG_LEVEL", "1");
+			properties.setProperty("LOG_EXPIRES", "30");
+			try (FileOutputStream output = new FileOutputStream(file)) {
+				properties.store(output, "AUTO CREATED");
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return properties;
 	}
 
-	void initialize() throws Exception {
+	void initialize() {
 		Logger.info("INITIALIZE");
 
 		// 载入配置文件
@@ -138,29 +154,50 @@ public class Application {
 		Executor.initialize(Utility.value(properties.getProperty("THREAD"), 0));
 		Logger.info("THREAD SIZE: " + Executor.getThreadSize());
 
-		// Logger.debug(Serializer.ODBS().checkString());
+		// 管理实体集
+		Logger.debug(Serializer.ODBS().checkString());
 
 		// 初始化用户集
-		Users.initialize(properties.getProperty("USERS"));
+		try {
+			Users.initialize(properties.getProperty("USERS"));
+		} catch (Exception e) {
+			Logger.error(e);
+		}
 
 		// 初始化服务集
-		Service.initialize(properties.getProperty("SERVERS"));
+		try {
+			Services.initialize(properties.getProperty("SERVERS"));
+		} catch (Exception e) {
+			Logger.error(e);
+		}
 	}
 
-	void start() throws Exception {
+	void start() {
 		Logger.info("START");
-		Service.start();
+		try {
+			Services.start();
+		} catch (Exception e) {
+			Logger.error(e);
+		}
 	}
 
-	void stop() throws Exception {
+	void stop() {
 		Logger.info("STOP");
-		Service.stop();
+		try {
+			Services.stop();
+		} catch (Exception e) {
+			Logger.error(e);
+		}
 	}
 
-	void destroy() throws Exception {
+	void destroy() {
 		Logger.info("DESTROY");
 		try {
-			Service.destroy();
+			try {
+				Services.destroy();
+			} catch (Exception e) {
+				Logger.error(e);
+			}
 		} finally {
 			Executor.shutdown();
 		}
