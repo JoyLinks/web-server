@@ -1,9 +1,10 @@
 package com.joyzl.webserver.entities;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.joyzl.network.Utility;
+import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.service.HostService;
 import com.joyzl.webserver.servlet.Wildcards;
 
@@ -26,10 +27,13 @@ public abstract class Domain {
 		return service;
 	}
 
-	public void reset() {
+	public void reset() throws IOException {
 		if (service == null) {
 			service = new HostService();
 		}
+
+		service.name(name);
+		service.access(access);
 
 		service.authenticates().clear();
 		for (Authentication authentication : authorizations) {
@@ -44,10 +48,17 @@ public abstract class Domain {
 			if (servlet.different()) {
 				servlet.reset();
 			}
-			if (Utility.isEmpty(servlet.getPath())) {
-				service.servlets().bind(Wildcards.STAR, servlet.service());
+			if (servlet.getPath() == null) {
+				final String path = Utility.defaultPath(servlet.service());
+				if (path != null) {
+					service.servlets().bind(path, servlet.service());
+				}
 			} else {
-				service.servlets().bind(servlet.getPath(), servlet.service());
+				if (Utility.isEmpty(servlet.getPath())) {
+					service.servlets().bind(Wildcards.STAR, servlet.service());
+				} else {
+					service.servlets().bind(servlet.getPath(), servlet.service());
+				}
 			}
 		}
 	}

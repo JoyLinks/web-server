@@ -24,10 +24,19 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manager/user")
+@ServletPath(path = "/manage/user")
 public class UserServlet extends CROSServlet {
 
-	// 获取用户
+	public final static String NAME = "USER";
+
+	@Override
+	public String name() {
+		return NAME;
+	}
+
+	/**
+	 * 获取用户
+	 */
 	@Override
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
@@ -35,11 +44,15 @@ public class UserServlet extends CROSServlet {
 		Serializer.JSON().writeEntities(Users.all(), writer);
 		writer.flush();
 
+		// TODO 避免输出用户密码
+
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 		response.setContent(output.buffer());
 	}
 
-	// 新建用户
+	/**
+	 * 新建用户
+	 */
 	@Override
 	protected void put(Request request, Response response) throws Exception {
 		final User user;
@@ -74,7 +87,9 @@ public class UserServlet extends CROSServlet {
 		}
 	}
 
-	// 修改用户
+	/**
+	 * 修改用户
+	 */
 	@Override
 	protected void post(Request request, Response response) throws Exception {
 		final User user;
@@ -114,7 +129,9 @@ public class UserServlet extends CROSServlet {
 		}
 	}
 
-	// 删除用户
+	/**
+	 * 删除用户
+	 */
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
 		User user;
@@ -152,7 +169,7 @@ public class UserServlet extends CROSServlet {
 
 	@Override
 	protected String allowMethods() {
-		return "OPTIONS,GET,PUT,POST,DELETE,TRACE";
+		return "OPTIONS,GET,PUT,POST,DELETE";
 	}
 
 	@Override

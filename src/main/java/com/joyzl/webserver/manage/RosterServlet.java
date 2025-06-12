@@ -14,8 +14,8 @@ import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.entities.Address;
+import com.joyzl.webserver.service.Roster;
 import com.joyzl.webserver.service.Serializer;
-import com.joyzl.webserver.service.Users;
 import com.joyzl.webserver.servlet.CROSServlet;
 import com.joyzl.webserver.servlet.ServletPath;
 
@@ -24,22 +24,33 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manager/user")
+@ServletPath(path = "/manage/roster")
 public class RosterServlet extends CROSServlet {
 
-	// 获取地址
+	public final static String NAME = "ROSTER";
+
+	@Override
+	public String name() {
+		return NAME;
+	}
+
+	/**
+	 * 获取名单
+	 */
 	@Override
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		Serializer.JSON().writeEntities(Users.all(), writer);
+		Serializer.JSON().writeEntities(Roster.all(), writer);
 		writer.flush();
 
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 		response.setContent(output.buffer());
 	}
 
-	// 新建地址
+	/**
+	 * 新建名单，存在将覆盖
+	 */
 	@Override
 	protected void put(Request request, Response response) throws Exception {
 		final Address address;
@@ -66,15 +77,14 @@ public class RosterServlet extends CROSServlet {
 			return;
 		}
 
-		// if (Users.add(address)) {
-		// response.setStatus(HTTPStatus.CREATED);
-		// Users.save();
-		// } else {
-		// response.setStatus(HTTPStatus.CONFLICT);
-		// }
+		Roster.add(address);
+		Roster.save();
+		response.setStatus(HTTPStatus.CREATED);
 	}
 
-	// 修改地址
+	/**
+	 * 修改名单
+	 */
 	@Override
 	protected void post(Request request, Response response) throws Exception {
 		final Address address;
@@ -101,20 +111,20 @@ public class RosterServlet extends CROSServlet {
 			return;
 		}
 
-		// final User old = Users.remove(address.getHost());
-		// if (old == null) {
-		// response.setStatus(HTTPStatus.NOT_FOUND);
-		// return;
-		// }
-		// if (Users.add(address)) {
-		// response.setStatus(HTTPStatus.CREATED);
-		// Users.save();
-		// } else {
-		// response.setStatus(HTTPStatus.CONFLICT);
-		// }
+		final Address old = Roster.get(address.getAddress());
+		if (old == null) {
+			response.setStatus(HTTPStatus.NOT_FOUND);
+			return;
+		} else {
+			response.setStatus(HTTPStatus.NO_CONTENT);
+			Roster.add(address);
+			Roster.save();
+		}
 	}
 
-	// 删除地址
+	/**
+	 * 删除名单
+	 */
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
 		Address address;
@@ -141,13 +151,13 @@ public class RosterServlet extends CROSServlet {
 			return;
 		}
 
-		// address = Users.remove(address.getHost());
-		// if (address == null) {
-		// response.setStatus(HTTPStatus.NOT_FOUND);
-		// } else {
-		// response.setStatus(HTTPStatus.NO_CONTENT);
-		// Users.save();
-		// }
+		address = Roster.remove(address.getAddress());
+		if (address == null) {
+			response.setStatus(HTTPStatus.NOT_FOUND);
+		} else {
+			response.setStatus(HTTPStatus.NO_CONTENT);
+			Roster.save();
+		}
 	}
 
 	@Override
@@ -157,7 +167,6 @@ public class RosterServlet extends CROSServlet {
 
 	@Override
 	protected String allowHeaders() {
-		// 允许Content-Type:application/xml,application/json,因此须列出允许的Content-Type头
 		return "*,Content-Type,Authorization";
 	}
 

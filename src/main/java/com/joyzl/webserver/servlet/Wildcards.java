@@ -48,10 +48,11 @@ public final class Wildcards<T> {
 		return null;
 	}
 
-	public final void bind(String text, T target) {
-		ITEMS = Arrays.copyOf(ITEMS, ITEMS.length + 1);
-		ITEMS[ITEMS.length - 1] = new Item<T>(target, text);
-		Arrays.sort(ITEMS, Item.COMPARATOR);
+	public final synchronized void bind(String text, T target) {
+		final Item<T>[] items = Arrays.copyOf(ITEMS, ITEMS.length + 1);
+		items[items.length - 1] = new Item<T>(target, text);
+		Arrays.sort(items, Item.COMPARATOR);
+		ITEMS = items;
 	}
 
 	/**

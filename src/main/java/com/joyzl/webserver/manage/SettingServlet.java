@@ -24,10 +24,19 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manager/service")
-public class ManageServlet extends CROSServlet {
+@ServletPath(path = "/manage/setting")
+public class SettingServlet extends CROSServlet {
 
-	// 获取服务配置
+	public final static String NAME = "SETTING";
+
+	@Override
+	public String name() {
+		return NAME;
+	}
+
+	/**
+	 * 获取服务配置
+	 */
 	@Override
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
@@ -39,10 +48,12 @@ public class ManageServlet extends CROSServlet {
 		response.setContent(output.buffer());
 	}
 
-	// 保存服务配置
+	/**
+	 * 保存服务配置，仅保存不执行服务重置
+	 */
 	@Override
 	protected void put(Request request, Response response) throws Exception {
-		if (response.getContent() == null) {
+		if (!response.hasContent()) {
 			response.setStatus(HTTPStatus.BAD_REQUEST);
 			return;
 		}
@@ -64,10 +75,21 @@ public class ManageServlet extends CROSServlet {
 		}
 	}
 
-	// 重置服务
+	/**
+	 * 提交配置并重置服务
+	 */
 	@Override
 	protected void post(Request request, Response response) throws Exception {
 		// 重置指定Server
 		// 重置所有Server
+	}
+
+	/**
+	 * 删除指定服务
+	 */
+	@Override
+	protected void delete(Request request, Response response) throws Exception {
+		// 删除指定Server
+		// 删除所有Server
 	}
 }

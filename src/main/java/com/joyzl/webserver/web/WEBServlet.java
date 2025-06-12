@@ -5,6 +5,8 @@
  */
 package com.joyzl.webserver.web;
 
+import java.io.IOException;
+
 import com.joyzl.network.Utility;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.chain.ChainChannel;
@@ -22,6 +24,7 @@ import com.joyzl.network.http.QueryCoder;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.network.http.Server;
+import com.joyzl.network.http.TransferEncoding;
 import com.joyzl.webserver.servlet.Servlet;
 
 /**
@@ -86,16 +89,24 @@ public abstract class WEBServlet extends Servlet {
 		response(chain, response);
 	}
 
-	protected void response(ChainChannel chain, Response response) {
+	protected void response(ChainChannel chain, Response response) throws IOException {
 		if (response.getStatus() > 0) {
 			// 自动补齐实体长度头
-			if (!response.hasContent()) {
-				// 能否避免检查集合中是否存在Content-Length?
-				// HEAD请求时即便没有内容也不能覆盖Content-Length
-				if (!response.hasHeader(ContentLength.NAME)) {
-					response.addHeader(ContentLength.NAME, ContentLength.ZERO);
+			// 能否避免检查集合中是否存在Content-Length?
+			// HEAD请求时即便没有内容也不能覆盖Content-Length
+			if (response.hasHeader(ContentLength.NAME) || response.hasHeader(TransferEncoding.NAME)) {
+				// 已设置
+			} else if (response.hasContent()) {
+				long size = response.contentSize();
+				if (size > 0) {
+					response.addHeader(ContentLength.NAME, Long.toString(size));
+				} else {
+					response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
 				}
+			} else {
+				response.addHeader(ContentLength.NAME, ContentLength.ZERO);
 			}
+
 			// 以下默认处理回复发送消息头
 			response.addHeader(SERVER);
 			response.addHeader(DATE);

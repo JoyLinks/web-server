@@ -57,6 +57,7 @@ import com.joyzl.webserver.webdav.elements.Propstat;
 
 public class FileWEBDAVServlet extends WEBDAVServlet {
 
+	public final static String NAME = "WEBDAV";
 	private final static int XML = 1, JSON = 2;
 	private final LinkOption[] options = new LinkOption[] { LinkOption.NOFOLLOW_LINKS };
 
@@ -77,6 +78,11 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 		this.base = Utility.correctBase(base);
 		this.root = Path.of(root);
 		this.allProperty = all;
+	}
+
+	@Override
+	public String name() {
+		return NAME;
 	}
 
 	@Override

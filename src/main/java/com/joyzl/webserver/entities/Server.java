@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.joyzl.logger.Logger;
+import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.service.HTTPSService;
 import com.joyzl.webserver.service.HTTPService;
 import com.joyzl.webserver.service.Service;
@@ -58,12 +59,23 @@ public class Server extends Domain {
 		}
 	};
 
+	////////////////////////////////////////////////////////////////////////////////
+
+	public Service server() {
+		return server;
+	}
+
 	public int backlog() {
 		return backlog == null ? 0 : backlog.intValue();
 	}
 
-	public Service server() {
-		return server;
+	public Host find(String name) {
+		for (Host host : hosts) {
+			if (Utility.same(name, host.getName())) {
+				return host;
+			}
+		}
+		return null;
 	}
 
 	/**

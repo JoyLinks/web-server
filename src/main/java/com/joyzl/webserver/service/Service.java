@@ -33,8 +33,8 @@ public abstract class Service extends HTTPServerHandler {
 
 	@Override
 	public void connected(HTTPSlave slave) throws Exception {
-		if (defaut.deny(slave.getRemoteAddress())) {
-			// 黑名单阻止连接
+		if (Roster.intercept(slave.getRemoteAddress())) {
+			// 连接阻止
 			slave.close();
 		} else {
 			super.connected(slave);
@@ -45,27 +45,33 @@ public abstract class Service extends HTTPServerHandler {
 	public void received(HTTPSlave slave, Request request, Response response) {
 		// Logger.debug(request);
 
-		if (Utility.isEmpty(request.getURL())) {
-			defaut.record(slave, request);
-			// 未指定 URL/URI
-			response(response, HTTPStatus.BAD_REQUEST);
+		final String host = request.getHeader(HTTP1.Host);
+		if (Utility.isEmpty(host)) {
+			// 未指定 Host
+			reject(response, HTTPStatus.BAD_REQUEST);
 		} else {
-			final String name = request.getHeader(HTTP1.Host);
-			if (Utility.isEmpty(name)) {
-				defaut.record(slave, request);
-				// 未指定 Host
-				response(response, HTTPStatus.BAD_REQUEST);
+
+			if (Roster.deny(defaut.name(), slave.getRemoteAddress())) {
+				// 黑名单阻止
+				reject(response, HTTPStatus.FORBIDDEN);
 			} else {
+
+			}
+
+			if (Utility.isEmpty(request.getURL())) {
+				// 未指定 URL/URI
+				reject(response, HTTPStatus.BAD_REQUEST);
+			} else {
+
 				final Servlet servlet;
-				final HostService host = virtuals.get(name);
-				if (host == null) {
+				final HostService service = virtuals.get(host);
+				if (service == null) {
 					// DEFAULT
-					defaut.record(slave, request);
 					if (defaut.authenticate(request, response)) {
 						servlet = defaut.findServlet(request.getPath());
 						if (servlet == null) {
 							// 无匹配处理程序 Servlet
-							response(response, HTTPStatus.NOT_FOUND);
+							reject(response, HTTPStatus.NOT_FOUND);
 						} else {
 							try {
 								servlet.service(slave, request, response);
@@ -79,51 +85,55 @@ public abstract class Service extends HTTPServerHandler {
 								}
 							} catch (Exception e) {
 								// 处理对象内部错误
-								response(response, HTTPStatus.INTERNAL_SERVER_ERROR);
+								reject(response, HTTPStatus.INTERNAL_SERVER_ERROR);
 								Logger.error(e);
 							}
 						}
+					} else {
+						servlet = null;
 					}
+					defaut.record(slave, host, servlet, request, response);
+					slave.send(response);
+					return;
 				} else {
 					// HOST
-					host.record(slave, request);
-					if (host.deny(slave.getRemoteAddress())) {
-						// 黑名单阻止
-						response(response, HTTPStatus.FORBIDDEN);
-					} else {
-						if (host.authenticate(request, response)) {
-							servlet = host.findServlet(request.getPath());
-							if (servlet == null) {
-								// 无匹配处理对象 Servlet
-								response(response, HTTPStatus.NOT_FOUND);
-							} else {
-								try {
-									servlet.service(slave, request, response);
-									if (response.getStatus() > 0) {
-										// HEADERS
-										// response.setAttachHeaders(host.getHeaders());
-										// CONTINUE
-									} else {
-										// 挂起异步
-										return;
-									}
-								} catch (Exception e) {
-									// 处理对象内部错误
-									response(response, HTTPStatus.INTERNAL_SERVER_ERROR);
-									Logger.error(e);
+
+					if (service.authenticate(request, response)) {
+						servlet = service.findServlet(request.getPath());
+						if (servlet == null) {
+							// 无匹配处理对象 Servlet
+							reject(response, HTTPStatus.NOT_FOUND);
+						} else {
+							try {
+								servlet.service(slave, request, response);
+								if (response.getStatus() > 0) {
+									// HEADERS
+									// response.setAttachHeaders(host.getHeaders());
+									// CONTINUE
+								} else {
+									// 挂起异步
+									return;
 								}
+							} catch (Exception e) {
+								// 处理对象内部错误
+								reject(response, HTTPStatus.INTERNAL_SERVER_ERROR);
+								Logger.error(e);
 							}
 						}
+					} else {
+						servlet = null;
 					}
-					host.record(slave, response);
+
+					service.record(slave, host, servlet, request, response);
 					slave.send(response);
 					return;
 				}
 			}
 		}
 
-		defaut.record(slave, response);
+		defaut.record(slave, host, null, request, response);
 		slave.send(response);
+
 		// Logger.debug(response);
 	}
 
@@ -132,8 +142,8 @@ public abstract class Service extends HTTPServerHandler {
 		Logger.error(e);
 	}
 
-	/** 异常响应 */
-	private void response(Response response, HTTPStatus status) {
+	/** 请求拒绝 */
+	private void reject(Response response, HTTPStatus status) {
 		response.addHeader(ContentLength.NAME, "0");
 		response.addHeader(WEBServlet.DATE);
 		response.setStatus(status);

@@ -7,6 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.manage.LogServlet;
+import com.joyzl.webserver.manage.RosterServlet;
+import com.joyzl.webserver.manage.SettingServlet;
+import com.joyzl.webserver.manage.UserServlet;
 import com.joyzl.webserver.servlet.Location;
 import com.joyzl.webserver.servlet.Wildcards;
 import com.joyzl.webserver.web.FileResourceServlet;
@@ -18,15 +22,6 @@ import com.joyzl.webserver.webdav.FileWEBDAVServlet;
  * @author ZhangXi 2025年6月6日
  */
 public class Servlet {
-
-	/** path,content,allProperty */
-	public static final String WEBDAV = "WEBDAV";
-	/** path,location,status */
-	public static final String LOCATION = "LOCATION";
-	/** path,content */
-	public static final String RESOURCE = "RESOURCE";
-	/** path,className */
-	public static final String SPECIAL = "SPECIAL";
 
 	/** 服务类型标识 */
 	private String type;
@@ -61,8 +56,6 @@ public class Servlet {
 
 	/** 资源获取所有属性 */
 	private Boolean allProperty;
-	/** 服务程序指定类 */
-	private String className;
 
 	private com.joyzl.webserver.servlet.Servlet service;
 
@@ -74,12 +67,17 @@ public class Servlet {
 		if (service == null) {
 			return true;
 		}
+		if (service.name().equalsIgnoreCase(type)) {
+			// continue;
+		} else {
+			return true;
+		}
 
-		if (service instanceof FileWEBDAVServlet servlet) {
-			if (WEBDAV.equalsIgnoreCase(type)) {
-				if (Utility.equal(Utility.correctBase(path), servlet.getPath())) {
-					if (allProperty() == servlet.isAllProperty()) {
-						if (servlet.getRoot().equals(Path.of(content))) {
+		if (service instanceof FileResourceServlet servlet) {
+			if (Utility.equal(Utility.correctBase(path), servlet.getPath())) {
+				if (Utility.equal(servlet.getRoot(), content)) {
+					if (Utility.equal(servlet.getCache(), cache)) {
+						if (Utility.equal(servlet.getErrorPages(), error)) {
 							return false;
 						}
 					}
@@ -88,15 +86,11 @@ public class Servlet {
 			return true;
 		}
 
-		if (service instanceof FileResourceServlet servlet) {
-			if (RESOURCE.equalsIgnoreCase(type)) {
-				if (Utility.equal(Utility.correctBase(path), servlet.getPath())) {
-					if (Utility.equal(servlet.getRoot(), content)) {
-						if (Utility.equal(servlet.getCache(), cache)) {
-							if (Utility.equal(servlet.getErrorPages(), error)) {
-								return false;
-							}
-						}
+		if (service instanceof FileWEBDAVServlet servlet) {
+			if (Utility.equal(Utility.correctBase(path), servlet.getPath())) {
+				if (allProperty() == servlet.isAllProperty()) {
+					if (servlet.getRoot().equals(Path.of(content))) {
+						return false;
 					}
 				}
 			}
@@ -104,19 +98,17 @@ public class Servlet {
 		}
 
 		if (service instanceof Location servlet) {
-			if (LOCATION.equalsIgnoreCase(type)) {
-				if (Utility.isEmpty(path)) {
-					if (!Utility.equal(Wildcards.STAR, servlet.getPath())) {
-						return true;
-					}
+			if (Utility.isEmpty(path)) {
+				if (!Utility.equal(Wildcards.STAR, servlet.getPath())) {
+					return true;
 				}
-				if (Utility.equal(path, servlet.getPath())) {
-					if (Utility.equal(location, servlet.getLocation())) {
-						if (status == null) {
-							return servlet.getStatus() != HTTPStatus.MOVED_PERMANENTLY;
-						}
-						return servlet.getStatus().code() != status;
+			}
+			if (Utility.equal(path, servlet.getPath())) {
+				if (Utility.equal(location, servlet.getLocation())) {
+					if (status == null) {
+						return servlet.getStatus() != HTTPStatus.MOVED_PERMANENTLY;
 					}
+					return servlet.getStatus().code() != status;
 				}
 			}
 			return true;
@@ -125,18 +117,30 @@ public class Servlet {
 	}
 
 	public void reset() {
-		if (type == null) {
-			service = null;
-		} else if (WEBDAV.equalsIgnoreCase(type)) {
-			service = new FileWEBDAVServlet(path, content, allProperty());
-		} else if (RESOURCE.equalsIgnoreCase(type)) {
-			service = new FileResourceServlet(path, content, cache, error, //
-				defaults(), compresses(), caches(), //
-				browsable(), editable(), weak());
-		} else if (LOCATION.equalsIgnoreCase(type)) {
-			service = new Location(path, location, status());
-		} else if (SPECIAL.equalsIgnoreCase(type)) {
-			service = null;
+		if (type != null) {
+			if (FileResourceServlet.NAME.equalsIgnoreCase(type)) {
+				service = new FileResourceServlet(path, content, cache, error, //
+					defaults(), compresses(), caches(), //
+					browsable(), editable(), weak());
+			} else //
+			if (FileWEBDAVServlet.NAME.equalsIgnoreCase(type)) {
+				service = new FileWEBDAVServlet(path, content, allProperty());
+			} else //
+			if (Location.NAME.equalsIgnoreCase(type)) {
+				service = new Location(path, location, status());
+			} else //
+			if (SettingServlet.NAME.equalsIgnoreCase(type)) {
+				service = new SettingServlet();
+			} else //
+			if (RosterServlet.NAME.equalsIgnoreCase(type)) {
+				service = new RosterServlet();
+			} else //
+			if (UserServlet.NAME.equalsIgnoreCase(type)) {
+				service = new UserServlet();
+			} else //
+			if (LogServlet.NAME.equalsIgnoreCase(type)) {
+				service = new LogServlet(path);
+			}
 		} else {
 			service = null;
 		}
@@ -371,20 +375,6 @@ public class Servlet {
 	 */
 	public void setStatus(Integer value) {
 		status = value;
-	}
-
-	/**
-	 * 获取服务程序类
-	 */
-	public String getClassName() {
-		return className;
-	}
-
-	/**
-	 * 设置服务程序类
-	 */
-	public void setClassName(String value) {
-		className = value;
 	}
 
 	public Boolean isAllProperty() {

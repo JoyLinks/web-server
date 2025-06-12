@@ -36,6 +36,18 @@
 					"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 					"Content-Security-Policy": "frame-ancestors 'none';"
 				}
+			},
+			{
+				"type": "SETTING"
+			},
+			{
+				"type": "ROSTER"
+			},
+			{
+				"type": "USER"
+			},
+			{
+				"type": "LOG"
 			}
 		],
 		"authentications": [
@@ -43,7 +55,7 @@
 				"type": "Digest",
 				"realm": "JOYZL WEBDAV",
 				"preflight": true,
-				"path": "/webdav1/"
+				"path": "/webdav/"
 			},
 			{
 				"type": "Basic",

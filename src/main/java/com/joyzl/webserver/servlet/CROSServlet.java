@@ -89,9 +89,13 @@ public abstract class CROSServlet extends WEBServlet {
 	}
 
 	/**
-	 * 跨源请求允许的标头，默认白名单的标头：Accept,Accept-Language,Content-Language,Content-Type,Range，无须列出；
-	 * Content-Type:application/x-www-form-urlencoded,multipart/form-data,text/plain时无须列出
+	 * 跨源请求允许的标头
+	 * <p>
+	 * 默认白名单的标头：Accept,Accept-Language,Content-Language,Content-Type,Range，无须列出；
+	 * Content-Type:application/x-www-form-urlencoded,multipart/form-data,text/plain值时无须列出，
+	 * 如果允许Content-Type:application/xml,application/json须列出Content-Type头；
 	 * Authorization标头如果允许始终要列出，即便已有 "*"
+	 * </p>
 	 * 
 	 * <pre>
 	 * Access-Control-Allow-Headers: *

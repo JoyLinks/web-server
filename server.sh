@@ -35,7 +35,7 @@ start()
         	$JAVA_COMMAND
         else
         	cd $WORK_HOME
-        	sudo nohup $JAVA_COMMAND >> $WORK_HOME/console.log 2>&1 &
+        	sudo nohup $JAVA_COMMAND
         fi
     fi
 }

@@ -6,9 +6,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import com.joyzl.logger.LogSetting;
 import com.joyzl.logger.Logger;
+import com.joyzl.logger.LoggerService;
 import com.joyzl.network.Executor;
+import com.joyzl.webserver.service.Roster;
 import com.joyzl.webserver.service.Serializer;
 import com.joyzl.webserver.service.Services;
 import com.joyzl.webserver.service.Users;
@@ -27,6 +28,8 @@ public class Application {
 	}
 
 	public static void main(String[] args) {
+		Logger.info("PID:", ProcessHandle.current().pid());
+
 		if (args == null || args.length == 0) {
 			start(args);
 		} else {
@@ -38,6 +41,10 @@ public class Application {
 			} else {
 				//
 			}
+		}
+
+		if (instance != null) {
+			instance.daemon();
 		}
 	}
 
@@ -75,12 +82,12 @@ public class Application {
 				}
 				return;
 			}
-			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+			Runtime.getRuntime().addShutdownHook(new Thread("SHUTDOWN") {
 				@Override
 				public void run() {
-					stop(args);
+					Application.stop(args);
 				}
-			}, "SHUTDOWN"));
+			});
 			try {
 				synchronized (instance) {
 					instance.wait();
@@ -147,8 +154,9 @@ public class Application {
 
 		// 载入配置文件
 		final Properties properties = loadProperties();
-		LogSetting.LEVEL = Utility.value(properties.getProperty("LOG_LEVEL"), 1);
-		LogSetting.EXPIRES = Utility.value(properties.getProperty("LOG_EXPIRES"), 30);
+
+		Logger.setLevel(Utility.value(properties.getProperty("LOG_LEVEL"), 1));
+		LoggerService.setExpires(Utility.value(properties.getProperty("LOG_EXPIRES"), 30));
 
 		// 初始化线程池
 		Executor.initialize(Utility.value(properties.getProperty("THREAD"), 0));
@@ -160,6 +168,13 @@ public class Application {
 		// 初始化用户集
 		try {
 			Users.initialize(properties.getProperty("USERS"));
+		} catch (Exception e) {
+			Logger.error(e);
+		}
+
+		// 初始化名册集
+		try {
+			Roster.initialize(properties.getProperty("ROSTER"));
 		} catch (Exception e) {
 			Logger.error(e);
 		}
@@ -194,6 +209,8 @@ public class Application {
 		Logger.info("DESTROY");
 		try {
 			try {
+				Users.destroy();
+				Roster.destroy();
 				Services.destroy();
 			} catch (Exception e) {
 				Logger.error(e);
@@ -201,5 +218,9 @@ public class Application {
 		} finally {
 			Executor.shutdown();
 		}
+	}
+
+	void daemon() {
+		Daemon.execute();
 	}
 }

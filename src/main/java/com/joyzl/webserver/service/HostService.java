@@ -1,18 +1,16 @@
 package com.joyzl.webserver.service;
 
-import java.net.InetAddress;
+import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
+import com.joyzl.logger.access.AccessLogger;
+import com.joyzl.logger.access.AccessRecord;
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.authenticate.Authenticate;
-import com.joyzl.webserver.entities.Domain;
 import com.joyzl.webserver.servlet.Servlet;
 import com.joyzl.webserver.servlet.Wildcards;
 
@@ -23,48 +21,17 @@ import com.joyzl.webserver.servlet.Wildcards;
  */
 public class HostService {
 
-	private final Set<InetAddress> allows = new CopyOnWriteArraySet<>();
-	private final Set<InetAddress> denies = new CopyOnWriteArraySet<>();
 	private final List<Authenticate> authenticates = new CopyOnWriteArrayList<>();
 	private final Wildcards<Servlet> servlets = new Wildcards<>();
+	private volatile AccessLogger logger;
+	private volatile String name;
 
 	/** 获取路径匹配的服务程序 */
 	public Servlet findServlet(String path) {
 		return servlets.find(path);
 	}
 
-	/** 客户端地址是否被阻止 */
-	public boolean deny(SocketAddress address) {
-		if (address instanceof InetSocketAddress a) {
-			if (allows.isEmpty()) {
-				if (denies.isEmpty()) {
-					return false;
-				} else {
-					return denies.contains(a.getAddress());
-				}
-			} else {
-				return !allows.contains(a.getAddress());
-			}
-		}
-		return true;
-	}
-
-	/** 客户端地址是否被允许 */
-	public boolean allow(Domain domain, SocketAddress address) {
-		if (address instanceof InetSocketAddress a) {
-			if (allows.isEmpty()) {
-				if (denies.isEmpty()) {
-					return true;
-				} else {
-					return !denies.contains(a.getAddress());
-				}
-			} else {
-				return allows.contains(a.getAddress());
-			}
-		}
-		return false;
-	}
-
+	/** 身份验证 */
 	public boolean authenticate(Request request, Response response) {
 		if (authenticates.isEmpty()) {
 			return true;
@@ -87,21 +54,98 @@ public class HostService {
 		return result;
 	}
 
-	public void record(HTTPSlave slave, Request request) {
-
+	/** 设置主机名称 */
+	public void name(String value) {
+		name = value;
 	}
 
-	public void record(HTTPSlave slave, Response response) {
-
+	/** 设置访问日志 */
+	public void access(String file) throws IOException {
+		final AccessLogger a = logger;
+		logger = null;
+		if (a != null) {
+			a.close();
+		}
+		if (file != null) {
+			logger = new AccessLogger(file);
+		}
 	}
 
-	public Set<InetAddress> allows() {
-		return allows;
-	};
+	/** 记录访问日志 */
+	public void record(HTTPSlave slave, String host, Servlet servlet, Request request, Response response) {
+		if (logger != null) {
+			logger.record(new AccessRecord() {
 
-	public Set<InetAddress> denies() {
-		return denies;
-	};
+				@Override
+				public int getServerPort() {
+					return ((InetSocketAddress) (slave.server().getLocalAddress())).getPort();
+				}
+
+				@Override
+				public InetSocketAddress getRemoteAddress() {
+					return (InetSocketAddress) slave.getRemoteAddress();
+				}
+
+				@Override
+				public String getHost() {
+					return host;
+				}
+
+				@Override
+				public long getRequestTimestamp() {
+					return request.getTimestamp();
+				}
+
+				@Override
+				public String getRequestMethod() {
+					return request.getMethod();
+				}
+
+				@Override
+				public String getRequestURI() {
+					return request.getURL();
+				}
+
+				@Override
+				public String getRequestVersion() {
+					return request.getVersion();
+				}
+
+				@Override
+				public int getRequestBodySize() {
+					try {
+						return request.contentSize();
+					} catch (IOException e) {
+						return 0;
+					}
+				}
+
+				@Override
+				public String getServletName() {
+					return servlet == null ? null : servlet.name();
+				}
+
+				@Override
+				public int getServletSpend() {
+					return (int) (System.currentTimeMillis() - request.getTimestamp());
+				}
+
+				@Override
+				public int getResponseStatus() {
+					return response.getStatus();
+				}
+
+				@Override
+				public int getResponseBodySize() {
+					try {
+						return response.contentSize();
+					} catch (IOException e) {
+						return 0;
+					}
+				}
+			});
+		}
+	}
 
 	public List<Authenticate> authenticates() {
 		return authenticates;
@@ -110,4 +154,12 @@ public class HostService {
 	public Wildcards<Servlet> servlets() {
 		return servlets;
 	};
+
+	public AccessLogger logger() {
+		return logger;
+	}
+
+	public String name() {
+		return name;
+	}
 }

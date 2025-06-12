@@ -1,8 +1,15 @@
 [
 	{
-		"uris": [""],
 		"name": "manager",
 		"password": "123456",
 		"enable": true
+	},
+	{
+		"uris": [
+			"/guest"
+		],
+		"name": "guest",
+		"password": "123456",
+		"enable": false
 	}
 ]

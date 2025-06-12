@@ -1,5 +1,8 @@
 package com.joyzl.webserver.entities;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 /**
  * 地址阻止或允许
  * 
@@ -13,8 +16,27 @@ public class Address {
 	private boolean allow;
 	/** 网络地址 */
 	private String address;
-	/** 阻止时响应 */
+	/** 阻止时响应消息 */
+	private String text;
+	/** 阻止时响应代码 */
 	private Integer status;
+
+	private InetAddress a;
+
+	public InetAddress inetAddress() {
+		if (a == null) {
+			try {
+				a = InetAddress.getByName(address);
+			} catch (UnknownHostException e) {
+				a = null;
+			}
+		}
+		return a;
+	}
+
+	public boolean hasHost() {
+		return host == null || host.length == 0;
+	}
 
 	/**
 	 * 获取主机地址
@@ -24,7 +46,7 @@ public class Address {
 	}
 
 	/**
-	 * 设置主机地址
+	 * 设置主机地址，可设置服务名称，主机名称和域名
 	 */
 	public void setHost(String... values) {
 		host = values;
@@ -42,6 +64,11 @@ public class Address {
 	 */
 	public void setAddress(String value) {
 		address = value;
+		try {
+			a = InetAddress.getByName(address);
+		} catch (UnknownHostException e) {
+			a = null;
+		}
 	}
 
 	/**
@@ -84,5 +111,39 @@ public class Address {
 	 */
 	public void setStatus(Integer value) {
 		status = value;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String value) {
+		text = value;
+	}
+
+	@Override
+	public String toString() {
+		return address;
+	}
+
+	@Override
+	public int hashCode() {
+		return address == null ? super.hashCode() : address.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o instanceof Address a) {
+			if (address == null) {
+				return a.address == null;
+			}
+			if (a.address != null) {
+				return address.equals(a.address);
+			}
+		}
+		return false;
 	}
 }

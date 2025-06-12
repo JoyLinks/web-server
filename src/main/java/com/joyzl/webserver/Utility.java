@@ -46,6 +46,21 @@ public class Utility extends com.joyzl.network.Utility {
 	}
 
 	/**
+	 * 获取ServletPath注解设置的默认路径
+	 */
+	public static String defaultPath(Class<?> clazz) {
+		final ServletPath annotation = ODBSReflect.findAnnotation(clazz, ServletPath.class);
+		return annotation != null ? annotation.path() : null;
+	}
+
+	/**
+	 * 获取ServletPath注解设置的默认路径
+	 */
+	public static String defaultPath(Servlet servlet) {
+		return defaultPath(servlet.getClass());
+	}
+
+	/**
 	 * 转换字符串为整型，如果转换失败不会抛出异常
 	 *
 	 * @see #value(CharSequence, int, int)

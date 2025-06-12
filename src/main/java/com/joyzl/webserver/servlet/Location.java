@@ -15,6 +15,8 @@ import com.joyzl.webserver.web.WEBServlet;
  */
 public class Location extends WEBServlet {
 
+	public final static String NAME = "LOCATION";
+
 	private final String path;
 	private final String location;
 	private final HTTPStatus status;
@@ -58,6 +60,11 @@ public class Location extends WEBServlet {
 		}
 	}
 
+	@Override
+	public String name() {
+		return NAME;
+	}
+
 	// 域名重定向 example.com -> www.example.com
 	// 协议重定向 http://www.example.com -> https://www.example.com
 	// 路径重定向 /webdav -> /webdav/
@@ -71,6 +78,7 @@ public class Location extends WEBServlet {
 	// 307 Temporary
 	// 308 Permanent Redirect
 
+	@Override
 	public void service(HTTPSlave slave, Request request, Response response) throws Exception {
 		String uri;
 		// 1提取原始路径的通配部分
