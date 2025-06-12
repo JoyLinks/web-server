@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.webserver.Utility;
+import com.joyzl.webserver.manage.EmojiServlet;
 import com.joyzl.webserver.manage.LogServlet;
 import com.joyzl.webserver.manage.RosterServlet;
 import com.joyzl.webserver.manage.SettingServlet;
@@ -140,6 +141,9 @@ public class Servlet {
 			} else //
 			if (LogServlet.NAME.equalsIgnoreCase(type)) {
 				service = new LogServlet(path);
+			} else //
+			if (EmojiServlet.NAME.equalsIgnoreCase(type)) {
+				service = new EmojiServlet();
 			}
 		} else {
 			service = null;

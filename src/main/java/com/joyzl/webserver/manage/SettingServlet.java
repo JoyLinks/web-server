@@ -3,7 +3,6 @@ package com.joyzl.webserver.manage;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
@@ -49,7 +48,7 @@ public class SettingServlet extends CROSServlet {
 	}
 
 	/**
-	 * 保存服务配置，仅保存不执行服务重置
+	 * 新建服务，已存在则失败
 	 */
 	@Override
 	protected void put(Request request, Response response) throws Exception {
@@ -58,21 +57,29 @@ public class SettingServlet extends CROSServlet {
 			return;
 		}
 
-		final List<Server> servers;
+		final Server server;
 		try {
 			final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
 			final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
-			servers = Serializer.JSON().readEntities(Server.class, reader);
+			server = Serializer.JSON().readEntity(Server.class, reader);
 		} catch (Exception e) {
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
 		}
 
-		if (servers != null) {
-
-		} else {
+		if (server == null) {
 			response.setStatus(HTTPStatus.UNPROCESSABLE_ENTITY);
+			return;
 		}
+
+		final Server old = Services.find(server.getName());
+		if (old != null) {
+			response.setStatus(HTTPStatus.CONFLICT);
+			return;
+		}
+
+		Services.add(server);
+		server.start();
 	}
 
 	/**
@@ -85,7 +92,7 @@ public class SettingServlet extends CROSServlet {
 	}
 
 	/**
-	 * 删除指定服务
+	 * 删除服务，不存在则失败
 	 */
 	@Override
 	protected void delete(Request request, Response response) throws Exception {

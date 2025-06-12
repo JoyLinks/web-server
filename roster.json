@@ -4,9 +4,5 @@
 		"address": "192.168.0.1",
 		"text": "YEAH",
 		"status": 403
-	},
-	{
-		"deny": true,
-		"address": "192.168.2.3"
 	}
 ]

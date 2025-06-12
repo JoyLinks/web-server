@@ -46,87 +46,87 @@ public abstract class Service extends HTTPServerHandler {
 		// Logger.debug(request);
 
 		final String host = request.getHeader(HTTP1.Host);
-		if (Utility.isEmpty(host)) {
-			// 未指定 Host
-			reject(response, HTTPStatus.BAD_REQUEST);
+
+		if (Roster.deny(defaut.name(), slave.getRemoteAddress())) {
+			// 黑名单阻止
+			reject(response, HTTPStatus.FORBIDDEN);
 		} else {
 
-			if (Roster.deny(defaut.name(), slave.getRemoteAddress())) {
-				// 黑名单阻止
-				reject(response, HTTPStatus.FORBIDDEN);
-			} else {
-
-			}
-
-			if (Utility.isEmpty(request.getURL())) {
-				// 未指定 URL/URI
+			if (Utility.isEmpty(host)) {
+				// 未指定 Host
 				reject(response, HTTPStatus.BAD_REQUEST);
 			} else {
 
-				final Servlet servlet;
-				final HostService service = virtuals.get(host);
-				if (service == null) {
-					// DEFAULT
-					if (defaut.authenticate(request, response)) {
-						servlet = defaut.findServlet(request.getPath());
-						if (servlet == null) {
-							// 无匹配处理程序 Servlet
-							reject(response, HTTPStatus.NOT_FOUND);
-						} else {
-							try {
-								servlet.service(slave, request, response);
-								if (response.getStatus() > 0) {
-									// HEADERS
-									// response.setAttachHeaders(defaut.getHeaders());
-									// CONTINUE
-								} else {
-									// 挂起异步
-									return;
-								}
-							} catch (Exception e) {
-								// 处理对象内部错误
-								reject(response, HTTPStatus.INTERNAL_SERVER_ERROR);
-								Logger.error(e);
-							}
-						}
-					} else {
-						servlet = null;
-					}
-					defaut.record(slave, host, servlet, request, response);
-					slave.send(response);
-					return;
+				if (Utility.isEmpty(request.getURL())) {
+					// 未指定 URL/URI
+					reject(response, HTTPStatus.BAD_REQUEST);
 				} else {
-					// HOST
 
-					if (service.authenticate(request, response)) {
-						servlet = service.findServlet(request.getPath());
-						if (servlet == null) {
-							// 无匹配处理对象 Servlet
-							reject(response, HTTPStatus.NOT_FOUND);
-						} else {
-							try {
-								servlet.service(slave, request, response);
-								if (response.getStatus() > 0) {
-									// HEADERS
-									// response.setAttachHeaders(host.getHeaders());
-									// CONTINUE
-								} else {
-									// 挂起异步
-									return;
+					final Servlet servlet;
+					final HostService service = virtuals.get(host);
+					if (service == null) {
+						// DEFAULT
+						if (defaut.authenticate(request, response)) {
+							servlet = defaut.findServlet(request.getPath());
+							if (servlet == null) {
+								// 无匹配处理程序 Servlet
+								reject(response, HTTPStatus.NOT_FOUND);
+							} else {
+								try {
+									servlet.service(slave, request, response);
+									if (response.getStatus() > 0) {
+										// HEADERS
+										// response.setAttachHeaders(defaut.getHeaders());
+										// CONTINUE
+									} else {
+										// 挂起异步
+										return;
+									}
+								} catch (Exception e) {
+									// 处理对象内部错误
+									reject(response, HTTPStatus.INTERNAL_SERVER_ERROR);
+									Logger.error(e);
 								}
-							} catch (Exception e) {
-								// 处理对象内部错误
-								reject(response, HTTPStatus.INTERNAL_SERVER_ERROR);
-								Logger.error(e);
 							}
+						} else {
+							servlet = null;
 						}
+						defaut.record(slave, host, servlet, request, response);
+						slave.send(response);
+						return;
 					} else {
-						servlet = null;
-					}
+						// HOST
 
-					service.record(slave, host, servlet, request, response);
-					slave.send(response);
-					return;
+						if (service.authenticate(request, response)) {
+							servlet = service.findServlet(request.getPath());
+							if (servlet == null) {
+								// 无匹配处理对象 Servlet
+								reject(response, HTTPStatus.NOT_FOUND);
+							} else {
+								try {
+									servlet.service(slave, request, response);
+									if (response.getStatus() > 0) {
+										// HEADERS
+										// response.setAttachHeaders(host.getHeaders());
+										// CONTINUE
+									} else {
+										// 挂起异步
+										return;
+									}
+								} catch (Exception e) {
+									// 处理对象内部错误
+									reject(response, HTTPStatus.INTERNAL_SERVER_ERROR);
+									Logger.error(e);
+								}
+							}
+						} else {
+							servlet = null;
+						}
+
+						service.record(slave, host, servlet, request, response);
+						slave.send(response);
+						return;
+					}
 				}
 			}
 		}

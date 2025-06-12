@@ -35,7 +35,7 @@ public class Address {
 	}
 
 	public boolean hasHost() {
-		return host == null || host.length == 0;
+		return host != null && host.length > 0;
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class Address {
 
 	@Override
 	public String toString() {
-		return address;
+		return (allow ? "O:" : "X:") + address + "=" + inetAddress();
 	}
 
 	@Override

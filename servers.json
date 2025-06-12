@@ -48,6 +48,9 @@
 			},
 			{
 				"type": "LOG"
+			},
+			{
+				"type": "EMOJI"
 			}
 		],
 		"authentications": [
