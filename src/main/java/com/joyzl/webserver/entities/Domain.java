@@ -1,11 +1,12 @@
 package com.joyzl.webserver.entities;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.service.HostService;
+import com.joyzl.webserver.service.Servlets;
 import com.joyzl.webserver.servlet.Wildcards;
 
 /**
@@ -18,48 +19,92 @@ public abstract class Domain {
 	private String name;
 	private String access;
 
-	private final List<Authentication> authorizations = new CopyOnWriteArrayList<>();
-	private final List<Servlet> servlets = new CopyOnWriteArrayList<>();
+	private final List<Authentication> authorizations = new ArrayList<>();
+	private final List<Servlet> servlets = new ArrayList<>();
 
+	/** 服务实例 */
 	private HostService service;
 
+	/** 服务实例 */
 	public HostService service() {
 		return service;
 	}
 
-	public void reset() throws IOException {
+	/** 重置域服务实例 */
+	public void reset() throws Exception {
 		if (service == null) {
 			service = new HostService();
 		}
 
-		service.name(name);
-		service.access(access);
+		if (differently()) {
+			service.name(name);
+			service.access(access);
+		}
 
 		service.authenticates().clear();
 		for (Authentication authentication : authorizations) {
-			if (authentication.different()) {
+			if (authentication.differently()) {
 				authentication.reset();
 			}
-			service.authenticates().add(authentication.service());
+			if (authentication.service() != null) {
+				service.authenticates().add(authentication.service());
+			}
 		}
 
 		service.servlets().clear();
 		for (Servlet servlet : servlets) {
-			if (servlet.different()) {
+			if (servlet.differently()) {
 				servlet.reset();
 			}
-			if (servlet.getPath() == null) {
-				final String path = Utility.defaultPath(servlet.service());
-				if (path != null) {
-					service.servlets().bind(path, servlet.service());
-				}
-			} else {
-				if (Utility.isEmpty(servlet.getPath())) {
-					service.servlets().bind(Wildcards.STAR, servlet.service());
+			if (servlet.service() != null) {
+				if (servlet.getPath() == null) {
+					final String path = Servlets.defaultPath(servlet.service());
+					if (path != null) {
+						service.servlets().bind(path, servlet.service());
+					}
 				} else {
-					service.servlets().bind(servlet.getPath(), servlet.service());
+					if (Utility.isEmpty(servlet.getPath())) {
+						service.servlets().bind(Wildcards.STAR, servlet.service());
+					} else {
+						service.servlets().bind(servlet.getPath(), servlet.service());
+					}
 				}
 			}
+		}
+	}
+
+	/** 检查管理对象参数与服务实例是否不同 */
+	public boolean differently() {
+		if (service == null) {
+			return true;
+		}
+
+		if (Utility.equal(name, service.name())) {
+		} else {
+			return true;
+		}
+
+		if (service.logger() == null) {
+			if (access != null) {
+				return true;
+			}
+		} else {
+			if (access == null) {
+				return true;
+			}
+			if (access.equals(service.logger().getFile())) {
+			} else {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void close() throws IOException {
+		if (service != null) {
+			service.close();
+			service = null;
 		}
 	}
 
@@ -123,5 +168,44 @@ public abstract class Domain {
 			authorizations.clear();
 			authorizations.addAll(values);
 		}
+	}
+
+	/**
+	 * 比较不含内部集合对象(Authentication,Servlet)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o instanceof Domain d) {
+			return equals(this, d);
+		}
+		return false;
+	}
+
+	/**
+	 * 比较域参数是否相同
+	 */
+	public static boolean equals(Domain a, Domain b) {
+		if (a.name != b.name) {
+			if (a.name != null && b.name != null) {
+				if (!a.name.equals(b.name)) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		if (a.access != b.access) {
+			if (a.access != null && b.access != null) {
+				if (!a.access.equals(b.access)) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		return true;
 	}
 }

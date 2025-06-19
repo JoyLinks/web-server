@@ -16,6 +16,10 @@ import com.joyzl.webserver.web.WEBServlet;
 @ServletPath(path = "/a5-test/ls.cgi")
 public class ListServlet extends WEBServlet {
 
+	public ListServlet(String path) {
+		super(path);
+	}
+
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);

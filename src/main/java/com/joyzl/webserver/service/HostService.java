@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.LongAdder;
 
 import com.joyzl.logger.access.AccessLogger;
 import com.joyzl.logger.access.AccessRecord;
@@ -21,8 +22,12 @@ import com.joyzl.webserver.servlet.Wildcards;
  */
 public class HostService {
 
+	private final LongAdder visits = new LongAdder();
+	private final LongAdder intercepts = new LongAdder();
+
 	private final List<Authenticate> authenticates = new CopyOnWriteArrayList<>();
 	private final Wildcards<Servlet> servlets = new Wildcards<>();
+
 	private volatile AccessLogger logger;
 	private volatile String name;
 
@@ -62,17 +67,25 @@ public class HostService {
 	/** 设置访问日志 */
 	public void access(String file) throws IOException {
 		final AccessLogger a = logger;
-		logger = null;
-		if (a != null) {
-			a.close();
-		}
-		if (file != null) {
-			logger = new AccessLogger(file);
+		if (a == null) {
+			if (file != null) {
+				logger = new AccessLogger(file);
+			}
+		} else {
+			if (file == null) {
+				logger = null;
+				a.close();
+			} else if (file.equals(a.getFile())) {
+				return;
+			} else {
+				logger = new AccessLogger(file);
+				a.close();
+			}
 		}
 	}
 
 	/** 记录访问日志 */
-	public void record(HTTPSlave slave, String host, Servlet servlet, Request request, Response response) {
+	public void record(HTTPSlave slave, String host, String servlet, Request request, Response response) {
 		if (logger != null) {
 			logger.record(new AccessRecord() {
 
@@ -122,7 +135,7 @@ public class HostService {
 
 				@Override
 				public String getServletName() {
-					return servlet == null ? null : servlet.name();
+					return servlet;
 				}
 
 				@Override
@@ -147,18 +160,51 @@ public class HostService {
 		}
 	}
 
+	public void close() throws IOException {
+		authenticates.clear();
+		servlets.clear();
+		if (logger != null) {
+			logger.close();
+			logger = null;
+		}
+	}
+
+	/** visits increment */
+	void visit() {
+		visits.increment();
+	}
+
+	/** visits intercept */
+	void intercept() {
+		intercepts.increment();
+	}
+
+	/** 自启动以来的总访问量 */
+	public long visits() {
+		return visits.sum();
+	}
+
+	/** 自启动以来的总拦截量 */
+	public long intercepts() {
+		return intercepts.sum();
+	}
+
+	/** 验证器集 */
 	public List<Authenticate> authenticates() {
 		return authenticates;
 	};
 
+	/** 服务程序集 */
 	public Wildcards<Servlet> servlets() {
 		return servlets;
 	};
 
+	/** 日志 */
 	public AccessLogger logger() {
 		return logger;
 	}
 
+	/** 名称 */
 	public String name() {
 		return name;
 	}

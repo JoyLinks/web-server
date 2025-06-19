@@ -11,6 +11,11 @@ import com.joyzl.webserver.web.WEBSocket;
 @ServletPath(path = "/ws")
 public class TestWebSocketServlet extends WEBSocket {
 
+	public TestWebSocketServlet(String path) {
+		super(path);
+
+	}
+
 	@Override
 	protected WEBSocketHandler create(HTTPSlave chain) {
 		return new Handler();

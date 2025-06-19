@@ -4,10 +4,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
+import com.joyzl.logger.Logger;
 import com.joyzl.network.Utility;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.MIMEType;
@@ -27,11 +29,13 @@ import com.joyzl.webserver.servlet.ServletPath;
 @ServletPath(path = "/manage/roster")
 public class RosterServlet extends CROSServlet {
 
-	public final static String NAME = "ROSTER";
+	public RosterServlet(String path) {
+		super(path);
+	}
 
 	@Override
 	public String name() {
-		return NAME;
+		return "ROSTER";
 	}
 
 	/**
@@ -43,23 +47,24 @@ public class RosterServlet extends CROSServlet {
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
 		Serializer.JSON().writeEntities(Roster.all(), writer);
 		writer.flush();
-
+		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 		response.setContent(output.buffer());
 	}
 
 	/**
-	 * 新建名单，存在将覆盖
+	 * 新建名单
 	 */
 	@Override
 	protected void put(Request request, Response response) throws Exception {
 		final Address address;
-		if (response.hasContent()) {
+		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
+				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
 				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 				address = Serializer.JSON().readEntity(Address.class, reader);
 			} catch (Exception e) {
+				Logger.error(e);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -88,12 +93,13 @@ public class RosterServlet extends CROSServlet {
 	@Override
 	protected void post(Request request, Response response) throws Exception {
 		final Address address;
-		if (response.hasContent()) {
+		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
+				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
 				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 				address = Serializer.JSON().readEntity(Address.class, reader);
 			} catch (Exception e) {
+				Logger.error(e);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -128,12 +134,13 @@ public class RosterServlet extends CROSServlet {
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
 		Address address;
-		if (response.hasContent()) {
+		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
+				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
 				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 				address = Serializer.JSON().readEntity(Address.class, reader);
 			} catch (Exception e) {
+				Logger.error(e);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}

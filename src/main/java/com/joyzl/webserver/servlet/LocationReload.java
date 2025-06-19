@@ -1,0 +1,57 @@
+package com.joyzl.webserver.servlet;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.joyzl.network.http.HTTPStatus;
+import com.joyzl.webserver.Utility;
+
+@ServletClass(servlet = Location.class)
+public class LocationReload extends ServletReload {
+
+	@Override
+	public String name() {
+		return "LOCATION";
+	}
+
+	@Override
+	public Servlet create(String path, Map<String, String> parameters) {
+		final String location = parameters.get("location");
+		if (Utility.isEmpty(location)) {
+			return null;
+		}
+		if (Utility.equal(path, location)) {
+			return null;
+		}
+		final int state = Utility.value(parameters.get("status"), 0);
+		return new Location(path, location, HTTPStatus.fromCode(state));
+	}
+
+	@Override
+	public boolean differently(Servlet servlet, Map<String, String> parameters) {
+		if (servlet instanceof Location l) {
+
+			if (Utility.equal(parameters.get("location"), l.getLocation())) {
+			} else {
+				return true;
+			}
+
+			final int status = Utility.value(parameters.get("status"), 0);
+			if (status == 0) {
+				return l.getStatus() != HTTPStatus.MOVED_PERMANENTLY;
+			} else {
+				return l.getStatus().code() != status;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	@Override
+	public Map<String, String> parameters() {
+		final Map<String, String> items = new HashMap<>();
+		items.put("location", "|请求重定向的URL或路径");
+		items.put("status", "|请求重定向状态码，默认为301");
+		return items;
+	}
+}

@@ -57,7 +57,6 @@ import com.joyzl.webserver.webdav.elements.Propstat;
 
 public class FileWEBDAVServlet extends WEBDAVServlet {
 
-	public final static String NAME = "WEBDAV";
 	private final static int XML = 1, JSON = 2;
 	private final LinkOption[] options = new LinkOption[] { LinkOption.NOFOLLOW_LINKS };
 
@@ -65,24 +64,18 @@ public class FileWEBDAVServlet extends WEBDAVServlet {
 	private final Locks LOCKS = new Locks();
 	/** 允许所有支持的属性 */
 	private final boolean allProperty;
-	/** 基础URI */
-	private final String base;
 	/** 根目录 */
 	private final Path root;
 
-	public FileWEBDAVServlet(String base, String root) {
-		this(base, root, false);
+	public FileWEBDAVServlet(String path, String root) {
+		this(path, root, false);
 	}
 
-	public FileWEBDAVServlet(String base, String root, boolean all) {
-		this.base = Utility.correctBase(base);
+	public FileWEBDAVServlet(String path, String root, boolean all) {
+		super(path);
+
 		this.root = Path.of(root);
 		this.allProperty = all;
-	}
-
-	@Override
-	public String name() {
-		return NAME;
 	}
 
 	@Override

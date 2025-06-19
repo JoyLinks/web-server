@@ -19,6 +19,11 @@ import com.joyzl.webserver.web.WEBServlet;
 @ServletPath(path = "/a5-test/limited3/env.cgi")
 public class TestLimited3EnvServlet extends WEBServlet {
 
+	public TestLimited3EnvServlet(String path) {
+		super(path);
+
+	}
+
 	protected void get(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.NOT_IMPLEMENTED);
 	}

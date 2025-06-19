@@ -3,11 +3,15 @@ package com.joyzl.webserver.manage;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.joyzl.logger.Logger;
 import com.joyzl.network.Utility;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.MIMEType;
@@ -27,11 +31,13 @@ import com.joyzl.webserver.servlet.ServletPath;
 @ServletPath(path = "/manage/user")
 public class UserServlet extends CROSServlet {
 
-	public final static String NAME = "USER";
+	public UserServlet(String path) {
+		super(path);
+	}
 
 	@Override
 	public String name() {
-		return NAME;
+		return "USER";
 	}
 
 	/**
@@ -39,14 +45,24 @@ public class UserServlet extends CROSServlet {
 	 */
 	@Override
 	protected void get(Request request, Response response) throws Exception {
+		// 重建实例避免输出用户密码
+		final List<User> users = new ArrayList<>();
+		User u;
+		for (User user : Users.all()) {
+			u = new User();
+			u.setEnable(user.isEnable());
+			u.setName(user.getName());
+			u.setURIs(user.getURIs());
+			users.add(u);
+		}
+
+		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
+		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
+
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		Serializer.JSON().writeEntities(Users.all(), writer);
+		Serializer.JSON().writeEntities(users, writer);
 		writer.flush();
-
-		// TODO 避免输出用户密码
-
-		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 		response.setContent(output.buffer());
 	}
 
@@ -56,12 +72,13 @@ public class UserServlet extends CROSServlet {
 	@Override
 	protected void put(Request request, Response response) throws Exception {
 		final User user;
-		if (response.hasContent()) {
+		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
+				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
 				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 				user = Serializer.JSON().readEntity(User.class, reader);
 			} catch (Exception e) {
+				Logger.error(e);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -79,11 +96,16 @@ public class UserServlet extends CROSServlet {
 			return;
 		}
 
-		if (Users.add(user)) {
-			response.setStatus(HTTPStatus.CREATED);
-			Users.save();
-		} else {
+		final User old = Users.remove(user.getName());
+		if (old != null) {
 			response.setStatus(HTTPStatus.CONFLICT);
+		} else {
+			if (Users.add(user)) {
+				response.setStatus(HTTPStatus.CREATED);
+				Users.save();
+			} else {
+				response.setStatus(HTTPStatus.CONFLICT);
+			}
 		}
 	}
 
@@ -93,12 +115,13 @@ public class UserServlet extends CROSServlet {
 	@Override
 	protected void post(Request request, Response response) throws Exception {
 		final User user;
-		if (response.hasContent()) {
+		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
+				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
 				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 				user = Serializer.JSON().readEntity(User.class, reader);
 			} catch (Exception e) {
+				Logger.error(e);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
@@ -135,12 +158,13 @@ public class UserServlet extends CROSServlet {
 	@Override
 	protected void delete(Request request, Response response) throws Exception {
 		User user;
-		if (response.hasContent()) {
+		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
+				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
 				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 				user = Serializer.JSON().readEntity(User.class, reader);
 			} catch (Exception e) {
+				Logger.error(e);
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}

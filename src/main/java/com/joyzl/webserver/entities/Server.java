@@ -1,16 +1,16 @@
 package com.joyzl.webserver.entities;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.joyzl.logger.Logger;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.service.HTTPSService;
 import com.joyzl.webserver.service.HTTPService;
 import com.joyzl.webserver.service.Service;
 
 /**
- * 服务
+ * 主服务
  * 
  * @author ZhangXi 2024年11月12日
  */
@@ -26,48 +26,104 @@ public class Server extends Domain {
 
 	private final List<Host> hosts = new ArrayList<>();
 
+	/** 网络服务实例 */
 	private Service server;
 
-	public synchronized void start() throws Exception {
-		if (server == null) {
+	/** 网络服务实例 */
+	public Service server() {
+		return server;
+	}
+
+	/** 重置网络服务实例 */
+	public void reset() throws Exception {
+		super.reset();
+		for (Host host : hosts) {
+			host.reset();
+		}
+
+		if (differently()) {
+			if (server != null) {
+				server.close();
+			}
 			if (type == HTTP) {
-				reset();
 				server = new HTTPService(service(), ip, port, backlog());
 			} else if (type == HTTPS) {
-				reset();
 				server = new HTTPSService(service(), ip, port, backlog());
 			} else {
 				server = null;
-				return;
 			}
+		}
+
+		if (server != null) {
+			server.virtuals().clear();
 			for (Host host : hosts) {
-				if (host.getNames().size() > 0) {
-					host.reset();
+				if (host.hasNames()) {
 					for (String name : host.getNames()) {
 						server.virtuals().put(name, host.service());
 					}
 				}
 			}
-			Logger.info(getName(), " ", ip == null ? "ANY" : ip, ':', port);
 		}
-	};
+	}
 
-	public synchronized void stop() throws Exception {
+	/** 检查管理对象参数与服务实例是否不同 */
+	public boolean differently() {
+		if (server == null) {
+			return type != null;
+		}
+		if (type == null) {
+			return true;
+		}
+
+		if (HTTP.equalsIgnoreCase(type)) {
+			if (server instanceof HTTPService s) {
+				if (!Utility.equal(ip, s.getIp())) {
+					return true;
+				}
+				if (backlog() != s.getBacklog()) {
+					return true;
+				}
+				if (port != s.getPort()) {
+					return true;
+				}
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		if (HTTPS.equalsIgnoreCase(type)) {
+			if (server instanceof HTTPSService s) {
+				if (!Utility.equal(ip, s.getIp())) {
+					return true;
+				}
+				if (backlog() != s.getBacklog()) {
+					return true;
+				}
+				if (port != s.getPort()) {
+					return true;
+				}
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		return true;
+	}
+
+	public synchronized void close() throws IOException {
 		if (server != null) {
 			server.close();
 			server = null;
 		}
+		for (Host host : hosts) {
+			host.close();
+		}
+		super.close();
 	};
 
 	////////////////////////////////////////////////////////////////////////////////
-
-	public Service server() {
-		return server;
-	}
-
-	public int backlog() {
-		return backlog == null ? 0 : backlog.intValue();
-	}
 
 	public Host find(String name) {
 		for (Host host : hosts) {
@@ -153,6 +209,13 @@ public class Server extends Domain {
 	/**
 	 * 获取待连接的最大数量
 	 */
+	public int backlog() {
+		return backlog == null ? 0 : backlog.intValue();
+	}
+
+	/**
+	 * 获取待连接的最大数量
+	 */
 	public Integer getBacklog() {
 		return backlog;
 	}
@@ -162,5 +225,55 @@ public class Server extends Domain {
 	 */
 	public void setBacklog(Integer value) {
 		backlog = value;
+	}
+
+	/**
+	 * 比较不含内部集合对象(HOSTS)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (super.equals(o)) {
+			if (o instanceof Server s) {
+				return equals(this, s);
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 比较服务参数是否相同
+	 */
+	public static boolean equals(Server a, Server b) {
+		if (a.port != b.port) {
+			return false;
+		}
+		if (a.backlog != b.backlog) {
+			if (a.backlog != null && b.backlog != null) {
+				if (!a.backlog.equals(b.backlog)) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		if (a.ip != b.ip) {
+			if (a.ip != null && b.ip != null) {
+				if (!a.ip.equals(b.ip)) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		if (a.type != b.type) {
+			if (a.type != null && b.type != null) {
+				if (!a.type.equals(b.type)) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		return true;
 	}
 }

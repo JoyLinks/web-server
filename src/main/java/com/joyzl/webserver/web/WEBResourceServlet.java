@@ -102,8 +102,6 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	// Accept-Patch
 	// Accept-Patch: text/example;charset=utf-8
 
-	public final static String NAME = "RESOURCE";
-
 	// 建议分块大小
 	private int BLOCK_BYTES = HTTP1Coder.BLOCK_BYTES;
 	// 最大请求大小
@@ -113,9 +111,8 @@ public abstract class WEBResourceServlet extends WEBServlet {
 	// 强制分块请求
 	private boolean RANGE_MUST = true;
 
-	@Override
-	public String name() {
-		return NAME;
+	public WEBResourceServlet(String path) {
+		super(path);
 	}
 
 	@Override

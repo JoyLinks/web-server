@@ -3,10 +3,13 @@ package com.joyzl.webserver.manage;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+import com.joyzl.logger.Logger;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.MIMEType;
@@ -26,11 +29,13 @@ import com.joyzl.webserver.servlet.ServletPath;
 @ServletPath(path = "/manage/setting")
 public class SettingServlet extends CROSServlet {
 
-	public final static String NAME = "SETTING";
+	public SettingServlet(String path) {
+		super(path);
+	}
 
 	@Override
 	public String name() {
-		return NAME;
+		return "SETTING";
 	}
 
 	/**
@@ -38,65 +43,69 @@ public class SettingServlet extends CROSServlet {
 	 */
 	@Override
 	protected void get(Request request, Response response) throws Exception {
-		final DataBufferOutput output = new DataBufferOutput();
-		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		Serializer.JSON().writeEntities(Services.all(), writer);
-		writer.flush();
-
-		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
-		response.setContent(output.buffer());
-	}
-
-	/**
-	 * 新建服务，已存在则失败
-	 */
-	@Override
-	protected void put(Request request, Response response) throws Exception {
-		if (!response.hasContent()) {
+		if (request.hasContent()) {
 			response.setStatus(HTTPStatus.BAD_REQUEST);
 			return;
 		}
 
-		final Server server;
+		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
+		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 		try {
-			final DataBufferInput input = new DataBufferInput((DataBuffer) response.getContent());
-			final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
-			server = Serializer.JSON().readEntity(Server.class, reader);
+			final DataBufferOutput output = new DataBufferOutput();
+			final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+			Serializer.JSON().writeEntities(Services.all(), writer);
+			writer.flush();
+			response.setContent(output.buffer());
 		} catch (Exception e) {
+			Logger.error(e);
+			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
+			return;
+		}
+	}
+
+	/**
+	 * 上载服务配置，服务将被重置
+	 */
+	@Override
+	protected void put(Request request, Response response) throws Exception {
+		if (!request.hasContent()) {
+			response.setStatus(HTTPStatus.BAD_REQUEST);
+			return;
+		}
+
+		final List<Server> servers;
+		try {
+			final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
+			final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+			servers = Serializer.JSON().readEntities(Server.class, reader);
+		} catch (Exception e) {
+			Logger.error(e);
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
 			return;
 		}
 
-		if (server == null) {
+		if (servers == null) {
 			response.setStatus(HTTPStatus.UNPROCESSABLE_ENTITY);
 			return;
 		}
 
-		final Server old = Services.find(server.getName());
-		if (old != null) {
-			response.setStatus(HTTPStatus.CONFLICT);
-			return;
-		}
-
-		Services.add(server);
-		server.start();
+		Services.apply(servers);
+		Services.save();
 	}
 
-	/**
-	 * 提交配置并重置服务
-	 */
 	@Override
-	protected void post(Request request, Response response) throws Exception {
-		// 重置指定Server
-		// 重置所有Server
+	protected String allowMethods() {
+		return "OPTIONS,GET,PUT,POST,DELETE";
 	}
 
-	/**
-	 * 删除服务，不存在则失败
-	 */
 	@Override
-	protected void delete(Request request, Response response) throws Exception {
-		// 删除指定Server
-		// 删除所有Server
+	protected String allowHeaders() {
+		// 允许Content-Type:application/xml,application/json,因此须列出允许的Content-Type头
+		return "*,Content-Type,Authorization,Depth,Destination,If,Lock-Token,Overwrite,Timeout";
+	}
+
+	@Override
+	protected boolean allowCredentials() {
+		return true;
 	}
 }

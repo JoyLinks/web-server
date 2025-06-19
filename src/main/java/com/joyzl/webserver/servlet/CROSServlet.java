@@ -22,6 +22,10 @@ public abstract class CROSServlet extends WEBServlet {
 
 	public final static String ANY = "*";
 
+	public CROSServlet(String path) {
+		super(path);
+	}
+
 	@Override
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
 		if (checkOrigin(request, response)) {

@@ -2,6 +2,7 @@ package com.joyzl.webserver.entities;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 /**
  * 地址阻止或允许
@@ -10,16 +11,16 @@ import java.net.UnknownHostException;
  */
 public class Address {
 
-	/** 关联主机 */
-	private String[] host;
 	/** 允许或阻止 */
-	private boolean allow;
+	private boolean deny;
 	/** 网络地址 */
 	private String address;
 	/** 阻止时响应消息 */
 	private String text;
 	/** 阻止时响应代码 */
 	private Integer status;
+	/** 关联主机 */
+	private String[] hosts;
 
 	private InetAddress a;
 
@@ -35,21 +36,21 @@ public class Address {
 	}
 
 	public boolean hasHost() {
-		return host != null && host.length > 0;
+		return hosts != null && hosts.length > 0;
 	}
 
 	/**
 	 * 获取主机地址
 	 */
-	public String[] getHost() {
-		return host;
+	public String[] getHosts() {
+		return hosts;
 	}
 
 	/**
 	 * 设置主机地址，可设置服务名称，主机名称和域名
 	 */
-	public void setHost(String... values) {
-		host = values;
+	public void setHosts(String... values) {
+		hosts = values;
 	}
 
 	/**
@@ -72,31 +73,31 @@ public class Address {
 	}
 
 	/**
-	 * 获取是否白名单（仅允许）
-	 */
-	public boolean isAllow() {
-		return allow;
-	}
-
-	/**
-	 * 设置是否白名单（仅允许）
-	 */
-	public void setAllow(boolean value) {
-		allow = value;
-	}
-
-	/**
 	 * 获取是否黑名单（拒绝）
 	 */
 	public boolean isDeny() {
-		return !allow;
+		return deny;
 	}
 
 	/**
 	 * 设置是否黑名单（拒绝）
 	 */
 	public void setDeny(boolean value) {
-		allow = !value;
+		deny = value;
+	}
+
+	/**
+	 * 设置是否白名单（仅允许）
+	 */
+	public void setAllow(boolean value) {
+		deny = !value;
+	}
+
+	/**
+	 * 指示是否白名单（仅允许）
+	 */
+	public boolean theAllow() {
+		return !deny;
 	}
 
 	/**
@@ -123,7 +124,7 @@ public class Address {
 
 	@Override
 	public String toString() {
-		return (allow ? "O:" : "X:") + address + "=" + inetAddress();
+		return (deny ? "O:" : "X:") + address + "=" + inetAddress();
 	}
 
 	@Override
@@ -137,12 +138,46 @@ public class Address {
 			return true;
 		}
 		if (o instanceof Address a) {
-			if (address == null) {
-				return a.address == null;
+			if (deny != a.deny) {
+				return false;
 			}
-			if (a.address != null) {
-				return address.equals(a.address);
+			if (address != a.address) {
+				if (address != null && a.address != null) {
+					if (!address.equals(a.address)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
 			}
+			if (status != a.status) {
+				if (status != null && a.status != null) {
+					if (!status.equals(a.status)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			if (text != a.text) {
+				if (text != null && a.text != null) {
+					if (!text.equals(a.text)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			if (hosts != a.hosts) {
+				if (hosts != null && a.hosts != null) {
+					if (!Arrays.equals(hosts, a.hosts)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			return true;
 		}
 		return false;
 	}

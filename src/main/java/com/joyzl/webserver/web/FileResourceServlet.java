@@ -20,10 +20,13 @@ public class FileResourceServlet extends WEBResourceServlet {
 	/** 文件大小阈值(16M)，超过此限制的文件无须压缩或缓存 */
 	public final static int MAX = 1024 * 1024 * 16;
 
+	public final static String[] DEFAULTS = new String[] { "index.html", "default.html" };
+	public final static String[] COMPRESSES = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".xml" };
+	public final static String[] CACHES = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2" };
+
 	/** 资源对象缓存 */
 	private final Map<String, WEBResource> resources = new ConcurrentHashMap<>();
-	/** 资源基础路径（不含通配符） */
-	private final String base;
+
 	/** 主目录 */
 	private final File root;
 	/** 缓存目录 */
@@ -44,19 +47,20 @@ public class FileResourceServlet extends WEBResourceServlet {
 	/** 是否使用弱验证 */
 	private final boolean weak;
 
-	public FileResourceServlet(String base, String root) {
-		this(base, root, null, null, null, null, null, false, false, true);
+	public FileResourceServlet(String path, String root) {
+		this(path, root, null, null, null, null, null, false, false, true);
 	}
 
-	public FileResourceServlet(String base, String root, String cache, String error) {
-		this(base, root, cache, error, null, null, null, false, false, true);
+	public FileResourceServlet(String path, String root, String cache, String error) {
+		this(path, root, cache, error, null, null, null, false, false, true);
 	}
 
 	public FileResourceServlet(//
-			String base, String root, String cache, String error, //
+			String path, String root, String cache, String error, //
 			String[] defaults, String[] compresses, String[] caches, //
 			boolean browsable, boolean editable, boolean weak) {
-		this.base = Utility.correctBase(base);
+		super(path);
+
 		this.root = root == null ? null : new File(root);
 		this.error = error == null ? null : new File(error);
 
@@ -75,17 +79,17 @@ public class FileResourceServlet extends WEBResourceServlet {
 		}
 
 		if (defaults == null) {
-			defaults = new String[] { "index.html", "default.html" };
+			defaults = DEFAULTS;
 		}
 		this.defaults = defaults;
 
 		if (compresses == null) {
-			compresses = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".xml" };
+			compresses = COMPRESSES;
 		}
 		this.compresses = compresses;
 
 		if (caches == null) {
-			caches = new String[] { ".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2" };
+			caches = CACHES;
 		}
 		this.caches = caches;
 

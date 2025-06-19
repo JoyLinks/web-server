@@ -32,6 +32,10 @@ public abstract class WEBSocket extends Servlet {
 	public final static String VERSION = "13";
 	public final static String WEBSOCKET = "websocket";
 
+	public WEBSocket(String path) {
+		super(path);
+	}
+
 	@Override
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
 		if (upgrade(request, response)) {

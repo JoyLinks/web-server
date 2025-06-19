@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import com.joyzl.logger.access.AccessLogger;
 import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
@@ -33,20 +34,18 @@ import com.joyzl.webserver.servlet.ServletPath;
 @ServletPath(path = "/manage/log/*")
 public class LogServlet extends CROSServlet {
 
-	public final static String NAME = "LOG";
-	private final String base;
-
 	public LogServlet(String path) {
-		if (path == null) {
-			base = "/manage/log/";
-		} else {
-			base = Utility.correctBase(path);
-		}
+		super(path);
+		// if (path == null) {
+		// base = "/manage/log/";
+		// } else {
+		// base = Utility.correctBase(path);
+		// }
 	}
 
 	@Override
 	public String name() {
-		return NAME;
+		return "LOG";
 	}
 
 	/** 切分路径 */
@@ -132,6 +131,7 @@ public class LogServlet extends CROSServlet {
 				}
 			});
 
+			response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 			final String type = request.getHeader(ContentType.NAME);
 			if (Utility.same(type, MIMEType.APPLICATION_JSON)) {
 				response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);

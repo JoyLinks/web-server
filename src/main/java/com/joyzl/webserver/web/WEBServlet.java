@@ -39,6 +39,10 @@ public abstract class WEBServlet extends Servlet {
 	public final static Date DATE = new Date();
 	public final static Server SERVER = new Server();
 
+	public WEBServlet(String path) {
+		super(path);
+	}
+
 	@Override
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
 		if (request.getVersion() == HTTP1.V20 || request.getVersion() == HTTP1.V11 || request.getVersion() == HTTP1.V10) {

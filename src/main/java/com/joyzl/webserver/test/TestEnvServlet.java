@@ -19,6 +19,10 @@ import com.joyzl.webserver.web.WEBServlet;
 @ServletPath(path = "/a5-test/env.cgi")
 public class TestEnvServlet extends WEBServlet {
 
+	public TestEnvServlet(String path) {
+		super(path);
+	}
+
 	protected void get(Request request, Response response) throws Exception {
 		final DataBufferOutput output = new DataBufferOutput();
 		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);

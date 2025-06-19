@@ -12,6 +12,10 @@ import com.joyzl.webserver.web.WEBServlet;
 @ServletPath(path = "/a5-test/500.cgi")
 public class Test500Servlet extends WEBServlet {
 
+	public Test500Servlet(String path) {
+		super(path);
+	}
+
 	protected void get(Request request, Response response) throws Exception {
 		response.setStatus(HTTPStatus.INTERNAL_SERVER_ERROR);
 		response.addHeader(ContentType.NAME, MIMEType.TEXT_HTML);

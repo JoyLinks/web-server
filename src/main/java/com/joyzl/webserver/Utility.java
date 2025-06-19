@@ -2,15 +2,12 @@ package com.joyzl.webserver;
 
 import java.io.File;
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 
 import com.joyzl.odbs.ODBSReflect;
 import com.joyzl.webserver.servlet.Servlet;
 import com.joyzl.webserver.servlet.ServletPath;
-import com.joyzl.webserver.servlet.Wildcards;
 
 /**
  * 实用方法集
@@ -18,32 +15,6 @@ import com.joyzl.webserver.servlet.Wildcards;
  * @author ZhangXi 2024年11月13日
  */
 public class Utility extends com.joyzl.network.Utility {
-
-	/**
-	 * 扫描指定包中的Servlet并绑定ServletURI注解指定的URI
-	 */
-	public static void scanServlets(Wildcards<Servlet> instances, Collection<String> packages) throws Exception {
-		for (String pkg : packages) {
-			final List<Class<?>> classes = ODBSReflect.scanClass(pkg);
-			for (Class<?> clazz : classes) {
-				if (ODBSReflect.canUsable(clazz)) {
-					if (ODBSReflect.canInstance(clazz)) {
-						if (ODBSReflect.isImplemented(clazz, Servlet.class)) {
-							ServletPath annotation = ODBSReflect.findAnnotation(clazz, ServletPath.class);
-							if (annotation != null) {
-								try {
-									Servlet servlet = (Servlet) clazz.getConstructor().newInstance();
-									instances.bind(annotation.path(), servlet);
-								} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-									throw e;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 
 	/**
 	 * 获取ServletPath注解设置的默认路径
@@ -62,8 +33,6 @@ public class Utility extends com.joyzl.network.Utility {
 
 	/**
 	 * 转换字符串为整型，如果转换失败不会抛出异常
-	 *
-	 * @see #value(CharSequence, int, int)
 	 */
 	public final static int value(CharSequence value, int defaultValue) {
 		if (value == null || value.length() == 0) {
@@ -76,6 +45,22 @@ public class Utility extends com.joyzl.network.Utility {
 		}
 	}
 
+	/**
+	 * 转换字符串为整型，如果转换失败不会抛出异常
+	 */
+	public final static boolean value(CharSequence value, boolean defaultValue) {
+		if (value == null || value.length() == 0) {
+			return defaultValue;
+		}
+		if ("true".contentEquals(value)) {
+			return true;
+		}
+		if ("TRUE".contentEquals(value)) {
+			return true;
+		}
+		return defaultValue;
+	}
+
 	public static boolean equal(File file, String path) {
 		if (file == null) {
 			return path == null;
@@ -84,6 +69,19 @@ public class Utility extends com.joyzl.network.Utility {
 			return false;
 		}
 		if (path.equalsIgnoreCase(file.getPath())) {
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean equal(Path file, String path) {
+		if (file == null) {
+			return path == null;
+		}
+		if (path == null) {
+			return false;
+		}
+		if (path.equalsIgnoreCase(file.toString())) {
 			return true;
 		}
 		return false;

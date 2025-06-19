@@ -1,5 +1,7 @@
 package com.joyzl.webserver.entities;
 
+import java.util.Arrays;
+
 import com.joyzl.network.Utility;
 import com.joyzl.webserver.authenticate.Authenticate;
 import com.joyzl.webserver.authenticate.AuthenticateBasic;
@@ -20,78 +22,109 @@ public class Authentication {
 	private String algorithm;
 	private String[] methods;
 
+	/** 身份验证服务实例 */
 	private Authenticate service;
 
+	/** 身份验证服务实例 */
 	public Authenticate service() {
 		return service;
 	}
 
-	public boolean different() {
-		if (service != null) {
+	/** 重置验证服务实例 */
+	public void reset() {
+		if (differently()) {
 			if (type == null) {
-				return true;
+				service = null;
 			} else if (AuthenticateDeny.TYPE.equalsIgnoreCase(type)) {
-				if (!(service instanceof AuthenticateDeny)) {
-					return true;
-				}
+				service = new AuthenticateDeny(path, realm, algorithm, methods);
 			} else if (AuthenticateNone.TYPE.equalsIgnoreCase(type)) {
-				if (!(service instanceof AuthenticateNone)) {
-					return true;
-				}
+				service = new AuthenticateNone(path, realm, algorithm, methods);
 			} else if (AuthenticateBasic.TYPE.equalsIgnoreCase(type)) {
-				if (!(service instanceof AuthenticateBasic)) {
-					return true;
-				}
+				service = new AuthenticateBasic(path, realm, algorithm, methods);
 			} else if (AuthenticateDigest.TYPE.equalsIgnoreCase(type)) {
-				if (!(service instanceof AuthenticateDigest)) {
-					return true;
-				}
+				service = new AuthenticateDigest(path, realm, algorithm, methods);
+			} else {
+				service = null;
+			}
+		}
+	}
+
+	/** 检查管理对象参数与服务实例是否不同 */
+	public boolean differently() {
+		if (service == null) {
+			return type != null;
+		}
+		if (type == null) {
+			return true;
+		}
+
+		if (AuthenticateDeny.TYPE.equalsIgnoreCase(type)) {
+			if (service instanceof AuthenticateDeny) {
 			} else {
 				return true;
 			}
+		} else if (AuthenticateNone.TYPE.equalsIgnoreCase(type)) {
+			if (service instanceof AuthenticateNone) {
+			} else {
+				return true;
+			}
+		} else if (AuthenticateBasic.TYPE.equalsIgnoreCase(type)) {
+			if (service instanceof AuthenticateBasic) {
+			} else {
+				return true;
+			}
+		} else if (AuthenticateDigest.TYPE.equalsIgnoreCase(type)) {
+			if (service instanceof AuthenticateDigest) {
+			} else {
+				return true;
+			}
+		} else {
+			return true;
+		}
 
-			if (Utility.isEmpty(path) && "/".equals(service.getPath()) || Utility.same(path, service.getPath())) {
-				if (Utility.same(realm, service.getRealm())) {
-					if (Utility.same(algorithm, service.getAlgorithm())) {
-						if (methods == null) {
-							if (service.getMethods() == null) {
-								return false;
-							}
-						} else {
-							if (service.getMethods() != null) {
-								if (methods.length == service.getMethods().length) {
-									for (int i = 0; i < methods.length; i++) {
-										if (Utility.same(methods[i], service.getMethods()[i])) {
-											continue;
-										} else {
-											return true;
-										}
-									}
-									return false;
-								}
-							}
-						}
-					}
+		if (Utility.isEmpty(path)) {
+			if ("/".equals(service.getPath())) {
+			} else {
+				return true;
+			}
+		} else {
+			if (Utility.same(path, service.getPath())) {
+			} else {
+				return true;
+			}
+		}
+
+		if (Utility.same(realm, service.getRealm())) {
+		} else {
+			return true;
+		}
+
+		if (Utility.same(algorithm, service.getAlgorithm())) {
+		} else {
+			return true;
+		}
+
+		if (methods == null) {
+			if (service.getMethods() != null) {
+				return true;
+			}
+		} else {
+			if (service.getMethods() == null) {
+				return true;
+			}
+			if (methods.length != service.getMethods().length) {
+				return true;
+			}
+			for (int i = 0; i < methods.length; i++) {
+				if (Utility.same(methods[i], service.getMethods()[i])) {
+					continue;
+				} else {
+					return true;
 				}
 			}
 		}
-		return true;
-	}
 
-	public void reset() {
-		if (type == null) {
-			service = null;
-		} else if (AuthenticateDeny.TYPE.equalsIgnoreCase(type)) {
-			service = new AuthenticateDeny(path, realm, algorithm, methods);
-		} else if (AuthenticateNone.TYPE.equalsIgnoreCase(type)) {
-			service = new AuthenticateNone(path, realm, algorithm, methods);
-		} else if (AuthenticateBasic.TYPE.equalsIgnoreCase(type)) {
-			service = new AuthenticateBasic(path, realm, algorithm, methods);
-		} else if (AuthenticateDigest.TYPE.equalsIgnoreCase(type)) {
-			service = new AuthenticateDigest(path, realm, algorithm, methods);
-		} else {
-			service = null;
-		}
+		return false;
 	}
 
 	/**
@@ -151,16 +184,72 @@ public class Authentication {
 	}
 
 	/**
-	 * 获取允许的请求方法，如果未指定则默认允许所有
+	 * 获取须验证的请求方法，如果未指定则所有方法须验证
 	 */
 	public String[] getMethods() {
 		return methods;
 	}
 
 	/**
-	 * 设置允许的请求方法，如果未指定则默认允许所有
+	 * 设置须验证的请求方法，如果未指定则所有方法须验证
 	 */
 	public void setMethods(String... values) {
 		methods = values;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o instanceof Authentication a) {
+			if (path != a.path) {
+				if (path != null && a.path != null) {
+					if (!path.equals(a.path)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			if (type != a.type) {
+				if (type != null && a.type != null) {
+					if (!type.equalsIgnoreCase(a.type)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			if (realm != a.realm) {
+				if (realm != null && a.realm != null) {
+					if (!realm.equals(a.realm)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			if (algorithm != a.algorithm) {
+				if (algorithm != null && a.algorithm != null) {
+					if (!algorithm.equalsIgnoreCase(a.algorithm)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			if (methods != a.methods) {
+				if (methods != null && a.methods != null) {
+					if (!Arrays.equals(methods, a.methods)) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 }

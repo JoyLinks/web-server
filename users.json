@@ -1,15 +1,1 @@
-[
-	{
-		"name": "manager",
-		"password": "123456",
-		"enable": true
-	},
-	{
-		"uris": [
-			"/guest"
-		],
-		"name": "guest",
-		"password": "123456",
-		"enable": false
-	}
-]
+[{"enable":true,"name":"administrator","password":"administrator"},{"enable":false,"name":"manager","password":"123456","uris":["\/"]}]

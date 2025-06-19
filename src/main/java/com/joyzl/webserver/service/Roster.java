@@ -182,19 +182,19 @@ public final class Roster {
 		if (address.inetAddress() != null) {
 			if (address.hasHost()) {
 				DomainList dl;
-				for (String name : address.getHost()) {
+				for (String name : address.getHosts()) {
 					dl = DOMAINS.get(name);
 					if (dl == null) {
 						DOMAINS.put(name, dl = new DomainList());
 					}
-					if (address.isAllow()) {
+					if (address.theAllow()) {
 						dl.WHITES.add(address.inetAddress());
 					} else {
 						dl.BLACKS.add(address.inetAddress());
 					}
 				}
 			} else {
-				if (address.isAllow()) {
+				if (address.theAllow()) {
 					WHITES.add(address.inetAddress());
 				} else {
 					BLACKS.add(address.inetAddress());
@@ -207,10 +207,10 @@ public final class Roster {
 		if (address.inetAddress() != null) {
 			if (address.hasHost()) {
 				DomainList dl;
-				for (String name : address.getHost()) {
+				for (String name : address.getHosts()) {
 					dl = DOMAINS.get(name);
 					if (dl != null) {
-						if (address.isAllow()) {
+						if (address.theAllow()) {
 							dl.WHITES.remove(address.inetAddress());
 						} else {
 							dl.BLACKS.remove(address.inetAddress());
@@ -221,7 +221,7 @@ public final class Roster {
 					}
 				}
 			} else {
-				if (address.isAllow()) {
+				if (address.theAllow()) {
 					WHITES.remove(address.inetAddress());
 				} else {
 					BLACKS.remove(address.inetAddress());

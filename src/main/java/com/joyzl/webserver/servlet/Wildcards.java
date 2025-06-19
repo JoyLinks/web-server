@@ -30,7 +30,7 @@ public final class Wildcards<T> {
 	public static final char ANY = '*';
 	public static final String STAR = "*";
 
-	private Item<T>[] ITEMS;
+	private volatile Item<T>[] ITEMS;
 
 	@SuppressWarnings("unchecked")
 	public Wildcards() {

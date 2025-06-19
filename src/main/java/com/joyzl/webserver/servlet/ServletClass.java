@@ -11,19 +11,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Servlet 注解，指示默认绑定路径
+ * Servlet 注解，指示重载的服务程序类
  * 
  * @author ZhangXi
  * @date 2020年11月10日
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ServletPath {
+public @interface ServletClass {
 
 	/**
-	 * 完全匹配 "/action.html"<br>
-	 * 部分匹配 "/action/*","/action/*.do"<br>
-	 * 后缀匹配 "*.do"
+	 * 重载工具关联的服务程序类
 	 */
-	String path();
+	Class<? extends Servlet> servlet();
 }

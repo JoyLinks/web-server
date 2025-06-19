@@ -12,6 +12,7 @@ import com.joyzl.network.Executor;
 import com.joyzl.webserver.service.Roster;
 import com.joyzl.webserver.service.Serializer;
 import com.joyzl.webserver.service.Services;
+import com.joyzl.webserver.service.Servlets;
 import com.joyzl.webserver.service.Users;
 
 /**
@@ -164,6 +165,8 @@ public class Application {
 
 		// 管理实体集
 		Logger.debug(Serializer.ODBS().checkString());
+		// 服务程序集
+		Logger.debug(Servlets.checkString());
 
 		// 初始化用户集
 		try {

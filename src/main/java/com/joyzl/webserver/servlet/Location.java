@@ -15,9 +15,6 @@ import com.joyzl.webserver.web.WEBServlet;
  */
 public class Location extends WEBServlet {
 
-	public final static String NAME = "LOCATION";
-
-	private final String path;
 	private final String location;
 	private final HTTPStatus status;
 
@@ -30,17 +27,14 @@ public class Location extends WEBServlet {
 	}
 
 	public Location(String path, String location, HTTPStatus status) {
+		super(path);
+
 		if (status == null || status == HTTPStatus.UNKNOWN) {
 			this.status = HTTPStatus.MOVED_PERMANENTLY;
 		} else {
 			this.status = status;
 		}
 
-		if (Utility.isEmpty(path) || Wildcards.STAR.equals(path)) {
-			this.path = Wildcards.STAR;
-		} else {
-			this.path = path;
-		}
 		pathWildcard = path.indexOf(Wildcards.ANY);
 
 		this.location = location;
@@ -60,11 +54,6 @@ public class Location extends WEBServlet {
 		}
 	}
 
-	@Override
-	public String name() {
-		return NAME;
-	}
-
 	// 域名重定向 example.com -> www.example.com
 	// 协议重定向 http://www.example.com -> https://www.example.com
 	// 路径重定向 /webdav -> /webdav/
@@ -81,11 +70,13 @@ public class Location extends WEBServlet {
 	@Override
 	public void service(HTTPSlave slave, Request request, Response response) throws Exception {
 		String uri;
+
 		// 1提取原始路径的通配部分
 		if (pathWildcard < 0) {
 			// 无通配符时请求路径必然与匹配路径相同
 			uri = path;
-		} else if (path == Wildcards.STAR) {
+		} else if (Utility.isEmpty(path) || Wildcards.STAR.equals(path)) {
+			// *
 			uri = request.getPath();
 		} else if (pathWildcard == 0) {
 			// *a
@@ -100,6 +91,7 @@ public class Location extends WEBServlet {
 			uri = request.getPath();
 			uri = request.getPath().substring(pathWildcard, uri.length() - path.length() - pathWildcard - 1);
 		}
+
 		// 2替换目标路径通配部分
 		if (locationWildcard < 0) {
 			uri = location;
@@ -122,9 +114,5 @@ public class Location extends WEBServlet {
 
 	public String getLocation() {
 		return location;
-	}
-
-	public String getPath() {
-		return path;
 	}
 }
