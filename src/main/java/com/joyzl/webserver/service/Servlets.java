@@ -125,6 +125,10 @@ public class Servlets {
 		return null;
 	}
 
+	public static Class<? extends Servlet> findClass(String type) {
+		return SERVLETS.get(type);
+	}
+
 	public static ServletReload findReload(String name) {
 		return RELOADS.get(name);
 	}

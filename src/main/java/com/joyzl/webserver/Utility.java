@@ -5,31 +5,12 @@ import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.util.Collection;
 
-import com.joyzl.odbs.ODBSReflect;
-import com.joyzl.webserver.servlet.Servlet;
-import com.joyzl.webserver.servlet.ServletPath;
-
 /**
  * 实用方法集
  * 
  * @author ZhangXi 2024年11月13日
  */
 public class Utility extends com.joyzl.network.Utility {
-
-	/**
-	 * 获取ServletPath注解设置的默认路径
-	 */
-	public static String defaultPath(Class<?> clazz) {
-		final ServletPath annotation = ODBSReflect.findAnnotation(clazz, ServletPath.class);
-		return annotation != null ? annotation.path() : null;
-	}
-
-	/**
-	 * 获取ServletPath注解设置的默认路径
-	 */
-	public static String defaultPath(Servlet servlet) {
-		return defaultPath(servlet.getClass());
-	}
 
 	/**
 	 * 转换字符串为整型，如果转换失败不会抛出异常

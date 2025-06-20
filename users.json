@@ -1,1 +1,1 @@
-[{"enable":true,"name":"administrator","password":"administrator"},{"enable":false,"name":"manager","password":"123456","uris":["\/"]}]
+[{"enable":true,"name":"administrator","password":"administrator"},{"enable":false,"name":"manager","uris":["\/webdav"]}]

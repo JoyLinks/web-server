@@ -25,7 +25,7 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2025年6月12日
  */
-@ServletPath(path = "/manage/ip")
+@ServletPath(path = "/manage/api/ip")
 public class IPServlet extends CROSServlet {
 
 	public IPServlet(String path) {

@@ -26,7 +26,7 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manage/setting")
+@ServletPath(path = "/manage/api/setting")
 public class SettingServlet extends CROSServlet {
 
 	public SettingServlet(String path) {
@@ -50,6 +50,7 @@ public class SettingServlet extends CROSServlet {
 
 		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
+
 		try {
 			final DataBufferOutput output = new DataBufferOutput();
 			final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);

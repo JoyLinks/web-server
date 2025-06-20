@@ -26,7 +26,7 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manage/roster")
+@ServletPath(path = "/manage/api/roster")
 public class RosterServlet extends CROSServlet {
 
 	public RosterServlet(String path) {

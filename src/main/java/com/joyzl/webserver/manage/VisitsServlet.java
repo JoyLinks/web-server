@@ -25,7 +25,7 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manage/visits")
+@ServletPath(path = "/manage/api/visits")
 public class VisitsServlet extends CROSServlet {
 
 	public VisitsServlet(String path) {

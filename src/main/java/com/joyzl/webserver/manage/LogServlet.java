@@ -31,7 +31,7 @@ import com.joyzl.webserver.servlet.ServletPath;
  * 
  * @author ZhangXi 2024年11月15日
  */
-@ServletPath(path = "/manage/log/*")
+@ServletPath(path = "/manage/api/log/*")
 public class LogServlet extends CROSServlet {
 
 	public LogServlet(String path) {
