@@ -1,7 +1,6 @@
 package com.joyzl.webserver.web;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.joyzl.webserver.Utility;
@@ -16,6 +15,18 @@ public class FileResourceReload extends ServletReload {
 	public String name() {
 		return "RESOURCE";
 	}
+
+	// content:资源目录
+	// cache:缓存目录
+	// error:错误页面所在目录
+	//
+	// defaults:逗号分隔的多个默认文件名
+	// compresses:逗号分隔的多个应压缩的文件扩展名
+	// caches:逗号分隔的多个应缓存的文件扩展名
+	//
+	// browsable:可浏览目录
+	// editable:可创建资源
+	// weak:使用弱验证器
 
 	@Override
 	public Servlet create(String path, Map<String, String> parameters) {
@@ -116,23 +127,6 @@ public class FileResourceReload extends ServletReload {
 		} else {
 			return true;
 		}
-	}
-
-	@Override
-	public Map<String, String> parameters() {
-		final Map<String, String> items = new HashMap<>();
-		items.put("content", "|资源目录");
-		items.put("cache", "|缓存目录");
-		items.put("error", "|错误页面所在目录");
-
-		items.put("defaults", "|逗号分隔的多个默认文件名");
-		items.put("compresses", "|逗号分隔的多个应压缩的文件扩展名");
-		items.put("caches", "|逗号分隔的多个应缓存的文件扩展名");
-
-		items.put("browsable", "|可浏览目录");
-		items.put("editable", "|可创建资源");
-		items.put("weak", "|使用弱验证器");
-		return items;
 	}
 
 	String[] split(String value) {

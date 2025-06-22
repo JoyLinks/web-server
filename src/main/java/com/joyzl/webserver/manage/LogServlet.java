@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import com.joyzl.logger.access.AccessLogger;
 import com.joyzl.network.buffer.DataBufferOutput;
@@ -130,6 +131,11 @@ public class LogServlet extends CROSServlet {
 					return name.endsWith(logger.getFileExtension());
 				}
 			});
+			if (files != null) {
+				Arrays.sort(files, Comparator.reverseOrder());
+			} else {
+				files = new String[0];
+			}
 
 			response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 			final String type = request.getHeader(ContentType.NAME);

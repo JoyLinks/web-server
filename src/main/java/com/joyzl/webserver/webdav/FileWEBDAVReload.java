@@ -1,6 +1,5 @@
 package com.joyzl.webserver.webdav;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.joyzl.webserver.Utility;
@@ -15,6 +14,9 @@ public class FileWEBDAVReload extends ServletReload {
 	public String name() {
 		return "WEBDAV";
 	}
+
+	// content:资源目录
+	// allProperty:可读所有属性
 
 	@Override
 	public Servlet create(String path, Map<String, String> parameters) {
@@ -38,13 +40,5 @@ public class FileWEBDAVReload extends ServletReload {
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public Map<String, String> parameters() {
-		final Map<String, String> items = new HashMap<>();
-		items.put("content", "资源目录");
-		items.put("allProperty", "可读所有属性");
-		return items;
 	}
 }

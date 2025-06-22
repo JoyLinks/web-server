@@ -103,11 +103,17 @@ public class Servlets {
 	public static Servlet create(String type, String path, Map<String, String> parameters) {
 		final ServletReload reload = RELOADS.get(type);
 		if (reload != null) {
+			if (path == null) {
+				path = defaultPath(reload);
+			}
 			return reload.create(path, parameters);
 		}
 
 		final Class<? extends Servlet> s = SERVLETS.get(type);
 		if (s != null) {
+			if (path == null) {
+				path = defaultPath(s);
+			}
 			try {
 				return s.getConstructor(String.class, Map.class).newInstance(path, parameters);
 			} catch (Exception e2) {
@@ -131,6 +137,17 @@ public class Servlets {
 
 	public static ServletReload findReload(String name) {
 		return RELOADS.get(name);
+	}
+
+	/**
+	 * 获取ServletReload注解设置的默认路径
+	 */
+	public static String defaultPath(ServletReload reload) {
+		final ServletClass annotation = ODBSReflect.findAnnotation(reload.getClass(), ServletClass.class);
+		if (annotation != null) {
+			return defaultPath(annotation.servlet());
+		}
+		return null;
 	}
 
 	/**

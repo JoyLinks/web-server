@@ -1,6 +1,5 @@
 package com.joyzl.webserver.servlet;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.joyzl.network.http.HTTPStatus;
@@ -8,6 +7,9 @@ import com.joyzl.webserver.Utility;
 
 @ServletClass(servlet = Location.class)
 public class LocationReload extends ServletReload {
+
+	// location:请求重定向的URL或路径
+	// status:请求重定向状态码，默认为301
 
 	@Override
 	public String name() {
@@ -45,13 +47,5 @@ public class LocationReload extends ServletReload {
 		} else {
 			return true;
 		}
-	}
-
-	@Override
-	public Map<String, String> parameters() {
-		final Map<String, String> items = new HashMap<>();
-		items.put("location", "|请求重定向的URL或路径");
-		items.put("status", "|请求重定向状态码，默认为301");
-		return items;
 	}
 }

@@ -32,10 +32,4 @@ public abstract class ServletReload {
 	 */
 	public abstract boolean differently(Servlet servlet, Map<String, String> parameters);
 
-	/**
-	 * 返回所有可配置参数，可指定默认值
-	 * 
-	 * @return null 或空集合则表示没有额外参数，不包括资源路径参数(path)
-	 */
-	public abstract Map<String, String> parameters();
 }
