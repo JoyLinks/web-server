@@ -13,8 +13,10 @@ JOYZL network 是历经十年以上持续开发和不断优化且完全开源的
 * 支持 TLS 1.3、TLS 1.2 传输层安全协议；
 * 支持 WEB Site 资源发布服务；
 * 支持 WEBDAV Class 1、2、3 分布式编辑与版本管理服务；
-* 支持请求地址黑名单或白名单过滤。
-* 支持请求身份验证。
+* 支持请求地址黑名单或白名单过滤；
+* 支持请求身份验证 Basic Digest ；
+* 支持热配置，设置更改无须重启；
+* 支持界面化(GUI)配置。
 
 ## WEB Site 网站发布
 
@@ -55,3 +57,6 @@ JOYZL network 是历经十年以上持续开发和不断优化且完全开源的
 
 ---
 [www.joyzl.com](http://www.joyzl.com)
+
+Copyright © 2024-2025 重庆骄智科技有限公司.
+本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
