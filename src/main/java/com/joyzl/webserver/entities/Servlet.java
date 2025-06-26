@@ -41,6 +41,7 @@ public class Servlet {
 		if (differently()) {
 			if (type != null) {
 				service = Servlets.create(type, path, parameters);
+				service.headers().putAll(headers);
 			} else {
 				service = null;
 			}
@@ -57,6 +58,11 @@ public class Servlet {
 		}
 
 		if (Utility.equal(path, service.getPath())) {
+		} else {
+			return true;
+		}
+
+		if (headers.equals(service.headers())) {
 		} else {
 			return true;
 		}

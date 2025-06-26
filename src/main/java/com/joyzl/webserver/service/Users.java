@@ -124,7 +124,7 @@ public class Users {
 		}
 		if (user.isEnable()) {
 			if (user.URIs() == null) {
-				return false;
+				return true;
 			}
 			URI uri;
 			for (int index = 0; index < user.URIs().length; index++) {

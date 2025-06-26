@@ -30,6 +30,7 @@ public class FileResourceServlet extends WEBResourceServlet {
 
 	/** 资源对象缓存 */
 	private final Map<String, WEBResource> resources = new ConcurrentHashMap<>();
+	private final FileResourceRefresh refresh;
 
 	/** 主目录 */
 	private final File root;
@@ -64,7 +65,7 @@ public class FileResourceServlet extends WEBResourceServlet {
 			String[] defaults, String[] compresses, String[] caches, //
 			boolean browsable, boolean editable, boolean weak) {
 		super(path);
-
+		refresh = new FileResourceRefresh(resources);
 		this.root = root == null ? null : new File(root);
 		this.error = error == null ? null : new File(error);
 
@@ -297,6 +298,10 @@ public class FileResourceServlet extends WEBResourceServlet {
 		// Linux文件名的长度限制是255个字符
 		// windows文件名必须少于260个字符
 		return File.createTempFile(file.getName(), extension, cache);
+	}
+
+	public FileResourceRefresh refresh() {
+		return refresh;
 	}
 
 	/**

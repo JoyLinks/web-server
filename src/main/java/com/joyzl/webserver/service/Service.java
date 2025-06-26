@@ -30,15 +30,11 @@ public abstract class Service extends HTTPServerHandler {
 	private final HostService defaute;
 	/** 虚拟主机映射<域名,虚拟主机> */
 	private final Map<String, HostService> virtuals = new ConcurrentHashMap<>();
+	/** 服务创建时间戳 */
 	private final long timestamp = System.currentTimeMillis();
 
 	public Service(HostService service) {
 		this.defaute = service;
-	}
-
-	/** 服务实例时刻时间戳 */
-	public long timestamp() {
-		return timestamp;
 	}
 
 	@Override
@@ -85,10 +81,10 @@ public abstract class Service extends HTTPServerHandler {
 						try {
 							servlet.service(slave, request, response);
 							if (response.getStatus() > 0) {
-								// HEADERS
-								// response.setAttachHeaders(host.getHeaders());
+								// 附加标头
+								response.getHeaders().putAll(servlet.headers());
 							} else {
-								// 挂起异步
+								// 异步挂起
 								return;
 							}
 						} catch (Exception e) {
@@ -111,6 +107,8 @@ public abstract class Service extends HTTPServerHandler {
 				service.record(slave, host, null, request, response);
 			}
 		}
+
+		// 发送响应
 		slave.send(response);
 		// Logger.debug(response);
 	}
@@ -127,9 +125,16 @@ public abstract class Service extends HTTPServerHandler {
 		response.setStatus(status);
 	}
 
-	public abstract void close();
-
+	/** 虚拟主机映射 */
 	public Map<String, HostService> virtuals() {
 		return virtuals;
 	}
+
+	/** 服务实例时刻时间戳 */
+	public long timestamp() {
+		return timestamp;
+	}
+
+	/** 关闭服务 */
+	public abstract void close();
 }

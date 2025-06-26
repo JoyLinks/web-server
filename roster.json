@@ -1,1 +1,1 @@
-[{"address":"192.168.8.18","deny":false,"hosts":["JOYZL NET","JOYZL COM"],"status":400,"text":"FUCK YOU"},{"address":"192.168.8.100","deny":false,"hosts":["JOYZL NET"]},{"address":"192.168.8.101","deny":true,"hosts":["www.joyzl.net"]},{"address":"192.168.8.8","deny":false,"hosts":["JOYZL NET","JOYZL COM"]},{"address":"192.168.8.88","deny":true,"hosts":["JOYZL NET","JOYZL COM"],"status":403,"text":"FUCK"},{"address":"192.168.8.84","deny":true},{"address":"192.168.8.85","deny":true}]
+[]

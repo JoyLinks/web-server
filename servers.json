@@ -1,129 +1,29 @@
 [
+	// Servers
 	{
 		"access": "access\/access.log",
 		"authentications": [
 			{
-				"path": "\/webdav\/",
-				"realm": "JOYZL WEBDAV",
-				"type": "Digest"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a4-test\/limited1\/",
-				"realm": "Fried Twice",
+				"path": "/manage/",
+				"realm": "Server manage",
 				"type": "Basic"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a4-test\/limited2\/",
-				"realm": "Colonial Place",
-				"type": "Digest"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a5-test\/limited1\/",
-				"realm": "Fried Twice",
-				"type": "Basic"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a5-test\/limited2\/",
-				"realm": "Colonial Place",
-				"type": "Digest"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a5-test\/limited3\/",
-				"realm": "Fried Twice",
-				"type": "Basic"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a5-test\/limited4\/",
-				"realm": "Colonial Place",
-				"type": "Digest"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a5-test\/limited5\/",
-				"realm": "Fried Twice",
-				"type": "Basic"
-			},
-			{
-				"algorithm": "MD5",
-				"path": "\/a5-test\/limited6\/",
-				"realm": "Fried Twice",
-				"type": "Basic"
-			}
-		],
-		"hosts": [
-			{
-				"authentications": [],
-				"name": "JOYZL COM",
-				"names": [
-					"joyzl.com",
-					"www.joyzl.com"
-				],
-				"servlets": []
-			},
-			{
-				"authentications": [],
-				"name": "JOYZL NET",
-				"names": [
-					"joyzl.net",
-					"www.joyzl.net"
-				],
-				"servlets": []
 			}
 		],
 		"name": "DEFAULT",
 		"port": 80,
 		"servlets": [
 			{
-				"headers": {},
 				"parameters": {
-					"content": "D:\\GitHub\\HTTP-TEST\\webdav"
+					"cache": "cache",
+					"error": "www/error",
+					"content": "www",
+					browsable: true
 				},
-				"path": "\/webdav\/*",
-				"type": "WEBDAV"
-			},
-			{
-				"headers": {},
-				"parameters": {
-					"location": "\/webdav\/"
+				headers: {
+					"X-Frame-Options": "DENY",
 				},
-				"path": "\/webdav",
-				"type": "LOCATION"
-			},
-			{
-				"headers": {},
-				"parameters": {
-					"location": "http:\/\/www.joyzl.com"
-				},
-				"path": "\/joyzl",
-				"type": "LOCATION"
-			},
-			{
-				"headers": {},
-				"parameters": {
-					"content": "access\/access.log"
-				},
-				"path": "\/.well-known\/access.log",
-				"type": "RESOURCE"
-			},
-			{
-				"headers": {},
-				"parameters": {
-					"headers": "{X-Frame-Options:DENY",
-					"cache": "D:\\GitHub\\HTTP-TEST\\sites\\cache",
-					"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-					"Content-Security-Policy": "frame-ancestors 'none';",
-					"error": "D:\\GitHub\\HTTP-TEST\\sites\\error",
-					"content": "D:\\GitHub\\HTTP-TEST\\sites",
-					"browse": "false",
-					"weak": "false"
-				},
-				"type": "RESOURCE"
+				"type": "RESOURCE",
+				"path": "*"
 			},
 			{
 				"headers": {},
@@ -161,7 +61,6 @@
 				"type": "EMOJI"
 			}
 		],
-		"state": true,
 		"type": "HTTP"
 	}
 ]

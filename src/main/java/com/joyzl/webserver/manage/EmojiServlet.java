@@ -44,7 +44,9 @@ public class EmojiServlet extends WEBServlet {
 		buffer.writeUTF8("<code>");
 
 		for (int c = A; c <= B; c++) {
-			buffer.writeUTF8(Character.highSurrogate(c), Character.lowSurrogate(c));
+			// buffer.writeUTF8(Character.highSurrogate(c),
+			// Character.lowSurrogate(c));
+			buffer.writeUTF8(c);
 		}
 
 		buffer.writeUTF8("</code>");

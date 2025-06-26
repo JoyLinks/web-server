@@ -7,8 +7,8 @@
 	<artifactId>webserver</artifactId>
 	<version>2.1.5</version>
 
-	<name>WEB HTTP Server</name>
-	<description>基于 JOYZL network 组件的 WEB HTTP Server 独立部署版</description>
+	<name>JOYZL HTTP WEB Server</name>
+	<description>基于 JOYZL network 组件实现 HTTP WEB Server 服务端软件的独立部署版</description>
 	<url>https://github.com/JoyLinks/webserver</url>
 
 	<properties>
@@ -115,6 +115,7 @@
 								<resource>
 									<directory>${basedir}</directory>
 									<includes>
+										<include>users.json</include>
 										<include>roster.json</include>
 										<include>servers.json</include>
 										<include>server.properties</include>

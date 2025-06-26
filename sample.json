@@ -1,119 +1,128 @@
 [
+	// Servers
+	// 监听服务集
+	// 可配置多项监听服务，端口不能相同
 	{
-		"port": 80,
-		"type": "HTTP",
-		"name": "default",
-		"backlog": 512,
-		"servlets": [
+		// 监听地址，缺省监听所有地址
+		ip: null,
+		// 监听端口
+		port: 80,
+		// 服务类型，可选：HTTP、HTTPS
+		type: "HTTP",
+		// 服务管理名称
+		name: "default",
+		// 连接等待队列
+		backlog: 512,
+
+		// 服务程序集
+		// 可配置多项服务程序
+		servlets: [
 			{
-				"type": "WEBDAV",
-				"path": "/webdav",
-				"content": "/var/www/webdav"
+				// WEBDAV 服务程序
+				type: "WEBDAV",
+				// 请求路径
+				path: "/webdav/*",
+				// 服务程序参数
+				parameters: {
+					// 内容目录位置
+					content: "/var/www/webdav"
+				},
+				// 附加响应标头集
+				// 每次响应中将添加这些标头
+				headers: {}
 			},
 			{
-				"type": "RESOURCE",
-				"path": "*",
-				"cache": "caches",
-				"content": "/var/www/joyzl",
-				"defaults": [
-					"index.html"
-				],
-				"compresses": [],
-				"caches": [],
-				"error": "/var/www/joyzl/errors",
-				"browse": false,
-				"weak": true
+				// 请求重定向
+				type: "LOCATION",
+				// 请求路径
+				path: "/webdav",
+				// 服务程序参数
+				parameters: {
+					// 重定向路径
+					location: "/webdav/",
+					// 状态码
+					status: 301
+				},
+				// 附加响应标头集
+				// 每次响应中将添加这些标头
+				headers: {}
+				// 由于Windows添加或映射网络位置时会移除尾部斜杠
+				// 因此通常为WEBDAV指定重定向
 			},
 			{
-				"type": "LOCATION",
-				"path": "/webdav",
-				"location": "/webdav/",
-				"status": 301
-			},
-			{
-				"type": "LOCATION",
-				"path": "/joyzl",
-				"location": "http://www.joyzl.com",
-				"status": 301
+				// 资源服务程序
+				// 发布前端网站使用此服务程序
+				type: "RESOURCE",
+				// 请求路径， * 表示匹配所有路径
+				path: "*",
+				// 服务程序参数
+				parameters: {
+					// 文件缓存目录位置，未指定时为系统临时文件
+					cache: "caches",
+					// 内容目录位置
+					content: "/var/www/joyzl",
+					// 默认页面
+					defaults: ["index.html", "default.html"],
+					// 需要压缩的文件扩展名，GZip或Deflate压缩
+					compresses: [".html", ".htm", ".css", ".js", ".json", ".svg", ".xml"],
+					// 需要缓存的文件扩展名，在内存中缓存
+					caches: [".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2"],
+					// 错误页面所在目录，其中按 404.html 匹配错误页面
+					error: "/var/www/joyzl/errors",
+					// 是否允许列出文件，当目录的默认页面缺失时，默认不允许
+					browsable: false,
+					// 是否允许编辑文件，启用后将允许PUT和DELETE请求，默认不允许
+					editable: false,
+					// 采用比较器生成ETag，默认启用
+					weak: true
+				},
+				// 附加响应标头集
+				// 每次响应中将添加这些标头
+				headers: {
+					"X-Frame-Options": "DENY",
+					"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+					"Content-Security-Policy": "frame-ancestors 'none';"
+				}
 			}
 		],
-		"authenticates": [
+		// 身份验证集
+		authenticates: [
 			{
-				"path": "/",
-				"type": "None",
-				"realm": "WEB Site",
-				"methods": [
-					"GET",
-					"HEAD"
-				]
-			},
-			{
-				"path": "/limited",
-				"type": "Basic",
-				"realm": "protected resources",
-				"algorithm": "MD5",
-				"methods": []
+				// 需要身份验证的路径（包括子路径）
+				path: "/",
+				// 身份验证类型，可选：None、Basic、Digest、Deny
+				type: "None",
+				// 领域信息
+				realm: "Server manage",
+				// 验证算法，默认未指定由程序决定
+				algorithm: null,
+				// 需要验证的请求方法，默认所有方法须验证
+				methods: ["GET", "HEAD"]
 			}
 		],
-		"hosts": [
+
+		// 虚拟主机集
+		// 可配置多项虚拟主机
+		hosts: [
 			{
-				"name": "JOYZL-COM",
-				"names": [
-					"www.joyzl.com",
-					"www.joyzl.cn"
-				],
-				"servlets": [
-					{
-						"type": "WEBDAV",
-						"path": "/webdav",
-						"content": "/var/www/webdav"
-					},
-					{
-						"type": "LOCATION",
-						"path": "/webdav",
-						"location": "/webdav/"
-					},
-					{
-						"type": "RESOURCE",
-						"path": "*",
-						"cache": "caches",
-						"content": "/var/www/joyzl",
-						"defaults": [
-							"index.html"
-						],
-						"compresses": [],
-						"caches": [],
-						"error": "/var/www/joyzl/errors",
-						"browse": false,
-						"weak": true,
-						"headers": {
-							"X-Frame-Options": "DENY",
-							"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-							"Content-Security-Policy": "frame-ancestors 'none';"
-						}
-					}
-				],
-				"authenticates": [
-					{
-						"path": "/",
-						"type": "None",
-						"realm": "WEB Site",
-						"methods": [
-							"GET",
-							"HEAD"
-						]
-					},
-					{
-						"path": "/limited",
-						"type": "Basic",
-						"realm": "protected resources",
-						"algorithm": "MD5",
-						"methods": []
-					}
-				],
-				"access": "/var/www/joyzl.access/access.log"
-			}
-		],
-		"access": "access/access.log"
+			// 虚拟主机管理名称
+			name: "JOYZL",
+			// 虚拟主机域名
+			names: ["www.joyzl.com", "www.joyzl.cn"],
+			// 服务程序集
+			servlets: [
+				// 与前部分配置方式类似
+			],
+			// 身份验证集
+			authenticates: [
+				// 与前部分配置方式类似
+			],
+
+			// 访问日志记录位置
+			access: "/var/www/joyzl-access/"
+		}],
+
+		// 访问日志记录位置
+		access: "access/"
 	}
 ]

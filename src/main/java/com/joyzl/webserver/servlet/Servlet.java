@@ -4,6 +4,9 @@
  */
 package com.joyzl.webserver.servlet;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.joyzl.network.http.HTTPSlave;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
@@ -46,5 +49,13 @@ public abstract class Servlet {
 	 */
 	public String getPath() {
 		return path;
+	}
+
+	// 附加标头（执行后添加）
+	private final Map<String, String> headers = new HashMap<>();
+
+	/** 附加标头（执行后添加） */
+	public Map<String, String> headers() {
+		return headers;
 	}
 }

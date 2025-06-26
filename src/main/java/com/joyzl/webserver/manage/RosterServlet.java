@@ -4,15 +4,11 @@
  */
 package com.joyzl.webserver.manage;
 
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-
 import com.joyzl.logger.Logger;
 import com.joyzl.network.Utility;
 import com.joyzl.network.buffer.DataBuffer;
-import com.joyzl.network.buffer.DataBufferInput;
-import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.buffer.DataBufferReader;
+import com.joyzl.network.buffer.DataBufferWriter;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
@@ -47,13 +43,11 @@ public class RosterServlet extends CROSServlet {
 	 */
 	@Override
 	protected void get(Request request, Response response) throws Exception {
-		final DataBufferOutput output = new DataBufferOutput();
-		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+		final DataBufferWriter writer = new DataBufferWriter();
 		Serializer.JSON().writeEntities(Roster.all(), writer);
-		writer.flush();
 		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
-		response.setContent(output.buffer());
+		response.setContent(writer.buffer());
 	}
 
 	/**
@@ -64,8 +58,7 @@ public class RosterServlet extends CROSServlet {
 		final Address address;
 		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+				final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 				address = Serializer.JSON().readEntity(Address.class, reader);
 			} catch (Exception e) {
 				Logger.error(e);
@@ -99,8 +92,7 @@ public class RosterServlet extends CROSServlet {
 		final Address address;
 		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+				final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 				address = Serializer.JSON().readEntity(Address.class, reader);
 			} catch (Exception e) {
 				Logger.error(e);
@@ -140,8 +132,7 @@ public class RosterServlet extends CROSServlet {
 		Address address;
 		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+				final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 				address = Serializer.JSON().readEntity(Address.class, reader);
 			} catch (Exception e) {
 				Logger.error(e);

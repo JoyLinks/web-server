@@ -65,6 +65,8 @@ public abstract class Domain {
 					final String path = Servlets.defaultPath(servlet.service());
 					if (path != null) {
 						service.servlets().bind(path, servlet.service());
+					} else {
+						service.servlets().bind(Wildcards.STAR, servlet.service());
 					}
 				} else {
 					if (Utility.isEmpty(servlet.getPath())) {

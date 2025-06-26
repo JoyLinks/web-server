@@ -6,15 +6,13 @@ package com.joyzl.webserver.manage;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 
 import com.joyzl.logger.access.AccessLogger;
-import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.buffer.DataBufferWriter;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.ContentType;
@@ -146,25 +144,20 @@ public class LogServlet extends CROSServlet {
 			if (Utility.same(type, MIMEType.APPLICATION_JSON)) {
 				response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 				if (files.length > 0) {
-					final DataBufferOutput output = new DataBufferOutput();
-					try (final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
-						Serializer.JSON().writeEntities(Arrays.asList(files), writer);
-						writer.flush();
-					}
-					response.setContent(output.buffer());
+					final DataBufferWriter writer = new DataBufferWriter();
+					Serializer.JSON().writeEntities(Arrays.asList(files), writer);
+					response.setContent(writer.buffer());
 				}
 			} else {
 				response.addHeader(ContentType.NAME, MIMEType.TEXT_PLAIN);
 				if (files.length > 0) {
-					final DataBufferOutput output = new DataBufferOutput();
-					try (final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
-						for (String name : files) {
-							writer.append(name);
-							writer.append('\n');
-						}
-						writer.flush();
+					final DataBufferWriter writer = new DataBufferWriter();
+					for (String name : files) {
+						writer.append(name);
+						writer.append('\n');
 					}
-					response.setContent(output.buffer());
+					response.setContent(writer.buffer());
+					writer.close();
 				}
 			}
 		}

@@ -4,14 +4,12 @@
  */
 package com.joyzl.webserver.manage;
 
-import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.joyzl.network.Utility;
-import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.buffer.DataBufferWriter;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentLength;
 import com.joyzl.network.http.ContentType;
@@ -59,11 +57,9 @@ public class IPServlet extends CROSServlet {
 			} else {
 				final List<String> ip = ip(slave, request);
 
-				final DataBufferOutput output = new DataBufferOutput();
-				final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+				final DataBufferWriter writer = new DataBufferWriter();
 				Serializer.JSON().writeEntities(ip, writer);
-				writer.flush();
-				response.setContent(output.buffer());
+				response.setContent(writer.buffer());
 				response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 				response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 				response.addHeader(ContentLength.NAME, Long.toString(response.contentSize()));

@@ -4,15 +4,12 @@
  */
 package com.joyzl.webserver.manage;
 
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.joyzl.logger.Logger;
 import com.joyzl.network.buffer.DataBuffer;
-import com.joyzl.network.buffer.DataBufferInput;
-import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.buffer.DataBufferReader;
+import com.joyzl.network.buffer.DataBufferWriter;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
@@ -56,11 +53,9 @@ public class SettingServlet extends CROSServlet {
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 
 		try {
-			final DataBufferOutput output = new DataBufferOutput();
-			final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+			final DataBufferWriter writer = new DataBufferWriter();
 			Serializer.JSON().writeEntities(Services.all(), writer);
-			writer.flush();
-			response.setContent(output.buffer());
+			response.setContent(writer.buffer());
 		} catch (Exception e) {
 			Logger.error(e);
 			response.setStatus(HTTPStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -80,8 +75,7 @@ public class SettingServlet extends CROSServlet {
 
 		final List<Server> servers;
 		try {
-			final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-			final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+			final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 			servers = Serializer.JSON().readEntities(Server.class, reader);
 		} catch (Exception e) {
 			Logger.error(e);

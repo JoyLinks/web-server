@@ -4,17 +4,14 @@
  */
 package com.joyzl.webserver.manage;
 
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.joyzl.logger.Logger;
 import com.joyzl.network.Utility;
 import com.joyzl.network.buffer.DataBuffer;
-import com.joyzl.network.buffer.DataBufferInput;
-import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.buffer.DataBufferReader;
+import com.joyzl.network.buffer.DataBufferWriter;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.HTTPStatus;
@@ -63,11 +60,9 @@ public class UserServlet extends CROSServlet {
 		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
 
-		final DataBufferOutput output = new DataBufferOutput();
-		final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+		final DataBufferWriter writer = new DataBufferWriter();
 		Serializer.JSON().writeEntities(users, writer);
-		writer.flush();
-		response.setContent(output.buffer());
+		response.setContent(writer.buffer());
 	}
 
 	/**
@@ -78,8 +73,7 @@ public class UserServlet extends CROSServlet {
 		final User user;
 		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+				final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 				user = Serializer.JSON().readEntity(User.class, reader);
 			} catch (Exception e) {
 				Logger.error(e);
@@ -121,8 +115,7 @@ public class UserServlet extends CROSServlet {
 		final User user;
 		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+				final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 				user = Serializer.JSON().readEntity(User.class, reader);
 			} catch (Exception e) {
 				Logger.error(e);
@@ -164,8 +157,7 @@ public class UserServlet extends CROSServlet {
 		User user;
 		if (request.hasContent()) {
 			try {
-				final DataBufferInput input = new DataBufferInput((DataBuffer) request.getContent());
-				final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+				final DataBufferReader reader = new DataBufferReader((DataBuffer) request.getContent());
 				user = Serializer.JSON().readEntity(User.class, reader);
 			} catch (Exception e) {
 				Logger.error(e);

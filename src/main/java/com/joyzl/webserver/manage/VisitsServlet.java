@@ -4,12 +4,10 @@
  */
 package com.joyzl.webserver.manage;
 
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.joyzl.network.buffer.DataBufferOutput;
+import com.joyzl.network.buffer.DataBufferWriter;
 import com.joyzl.network.http.CacheControl;
 import com.joyzl.network.http.ContentType;
 import com.joyzl.network.http.MIMEType;
@@ -77,13 +75,10 @@ public class VisitsServlet extends CROSServlet {
 
 		response.addHeader(CacheControl.NAME, CacheControl.NO_STORE);
 		response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
-		final DataBufferOutput output = new DataBufferOutput();
-		try (final OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
-			Serializer.JSON().writeEntities(servers, writer);
-			writer.flush();
-		}
-		response.setContent(output.buffer());
 
+		final DataBufferWriter writer = new DataBufferWriter();
+		Serializer.JSON().writeEntities(servers, writer);
+		response.setContent(writer.buffer());
 	}
 
 	@Override

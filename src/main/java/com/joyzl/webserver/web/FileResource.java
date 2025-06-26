@@ -74,6 +74,10 @@ public class FileResource extends WEBResource {
 		}
 	}
 
+	/** 清除缓存和临时文件，如果有 */
+	public void clear() {
+	}
+
 	@Override
 	public String fitEncoding(AcceptEncoding acceptEncoding) {
 		return AcceptEncoding.IDENTITY;

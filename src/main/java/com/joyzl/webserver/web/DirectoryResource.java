@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.joyzl.logger.Logger;
 import com.joyzl.network.buffer.DataBuffer;
 import com.joyzl.network.buffer.DataBufferInput;
 import com.joyzl.network.http.AcceptEncoding;
@@ -15,7 +16,7 @@ import com.joyzl.network.http.MIMEType;
 import com.joyzl.network.http.Range.ByteRange;
 
 /**
- * 目录资源
+ * 目录资源，列出目录中的文件
  * 
  * @author ZhangXi 2024年11月21日
  */
@@ -26,7 +27,7 @@ public class DirectoryResource extends WEBResource {
 	private final String contentType;
 
 	private final File dir;
-	private DataBuffer buffer;
+	private volatile DataBuffer buffer;
 
 	public DirectoryResource(String path, File dir, boolean browse) {
 		this.dir = dir;
@@ -98,28 +99,47 @@ public class DirectoryResource extends WEBResource {
 		return dir;
 	}
 
+	public void clear() {
+		DataBuffer b = buffer;
+		buffer = null;
+		if (b != null) {
+			b.release();
+		}
+	}
+
+	/**
+	 * 列出文件
+	 */
 	int list() {
 		if (buffer == null) {
-			final String[] items = dir.list();
-			if (items != null) {
-				buffer = DataBuffer.instance();
-				try {
-					buffer.writeASCIIs("<html>");
-					buffer.writeASCIIs("<body>");
+			buffer = DataBuffer.instance();
+			try {
+				buffer.writeASCIIs("<html>");
+				buffer.writeASCIIs("<body>");
+
+				final String[] files = dir.list();
+				if (files != null) {
 					buffer.writeASCIIs("<ul>");
-					for (int index = 0; index < items.length; index++) {
-						buffer.writeASCIIs("<li>");
-						buffer.writeChars(items[index]);
-						buffer.writeASCIIs("</li>");
+					for (int index = 0; index < files.length; index++) {
+						buffer.writeASCIIs("<li><a href=\"");
+						buffer.writeUTF8(files[index]);
+						buffer.writeASCIIs("\">");
+
+						buffer.writeASCIIs("<span>");
+						buffer.writeUTF8(files[index]);
+						buffer.writeASCIIs("</span>");
+
+						buffer.writeASCIIs("</a></li>");
 					}
 					buffer.writeASCIIs("</ul>");
-					buffer.writeASCIIs("</body>");
-					buffer.writeASCIIs("</html>");
-				} catch (IOException e) {
-					e.printStackTrace();
-					buffer.release();
-					buffer = null;
 				}
+
+				buffer.writeASCIIs("</body>");
+				buffer.writeASCIIs("</html>");
+			} catch (IOException e) {
+				Logger.error(e);
+				buffer.release();
+				buffer = null;
 			}
 		}
 		return buffer == null ? 0 : buffer.readable();
