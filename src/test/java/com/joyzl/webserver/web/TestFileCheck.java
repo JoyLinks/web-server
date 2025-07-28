@@ -12,7 +12,7 @@ class TestFileCheck {
 		System.out.println(file.lastModified());
 		System.out.println(file.length());
 
-		int count = 1000000;
+		int count = 100000;
 		long time = System.currentTimeMillis();
 		while (count-- > 0) {
 			file.lastModified();

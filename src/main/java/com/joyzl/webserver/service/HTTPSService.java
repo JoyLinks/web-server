@@ -6,7 +6,11 @@ package com.joyzl.webserver.service;
 
 import java.io.IOException;
 
+import com.joyzl.network.chain.ChainHandler;
 import com.joyzl.network.http.HTTPServer;
+import com.joyzl.network.tls.ApplicationLayerProtocolNegotiation;
+import com.joyzl.network.tls.TLSParameters;
+import com.joyzl.network.tls.TLSServerHandler;
 
 public class HTTPSService extends Service {
 
@@ -22,10 +26,16 @@ public class HTTPSService extends Service {
 		this.port = port;
 		this.backlog = backlog;
 
+		final TLSParameters parameters = new TLSParameters();
+		parameters.setAlpns(//
+			ApplicationLayerProtocolNegotiation.H2, //
+			ApplicationLayerProtocolNegotiation.HTTP_1_1, //
+			ApplicationLayerProtocolNegotiation.HTTP_1_0);
+		final ChainHandler handler = new TLSServerHandler(this, parameters);
 		if (backlog > 0) {
-			server = new HTTPServer(this, ip, port, backlog);
+			server = new HTTPServer(handler, ip, port, backlog);
 		} else {
-			server = new HTTPServer(this, ip, port);
+			server = new HTTPServer(handler, ip, port);
 		}
 	}
 

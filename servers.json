@@ -1,16 +1,17 @@
 [
 	// Servers
 	{
-		"access": "access\/access.log",
+		"port": 80,
+		"type": "HTTP",
+		"name": "DEFAULT 80",
+		"access": "access\/default",
 		"authentications": [
 			{
 				"path": "/manage/",
 				"realm": "Server manage",
-				"type": "Basic"
+				"type": "None"
 			}
 		],
-		"name": "DEFAULT",
-		"port": 80,
 		"servlets": [
 			{
 				"parameters": {
@@ -60,7 +61,12 @@
 				"parameters": {},
 				"type": "EMOJI"
 			}
-		],
-		"type": "HTTP"
+		]
+	},
+	{
+		"port": 443,
+		"type": "HTTPS",
+		"name": "DEFAULT 443",
+		"access": "access\/access.log"
 	}
 ]

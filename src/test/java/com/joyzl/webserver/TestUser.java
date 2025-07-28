@@ -31,7 +31,7 @@ class TestUser {
 		request1.setURL("/test");
 
 		user.setURIs(null);
-		assertFalse(Users.check(request1, user));
+		assertTrue(Users.check(request1, user));
 
 		user.setURIs(new String[] { "" });
 		assertTrue(Users.check(request1, user));

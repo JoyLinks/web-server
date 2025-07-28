@@ -7,6 +7,7 @@ package com.joyzl.webserver.servlet;
 import com.joyzl.network.Utility;
 import com.joyzl.network.http.HTTP1;
 import com.joyzl.network.http.HTTPSlave;
+import com.joyzl.network.http.HTTPStatus;
 import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.web.WEBServlet;
@@ -29,6 +30,9 @@ public abstract class CROSServlet extends WEBServlet {
 	public void service(HTTPSlave chain, Request request, Response response) throws Exception {
 		if (checkOrigin(request, response)) {
 			super.service(chain, request, response);
+		} else {
+			response.setStatus(HTTPStatus.FORBIDDEN);
+			response(chain, response);
 		}
 	}
 
