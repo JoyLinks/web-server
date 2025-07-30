@@ -37,6 +37,7 @@ public class HTTPSService extends Service {
 		} else {
 			server = new HTTPServer(handler, ip, port);
 		}
+		server.receive();
 	}
 
 	@Override

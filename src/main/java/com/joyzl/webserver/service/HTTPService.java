@@ -27,6 +27,7 @@ public final class HTTPService extends Service {
 		} else {
 			server = new HTTPServer(this, ip, port);
 		}
+		server.receive();
 	}
 
 	@Override
