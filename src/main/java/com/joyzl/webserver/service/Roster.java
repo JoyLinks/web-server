@@ -118,6 +118,7 @@ public final class Roster {
 		// 黑名单内拒绝访问，反之允许；
 		// 白名单内允许访问，反之拒绝；
 		if (sa instanceof InetSocketAddress a) {
+			// TODO name 可能为空
 			final DomainList d = DOMAINS.get(name);
 			if (d != null) {
 				if (d.BLACKS.contains(a.getAddress())) {
