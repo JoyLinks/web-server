@@ -34,30 +34,33 @@ public final class FileMultiple extends WEBResource {
 
 		final String name = path.getName();
 		if (name != null && name.length() > 0) {
-			final StringBuilder builder = new StringBuilder();
-			final String[] files = path.getParentFile().list();
-			String type;
-			if (files != null && files.length > 0) {
-				for (int index = 0; index < files.length; index++) {
-					if (files[index].startsWith(name)) {
-						type = MIMEType.getByFilename(files[index]);
-						if (type != null) {
-							if (builder.length() > 0) {
-								builder.append(',');
+			final File parent = path.getParentFile();
+			if (parent != null) {
+				final StringBuilder builder = new StringBuilder();
+				final String[] files = parent.list();
+				if (files != null && files.length > 0) {
+					String type;
+					for (int index = 0; index < files.length; index++) {
+						if (files[index].startsWith(name)) {
+							type = MIMEType.getByFilename(files[index]);
+							if (type != null) {
+								if (builder.length() > 0) {
+									builder.append(',');
+								}
+								builder.append('{');
+								builder.append(files[index]);
+								builder.append(' ');
+								builder.append('{');
+								builder.append(type);
+								builder.append('}');
+								builder.append('}');
 							}
-							builder.append('{');
-							builder.append(files[index]);
-							builder.append(' ');
-							builder.append('{');
-							builder.append(type);
-							builder.append('}');
-							builder.append('}');
 						}
 					}
 				}
-			}
-			if (builder.length() > 0) {
-				return new FileMultiple(builder.toString());
+				if (builder.length() > 0) {
+					return new FileMultiple(builder.toString());
+				}
 			}
 		}
 		return null;
