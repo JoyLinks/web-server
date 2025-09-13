@@ -37,6 +37,9 @@ public class HostService {
 
 	/** 获取路径匹配的服务程序 */
 	public Servlet findServlet(String path) {
+		if (path == null) {
+			return null;
+		}
 		return servlets.find(path);
 	}
 
