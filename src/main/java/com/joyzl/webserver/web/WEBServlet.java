@@ -100,8 +100,10 @@ public abstract class WEBServlet extends Servlet {
 			if (response.hasHeader(ContentLength.NAME) || response.hasHeader(TransferEncoding.NAME)) {
 				// 已设置
 			} else if (response.hasContent()) {
-				long size = response.contentSize();
-				if (size > 0) {
+				final long size = response.contentSize();
+				if (size == 0) {
+					response.addHeader(ContentLength.NAME, ContentLength.ZERO);
+				} else if (size > 0) {
 					response.addHeader(ContentLength.NAME, Long.toString(size));
 				} else {
 					response.addHeader(TransferEncoding.NAME, TransferEncoding.CHUNKED);
