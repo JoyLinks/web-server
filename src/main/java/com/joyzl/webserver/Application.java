@@ -47,10 +47,6 @@ public class Application {
 				//
 			}
 		}
-
-		if (instance != null) {
-			instance.daemon();
-		}
 	}
 
 	public static void start(String[] args) {
@@ -99,6 +95,10 @@ public class Application {
 				}
 			} catch (InterruptedException e) {
 				Logger.error("主线程意外终止");
+			}
+
+			if (instance != null) {
+				instance.daemon();
 			}
 		}
 	}

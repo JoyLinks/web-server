@@ -14,52 +14,59 @@
 		],
 		"servlets": [
 			{
+				"path": "*",
+				"type": "RESOURCE",
 				"parameters": {
 					"cache": "cache",
 					"error": "www/error",
 					"content": "www",
-					browsable: true
+					"browsable": true
 				},
-				headers: {
-					"X-Frame-Options": "DENY",
-				},
-				"type": "RESOURCE",
-				"path": "*"
+				"headers": {
+					"X-Frame-Options": "DENY"
+				}
 			},
 			{
-				"headers": {},
-				"parameters": {},
-				"type": "SETTING"
+				"type": "ARCHIVE",
+				"parameters": {
+					"content": "archives",
+					"expire": 90
+				}
 			},
 			{
+				"type": "SETTING",
 				"headers": {},
-				"parameters": {},
-				"type": "VISITS"
+				"parameters": {}
 			},
 			{
+				"type": "VISITS",
 				"headers": {},
-				"parameters": {},
-				"type": "ROSTER"
+				"parameters": {}
 			},
 			{
+				"type": "ROSTER",
 				"headers": {},
-				"parameters": {},
-				"type": "USER"
+				"parameters": {}
 			},
 			{
+				"type": "USER",
 				"headers": {},
-				"parameters": {},
-				"type": "LOG"
+				"parameters": {}
 			},
 			{
+				"type": "LOG",
 				"headers": {},
-				"parameters": {},
-				"type": "IP"
+				"parameters": {}
 			},
 			{
+				"type": "IP",
 				"headers": {},
-				"parameters": {},
-				"type": "EMOJI"
+				"parameters": {}
+			},
+			{
+				"type": "EMOJI",
+				"headers": {},
+				"parameters": {}
 			}
 		]
 	},

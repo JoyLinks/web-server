@@ -24,8 +24,9 @@ public abstract class ServletReload {
 	 * @param path 路径
 	 * @param parameters 配置参数
 	 * @return null 配置参数无效 / Servlet 配置参数创建的实例
+	 * @throws Exception
 	 */
-	public abstract Servlet create(String path, Map<String, String> parameters);
+	public abstract Servlet create(String path, Map<String, String> parameters) throws Exception;
 
 	/**
 	 * 检查服务程序实例与指定参数是否不同

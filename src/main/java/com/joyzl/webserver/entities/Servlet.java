@@ -37,7 +37,7 @@ public class Servlet {
 	}
 
 	/** 重置服务程序实例 */
-	public void reset() {
+	public void reset() throws Exception {
 		if (differently()) {
 			if (type != null) {
 				service = Servlets.create(type, path, parameters);

@@ -44,6 +44,7 @@ public class Servlets {
 		for (String pkg : packages) {
 			final List<Class<?>> classes = ODBSReflect.scanClass(pkg);
 			for (Class<?> clazz : classes) {
+				// System.out.println(servletClass);
 				if (ODBSReflect.isImplemented(clazz, Servlet.class)) {
 					register((Class<? extends Servlet>) clazz);
 				}
@@ -58,6 +59,8 @@ public class Servlets {
 	 * 注册服务程序，注册的服务程序可创建实例并添加到服务集
 	 */
 	public static boolean register(Class<? extends Servlet> servletClass) {
+		// 符合以下构造函数定义的才会被添加
+		// 其它构造函数的应由重载类支持
 		if (ODBSReflect.canUsable(servletClass)) {
 			// 构造函数无参
 			if (ODBSReflect.canInstance(servletClass)) {
@@ -103,8 +106,11 @@ public class Servlets {
 
 	/**
 	 * 创建指定名称服务程序实例
+	 * 
+	 * @throws Exception
 	 */
-	public static Servlet create(String type, String path, Map<String, String> parameters) {
+	public static Servlet create(String type, String path, Map<String, String> parameters) throws Exception {
+		// 可通过重载类构建实例
 		final ServletReload reload = RELOADS.get(type);
 		if (reload != null) {
 			if (path == null) {
@@ -113,6 +119,7 @@ public class Servlets {
 			return reload.create(path, parameters);
 		}
 
+		// 默认构造函数创建实例
 		final Class<? extends Servlet> s = SERVLETS.get(type);
 		if (s != null) {
 			if (path == null) {

@@ -12,6 +12,7 @@ module com.joyzl.webserver {
 
 	exports com.joyzl.webserver.web;
 	exports com.joyzl.webserver.webdav;
+	exports com.joyzl.webserver.archive;
 	exports com.joyzl.webserver.servlet;
 	exports com.joyzl.webserver.authenticate;
 	exports com.joyzl.webserver.service;

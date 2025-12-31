@@ -34,7 +34,7 @@ public class Daemon implements Runnable {
 				final LoggerCleaner cleaner = LoggerService.clean();
 				Logger.info(cleaner);
 			} catch (InterruptedException x) {
-
+				return;
 			}
 		}
 	}
