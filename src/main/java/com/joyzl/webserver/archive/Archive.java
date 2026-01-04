@@ -34,6 +34,7 @@ public final class Archive {
 	// Windows 文件名不允许 '<' '>' ':' '"' '/' '\' '|' '?' '*' 字符
 	// 100年的话，目录为365*100=36500
 
+	private final int id;
 	private final Path path;
 	private final int expire;
 	private final Indexer indexer;
@@ -55,6 +56,7 @@ public final class Archive {
 		}
 
 		indexer = new Indexer(path);
+		id = ARCHIVES.size();
 		ARCHIVES.add(this);
 	}
 
@@ -178,16 +180,23 @@ public final class Archive {
 		return path;
 	}
 
+	public int id() {
+		return id;
+	}
+
 	////////////////////////////////////////////////////////////////////////////////
 	// 允许创建多个库，但不能路径冲突
 	private static final List<Archive> ARCHIVES = new ArrayList<>();
 
-	public static synchronized Archive get(int index) {
-		return ARCHIVES.get(index);
-	}
-
 	public static List<Archive> all() {
 		return Collections.unmodifiableList(ARCHIVES);
+	}
+
+	public static synchronized Archive get(int id) {
+		if (id < 0 || id >= ARCHIVES.size()) {
+			return null;
+		}
+		return ARCHIVES.get(id);
 	}
 
 	/** 检查路径是否冲突 */

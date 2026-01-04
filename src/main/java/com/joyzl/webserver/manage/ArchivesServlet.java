@@ -19,8 +19,13 @@ import com.joyzl.network.http.Request;
 import com.joyzl.network.http.Response;
 import com.joyzl.webserver.Utility;
 import com.joyzl.webserver.archive.Archive;
+import com.joyzl.webserver.archive.ArchiveServlet;
 import com.joyzl.webserver.archive.Directory;
 import com.joyzl.webserver.archive.Packet;
+import com.joyzl.webserver.entities.Host;
+import com.joyzl.webserver.entities.Server;
+import com.joyzl.webserver.entities.Servlet;
+import com.joyzl.webserver.service.Services;
 import com.joyzl.webserver.servlet.CROSServlet;
 import com.joyzl.webserver.servlet.ServletPath;
 
@@ -30,7 +35,7 @@ import com.joyzl.webserver.servlet.ServletPath;
  * @author simon (ZhangXi TEL:13883833982)
  * @date 2021年7月26日
  */
-@ServletPath(path = "manage/api/archives")
+@ServletPath(path = "/manage/api/archives")
 public final class ArchivesServlet extends CROSServlet {
 
 	public ArchivesServlet(String path) {
@@ -44,29 +49,29 @@ public final class ArchivesServlet extends CROSServlet {
 
 	@Override
 	protected void post(Request request, Response response) throws Exception {
-		final String indx = request.getParameter("index");
-		final String date = request.getParameter("date");
-		if (Utility.noEmpty(indx)) {
-			int indxValue = Utility.value(indx, -1);
-			if (indxValue < 0) {
+		final String id = request.getParameter("id");
+		final String name = request.getParameter("name");
+		if (Utility.noEmpty(id)) {
+			int i = Utility.value(id, -1);
+			if (i < 0) {
 				response.setStatus(HTTPStatus.BAD_REQUEST);
 				return;
 			}
-			final Archive archive = Archive.get(indxValue);
+			final Archive archive = Archive.get(i);
 			if (archive == null) {
 				response.setStatus(HTTPStatus.NOT_FOUND);
 				return;
 			}
 
-			if (Utility.noEmpty(date)) {
+			if (Utility.noEmpty(name)) {
 				// 按日期列出文件包
-				final LocalDate localDate = dateValue(date);
-				if (localDate == null) {
+				final LocalDate date = dateValue(name);
+				if (date == null) {
 					response.setStatus(HTTPStatus.BAD_REQUEST);
 					return;
 				}
 
-				final List<Packet> items = archive.find(localDate);
+				final List<Packet> items = archive.find(date);
 				if (items != null) {
 					// JSON
 					final DataBuffer buffer = DataBuffer.instance();
@@ -118,25 +123,68 @@ public final class ArchivesServlet extends CROSServlet {
 			}
 		} else {
 			// 列出所有归档库
-			final List<Archive> archives = Archive.all();
 
 			// JSON
 			final DataBuffer buffer = DataBuffer.instance();
 			buffer.writeUTF8('[');
-			Archive a;
-			for (int index = 0; index < archives.size(); index++) {
-				if (index > 0) {
-					buffer.writeUTF8(',');
+
+			// 因缺失关联服务程序而废弃 20260103
+			// Archive a;
+			// final List<Archive> archives = Archive.all();
+			// for (int index = 0; index < archives.size(); index++) {
+			// if (index > 0) {
+			// buffer.writeUTF8(',');
+			// }
+			// a = archives.get(index);
+			// buffer.writeUTF8("{\"Index\":");
+			// buffer.writeUTF8(Integer.toString(index));
+			// buffer.writeUTF8(",\"Path\":\"");
+			// buffer.writeUTF8(a.path().toString());
+			// buffer.writeUTF8("\",\"Expire\":");
+			// buffer.writeUTF8(Integer.toString(a.expire()));
+			// buffer.writeUTF8('}');
+			// }
+
+			int size = 0;
+			for (Server server : Services.all()) {
+				for (Servlet servlet : server.getServlets()) {
+					if (servlet.service() instanceof ArchiveServlet s) {
+						if (size > 0) {
+							buffer.writeUTF8(',');
+						}
+						buffer.writeUTF8("{\"Id\":");
+						buffer.writeUTF8(Integer.toString(s.archive().id()));
+						buffer.writeUTF8(",\"Content\":\"");
+						buffer.writeUTF8(s.archive().path().toString());
+						buffer.writeUTF8("\",\"Expire\":");
+						buffer.writeUTF8(Integer.toString(s.archive().expire()));
+						buffer.writeUTF8(",\"Path\":\"");
+						buffer.writeUTF8(servlet.service().getBase());
+						buffer.writeUTF8("\"}");
+						size++;
+					}
 				}
-				a = archives.get(index);
-				buffer.writeUTF8("{\"Index\":");
-				buffer.writeUTF8(Integer.toString(index));
-				buffer.writeUTF8(",\"Path\":\"");
-				buffer.writeUTF8(a.path().toString());
-				buffer.writeUTF8("\",\"Expire\":");
-				buffer.writeUTF8(Integer.toString(a.expire()));
-				buffer.writeUTF8('}');
+				for (Host host : server.getHosts()) {
+					for (Servlet servlet : host.getServlets()) {
+						if (servlet.service() instanceof ArchiveServlet s) {
+							if (size > 0) {
+								buffer.writeUTF8(',');
+							}
+							buffer.writeUTF8("{\"Id\":");
+							buffer.writeUTF8(Integer.toString(s.archive().id()));
+							buffer.writeUTF8(",\"Content\":\"");
+							buffer.writeUTF8(s.archive().path().toString());
+							buffer.writeUTF8("\",\"Expire\":");
+							buffer.writeUTF8(Integer.toString(s.archive().expire()));
+							buffer.writeUTF8(",\"Path\":\"");
+							buffer.writeUTF8(servlet.service().getBase());
+							buffer.writeUTF8("\"}");
+							size++;
+						}
+					}
+				}
 			}
+
 			buffer.writeUTF8(']');
 
 			response.addHeader(ContentType.NAME, MIMEType.APPLICATION_JSON);
@@ -151,5 +199,21 @@ public final class ArchivesServlet extends CROSServlet {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	@Override
+	protected String allowMethods() {
+		return "OPTIONS,GET,POST";
+	}
+
+	@Override
+	protected String allowHeaders() {
+		// 允许Content-Type:application/x-www-form-urlencoded,application/x-form-www-urlencoded,因此须列出允许的Content-Type头
+		return "*,Content-Type,Authorization";
+	}
+
+	@Override
+	protected boolean allowCredentials() {
+		return true;
 	}
 }

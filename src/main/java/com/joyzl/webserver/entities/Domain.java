@@ -4,6 +4,7 @@
  */
 package com.joyzl.webserver.entities;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,6 +112,13 @@ public abstract class Domain {
 		if (service != null) {
 			service.close();
 			service = null;
+		}
+		for (Servlet servlet : servlets) {
+			if (servlet.service() != null) {
+				if (servlet.service() instanceof Closeable s) {
+					s.close();
+				}
+			}
 		}
 	}
 

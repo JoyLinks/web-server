@@ -18,20 +18,46 @@ JOYZL network 是历经十年以上持续开发和不断优化且完全开源的
 * 支持热配置，设置更改无须重启；
 * 支持界面化(GUI)配置。
 
-## WEB Site 网站发布
+## WEB Site 网站发布(FileResourceServlet,FileResourceReload)
 
 配置静态网站资源发布，支持多域名和虚拟目录，支持资源压缩和内存缓存。
 
-## WEBDAV 文件资源
+## WEBDAV 文件资源(FileWEBDAVServlet,FileWEBDAVReload)
 
 配置 WEBDAV 访问服务器文件资源，支持 PROPFIND PROPPATCH MKCOL DELETE GET PUT COPY MOVE LOCK UNLOCK 请求方法。
 资源锁(Resource Lock)仅在服务运行期间有效，重启后丢失；单个资源最多可同时创建64个共享锁。
 支持XML和JSON实体格式，通过请求时指定 Content-Type:application/xml 或 Content-Type:application/json 以指定格式实体执行请求和响应。
 
+## ARCHIVE 文件归集(ArchiveServlet,ArchiveReload)
+
+配置 ARCHIVE 服务，提供文件上传归档功能，支持 multipart/form-data 方式上传文件。
+文件按编码归集，每个编码可归集多个文件，可按编码查询或提取文件。
+
 ## Authorization 身份验证
 
 配置任意资源路径要求客户端身份验证，已集成 Basic 和 Digest 身份验证方式。
 提供两个特殊身份验证方式：None 和 Deny 既无条件通过和拒绝。
+
+## 对象层级结构
+
+```
+Application 1
+├Server 1
+│├Service 1
+│├HostService 1
+│├Authentication 1
+│├Authentication *
+│├Servlet 1
+│├Servlet *
+│├Host 1
+││├HostService 1
+││├Authentication 1
+││├Authentication *
+││├Servlet 1
+││└Servlet *
+│└Host *
+└Server *
+```
 
 ## 优先级
 

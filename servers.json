@@ -39,6 +39,11 @@
 				"parameters": {}
 			},
 			{
+				"type": "ARCHIVES",
+				"headers": {},
+				"parameters": {}
+			},
+			{
 				"type": "VISITS",
 				"headers": {},
 				"parameters": {}

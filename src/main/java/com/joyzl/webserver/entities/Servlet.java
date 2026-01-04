@@ -4,6 +4,7 @@
  */
 package com.joyzl.webserver.entities;
 
+import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +40,11 @@ public class Servlet {
 	/** 重置服务程序实例 */
 	public void reset() throws Exception {
 		if (differently()) {
+			if (service != null) {
+				if (service instanceof Closeable s) {
+					s.close();
+				}
+			}
 			if (type != null) {
 				service = Servlets.create(type, path, parameters);
 				service.headers().putAll(headers);

@@ -36,11 +36,11 @@ public class ArchiveReload extends ServletReload {
 	@Override
 	public boolean differently(Servlet servlet, Map<String, String> parameters) {
 		if (servlet instanceof ArchiveServlet s) {
-			if (Utility.equal(s.archives().path(), parameters.get("content"))) {
+			if (Utility.equal(s.archive().path(), parameters.get("content"))) {
 			} else {
 				return true;
 			}
-			if (s.archives().expire() != Utility.value(parameters.get("expire"), 0)) {
+			if (s.archive().expire() != Utility.value(parameters.get("expire"), 0)) {
 				return true;
 			}
 		}

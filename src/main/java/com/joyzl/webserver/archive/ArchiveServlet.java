@@ -35,11 +35,11 @@ import com.joyzl.webserver.servlet.ServletPath;
 public final class ArchiveServlet extends CROSServlet implements Closeable {
 
 	private final ContentType CONTENT_TYPE_JSON = new ContentType(MIMEType.APPLICATION_JSON, StandardCharsets.UTF_8.name());
-	private final Archive archives;
+	private final Archive archive;
 
 	public ArchiveServlet(String path, String root, int expire) throws IOException {
 		super(path);
-		archives = new Archive(root, expire);
+		archive = new Archive(root, expire);
 	}
 
 	// 列出文件名
@@ -58,6 +58,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 		String code = request.getParameter("code");
 		String name = request.getParameter("name");
 		String indx = request.getParameter("index");
+		boolean attachment = true;
 		if (Utility.isEmpty(code)) {
 			// 从路径中分离参数
 			code = request.getPath().substring(getBase().length());
@@ -69,6 +70,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 						// "/code/name"
 						name = code.substring(i + 1);
 						code = code.substring(1, i);
+						attachment = false;
 					} else {
 						// "/code"
 						code = code.substring(1);
@@ -79,6 +81,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 						// "code/name"
 						name = code.substring(i + 1);
 						code = code.substring(0, i);
+						attachment = false;
 					} else {
 						// "code"
 						code = code.substring(0);
@@ -88,17 +91,19 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 		}
 
 		if (Utility.noEmpty(code)) {
-			final Packet archive = archives.find(code);
-			if (archive != null) {
+			final Packet packet = archive.find(code);
+			if (packet != null) {
 				if (Utility.noEmpty(indx)) {
 					final int index = Utility.value(indx, -1);
 					if (index >= 0) {
-						final Document file = archive.get(index);
+						final Document file = packet.get(index);
 						if (file != null) {
 							name = file.getName();
 							response.setStatus(HTTPStatus.OK);
 							response.addHeader(ContentType.NAME, MIMEType.getByFilename(name));
-							response.addHeader(new ContentDisposition(ContentDisposition.ATTACHMENT, name));
+							if (attachment) {
+								response.addHeader(new ContentDisposition(ContentDisposition.ATTACHMENT, name));
+							}
 							response.setContent(file.stream());
 						} else {
 							// 索引没有文件
@@ -112,15 +117,17 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 					final Document file;
 					if (Utility.same("last", name)) {
 						// 下载文件（浏览器只能提示另存为）
-						file = archive.last();
+						file = packet.last();
 					} else {
 						// 获取文件（浏览器有可能尝试显示内容）
-						file = archive.get(name);
+						file = packet.get(name);
 					}
 					if (file != null) {
 						response.setStatus(HTTPStatus.OK);
 						response.addHeader(ContentType.NAME, MIMEType.getByFilename(name));
-						response.addHeader(new ContentDisposition(ContentDisposition.ATTACHMENT, name));
+						if (attachment) {
+							response.addHeader(new ContentDisposition(ContentDisposition.ATTACHMENT, name));
+						}
 						response.setContent(file.stream());
 					} else {
 						// 名称没有文件
@@ -128,7 +135,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 					}
 				} else {
 					// 获取代码的文件名称列表
-					final List<Document> files = archive.list();
+					final List<Document> files = packet.list();
 					if (files == null) {
 						response.setStatus(HTTPStatus.NOT_FOUND);
 					} else {
@@ -143,10 +150,10 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 							file = files.get(i);
 							buffer.writeUTF8("{\"Index\":");
 							buffer.writeUTF8(Integer.toString(file.getIndex()));
+							buffer.writeUTF8(",\"Time\":");
+							buffer.writeUTF8(Long.toString(file.getTime()));
 							buffer.writeUTF8(",\"Size\":\"");
 							buffer.writeUTF8(LoggerCleaner.byteSizeText(file.getSize()));
-							buffer.writeUTF8(",\"Time\":\"");
-							buffer.writeUTF8(Long.toString(file.getTime()));
 							buffer.writeUTF8("\",\"Name\":\"");
 							buffer.writeUTF8(file.getName());
 							if (file.getNumber() != null) {
@@ -174,7 +181,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 
 	@Override
 	protected void post(Request request, Response response) throws Exception {
-		if (archives == null) {
+		if (archive == null) {
 			response.setStatus(HTTPStatus.SERVICE_UNAVAILABLE);
 			return;
 		}
@@ -193,7 +200,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 				try {
 					for (MultipartFile file : files) {
 						if (file.getLength() > 0) {
-							archives.save(file.getFile(), code, file.getFilename(), number);
+							archive.save(file.getFile(), code, file.getFilename(), number);
 							file.getFile().delete();
 						}
 					}
@@ -214,10 +221,26 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		archives.close();
+		archive.close();
 	}
 
-	public final Archive archives() {
-		return archives;
+	@Override
+	protected String allowMethods() {
+		return "OPTIONS,GET,POST";
+	}
+
+	@Override
+	protected String allowHeaders() {
+		// 允许Content-Type:application/x-www-form-urlencoded,application/x-form-www-urlencoded,因此须列出允许的Content-Type头
+		return "*,Content-Type,Authorization";
+	}
+
+	@Override
+	protected boolean allowCredentials() {
+		return true;
+	}
+
+	public final Archive archive() {
+		return archive;
 	}
 }

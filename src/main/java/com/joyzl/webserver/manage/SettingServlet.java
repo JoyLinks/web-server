@@ -100,7 +100,7 @@ public class SettingServlet extends CROSServlet {
 	@Override
 	protected String allowHeaders() {
 		// 允许Content-Type:application/xml,application/json,因此须列出允许的Content-Type头
-		return "*,Content-Type,Authorization,Depth,Destination,If,Lock-Token,Overwrite,Timeout";
+		return "*,Content-Type,Authorization";
 	}
 
 	@Override
