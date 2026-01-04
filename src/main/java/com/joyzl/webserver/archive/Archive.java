@@ -166,6 +166,7 @@ public final class Archive {
 
 	public void close() throws IOException {
 		indexer.close();
+		ARCHIVES.remove(this);
 	}
 
 	public Indexer indexer() {

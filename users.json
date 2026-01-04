@@ -1,12 +1,1 @@
-[
-	{
-		"enable": true,
-		"name": "administrator",
-		"password": "administrator"
-	},
-	{
-		"enable": true,
-		"name": "manager",
-		"password": "manager"
-	}
-]
+[{"enable":true,"name":"administrator"},{"enable":true,"name":"manager"}]
