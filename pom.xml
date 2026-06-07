@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>com.joyzl</groupId>
 			<artifactId>network</artifactId>
-			<version>3.1.4</version>
+			<version>3.1.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.joyzl</groupId>
