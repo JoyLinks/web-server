@@ -192,7 +192,7 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 			response.setStatus(HTTPStatus.BAD_REQUEST);
 			return;
 		}
-		// 编号可选
+		// 设备编号可选
 		final String number = request.getParameter("number");
 
 		if (request.hasContent()) {
