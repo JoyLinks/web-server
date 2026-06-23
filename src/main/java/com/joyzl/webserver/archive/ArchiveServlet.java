@@ -90,6 +90,11 @@ public final class ArchiveServlet extends CROSServlet implements Closeable {
 			}
 		}
 
+		// 20260623 浏览器的坑
+		// 浏览器 URL 编码行为在 HREF 和 AJAX 中不一致
+		// HREF 中 '+' 保持不变，空格编码为 %20，遵循RFC3986
+		// AJAX 中 '+' 编码为 %2b，空格编码为 '+'，遵循application/x-www-form-urlencoded
+
 		if (Utility.noEmpty(code)) {
 			final Packet packet = archive.find(code);
 			if (packet != null) {
