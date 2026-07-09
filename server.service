@@ -1,0 +1,17 @@
+[Unit]
+Description=JOYZL WEB Server
+After=network.target
+
+[Service]
+Type=simple
+User=joyzl
+Group=joyzl
+WorkingDirectory=/var/lib/joyzl/web-server
+ExecStart=/opt/joyzl/web-server/server.sh start
+ExecStop=/opt/joyzl/web-server/server.sh stop
+ExecReload=/bin/kill -s HUP $MAINPID
+RemainAfterExit=yes
+RestartSec=6s
+
+[Install]
+WantedBy=multi-user.target

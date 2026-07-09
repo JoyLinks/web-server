@@ -1,28 +1,49 @@
 @ECHO OFF
 
 java -version
+ECHO=
+CALL mvn --version
+ECHO=
 
-set dir=%cd%\publish
-IF EXIST %dir% RD /S /Q %dir%
+SET VERSION=2.2.7
+SET ARCH=%PROCESSOR_ARCHITECTURE%
 
-ECHO Package
-call mvn -f pom.xml clean package -DoutputDirectory=%dir% -Dmaven.test.skip=true
+IF EXIST publish RD /S /Q publish
 
-ECHO BUILD Runtime
+REM 编译
+ECHO Maven Package
+call mvn -f pom.xml clean package -P publish -Dmaven.test.skip=true
+
+ECHO=
+REM 构建运行环境
+ECHO Build executable JOYZL WEB Server
+IF EXIST publish\joyzl-web-server RD /S /Q publish\joyzl-web-server
+REM https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html
 jlink ^
-	--module-path %dir%\lib^
-	--output %dir%\server^
-	--compress=2^
+	--add-modules jdk.charsets^
+	--add-modules jdk.localedata^
+	--module-path publish\lib^
+	--add-modules com.joyzl.webserver^
+	--output publish\joyzl-web-server^
+	--ignore-signing-information^
+	--include-locales=zh-cn^
 	--no-header-files^
 	--no-man-pages^
-	--strip-debug^
 	--bind-services^
-	--include-locales=zh-cn^
-	--add-modules com.joyzl.webserver^
-	--ignore-signing-information
+	--compress=2^
+	--strip-debug
 
-%dir%\server\bin\java --list-modules
+REM 复制附属文件
+MOVE /Y publish\*.json publish\joyzl-web-server\
+MOVE /Y publish\server-windows.properties publish\joyzl-web-server\server.properties
+MOVE /Y publish\server.cmd publish\joyzl-web-server\server.cmd
+MOVE /Y publish\install.cmd publish\joyzl-web-server\install.cmd
+MOVE /Y publish\uninstall.cmd publish\joyzl-web-server\uninstall.cmd
+MOVE /Y publish\service.exe publish\joyzl-web-server\service.exe
+DEL /F /Q publish\*
 
-MOVE %dir%\*.* %dir%\server\
+REM 构建压缩包
+jar cfM publish\joyzl-web-server_windows-%ARCH%_%VERSION%.zip -C publish joyzl-web-server
 
+ECHO=
 PAUSE

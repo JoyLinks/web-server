@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import com.joyzl.logger.Logger;
+import com.joyzl.logger.LoggerCleaner;
 import com.joyzl.logger.LoggerService;
 import com.joyzl.network.Executor;
 import com.joyzl.webserver.service.Roster;
@@ -28,13 +29,12 @@ import com.joyzl.webserver.service.Users;
 public class Application {
 
 	private static Application instance = null;
+	private static Thread main;
 
 	private Application() {
 	}
 
 	public static void main(String[] args) {
-		Logger.info("PID:", ProcessHandle.current().pid());
-
 		if (args == null || args.length == 0) {
 			start(args);
 		} else {
@@ -89,21 +89,18 @@ public class Application {
 					Application.stop(args);
 				}
 			});
-			try {
-				synchronized (instance) {
-					instance.wait();
-				}
-			} catch (InterruptedException e) {
-				Logger.error("主线程意外终止");
-			}
 
 			if (instance != null) {
+				main = Thread.currentThread();
 				instance.daemon();
 			}
 		}
 	}
 
 	public static void stop(String[] args) {
+		if (main != null) {
+			main.interrupt();
+		}
 		if (instance != null) {
 			synchronized (instance) {
 				instance.notifyAll();
@@ -139,7 +136,7 @@ public class Application {
 		} else {
 			// 默认配置
 			properties.setProperty("THREAD", "0");
-			properties.setProperty("ODBS", "1030");
+			properties.setProperty("CONTROLLER", "1030");
 			properties.setProperty("SERVERS", "servers.json");
 			properties.setProperty("ROSTER", "roster.json");
 			properties.setProperty("USERS", "users.json");
@@ -154,14 +151,15 @@ public class Application {
 		return properties;
 	}
 
-	void initialize() {
-		Logger.info("INITIALIZE");
-
+	void initialize() throws IOException {
 		// 载入配置文件
 		final Properties properties = loadProperties();
 
+		Logger.setFile("log", null, ".log");
 		Logger.setLevel(Utility.value(properties.getProperty("LOG_LEVEL"), 1));
 		LoggerService.setExpires(Utility.value(properties.getProperty("LOG_EXPIRES"), 30));
+		Logger.info("PID:", ProcessHandle.current().pid());
+		Logger.info("INITIALIZE");
 
 		// 初始化线程池
 		Executor.initialize(Utility.value(properties.getProperty("THREAD"), 0));
@@ -228,6 +226,14 @@ public class Application {
 	}
 
 	void daemon() {
-		Daemon.execute();
+		try {
+			while (instance != null) {
+				Thread.sleep(86400000 - System.currentTimeMillis() % 86400000);
+				final LoggerCleaner cleaner = LoggerService.clean();
+				Logger.info(cleaner);
+			}
+		} catch (InterruptedException x) {
+			return;
+		}
 	}
 }

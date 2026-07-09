@@ -28,7 +28,7 @@ class JSONCoder {
 
 	final static ODBSJson JSON;
 	static {
-		final ODBS odbs = ODBS.initialize(Element.class.getPackageName());
+		final ODBS odbs = ODBS.initialize("com.joyzl.webserver/com.joyzl.webserver.webdav.elements");
 		// System.out.println(odbs.checkString());
 		JSON = new ODBSJson(odbs);
 	}

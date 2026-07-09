@@ -1,1 +1,9 @@
-[{"address":"192.168.2.100","deny":true,"hosts":["DEFAULT 443"]}]
+[
+	{
+		"address": "192.168.2.100",
+		"deny": true,
+		"hosts": [
+			"DEFAULT 443"
+		]
+	}
+]

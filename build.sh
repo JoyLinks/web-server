@@ -1,25 +1,48 @@
 #!/bin/bash
 
-dir=$(pwd)/publish
-rm -rf $dir
+java --version
+echo
+mvn --version
+echo
 
-echo package
-mvn -f pom.xml clean package -DoutputDirectory=$dir -Dmaven.test.skip=true
+VERSION=2.2.7
+ARCH=$(arch)
+rm -rf publish
 
-echo BUILD Runtime
+# 编译
+echo Maven Package
+mvn -f pom.xml clean package -P publish -Dmaven.test.skip=true
+echo
+
+# 构建运行环境
+ECHO Build executable JOYZL WEB Server
+rm -rf publish/joyzl-web-server
+# https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html
 jlink \
-	--module-path $dir/lib\
-	--output $dir/server\
-	--compress=2\
+	--add-modules jdk.charsets\
+	--add-modules jdk.localedata\
+	--module-path publish\lib\
+	--add-modules com.joyzl.webserver\
+	--output publish\joyzl-web-server\
+	--ignore-signing-information\
+	--include-locales=zh-cn\
 	--no-header-files\
 	--no-man-pages\
 	--bind-services\
-	--include-locales=zh-cn\
-	--add-modules com.joyzl.webserver
+	--compress=2\
+	--strip-debug
 
-$dir/server/bin/java --list-modules
+# 复制附属文件
+mv publish/*.json publish/joyzl-web-server/
+mv publish/server-linux.properties publish/joyzl-web-server/server.properties
+mv publish/server.sh publish/joyzl-web-server/server.sh
+mv publish/install.sh publish/joyzl-web-server/install.sh
+mv publish/uninstall.sh publish/joyzl-web-server/uninstall.sh
+mv publish/server.service publish/joyzl-web-server/server.service
+rm -f publish/*
 
-mv $dir/*.* $dir/server/
+# 可执行文件
+chmod +x publish/joyzl-web-server/*.sh
 
-chmod +x $dir/server/server.sh
-chmod +x $dir/server/debug.sh
+# 创建压缩包
+tar -czf "publish/joyzl-web-server_linux-${ARCH}_${VERSION}.tar.gz" -C publish joyzl-web-server

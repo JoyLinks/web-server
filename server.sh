@@ -1,58 +1,63 @@
 #!/bin/bash
 
 # chkconfig: 2345 80 90
-# description: JOYZL Server
-# processname: joyzl-server
+# description: JOYZL WEB Server
+# processname: joyzl-web-server
 
-WORK_HOME=$(cd $(dirname "$0") && pwd)
-JAVA_HOME="$WORK_HOME"
-JAVA_SERVICE="com.joyzl.server/com.joyzl.server.Application"
-JAVA_OPTIONS="-Xms256m -Xmx2048m -Duser.dir=$WORK_HOME -Dfile.encoding=UTF-8 -Duser.timezone=GMT+08"
-JAVA_EXECUTE="--module-path $WORK_HOME/lib/service --module $JAVA_SERVICE"
-JAVA_COMMAND="$JAVA_HOME/bin/java -server $JAVA_OPTIONS $JAVA_EXECUTE"
+SERVER=joyzl-web-server
+WORK_HOME="/opt/joyzl/scada-server"
+JAVA_HOME="$WORK_HOME"/lib/runtime
 
-SERVER=joyzl-server
-# command augment -debug/-f
+JAVA_SERVICE="com.joyzl.webserver/com.joyzl.webserver.Application"
+JAVA_OPTIONS="-Xms256m -Xmx2048m -Dfile.encoding=UTF-8 -Duser.dir=$WORK_HOME -Duser.timezone=GMT+08"
+JAVA_COMMAND="authbind --deep $JAVA_HOME/bin/java -server $JAVA_OPTIONS --module $JAVA_SERVICE"
+
+# 当前目录
+CURRENT_DIR=$(pwd)
+# 命令行参数
 AUGMENT2=$2
 
 usage()
 {
-    echo "Usage: $0 {start -debug|stop|restart|status|stop|command -f}"
+    echo "Usage: $0 {start|start -debug|stop|restart|status|stop|command -f}"
     echo "Example: $0 start"
     exit 1
 }
 
 start()
 {
-    count=`ps -ef |grep java|grep $SERVER|wc -l`
+    count=$(ps -ef |grep java|grep $JAVA_SERVICE|wc -l)
     if [ $count != 0 ]
 	then
-        echo "Maybe $SERVER is running, please check it..."
+        echo "$SERVER 已在运行中"
     else
-        echo "The $SERVER is starting..."
-        if [ "$AUGMENT2" == "-debug" ]
+        echo "$SERVER 正在启动 ..."
+        if [ "$AUGMENT2" = "-debug" ]
         then
+        	echo $JAVA_COMMAND
+        	echo
         	$JAVA_COMMAND
         else
-        	cd $WORK_HOME
-        	sudo nohup $JAVA_COMMAND
+        	nohup $JAVA_COMMAND >> /var/log/joyzl/scada-server/console.log 2>&1 &
         fi
     fi
 }
 
 stop()
 {
-    PID=`ps -ef |grep java|grep $JAVA_SERVICE|awk '{print $2}'`
+    PID=$(ps -ef |grep java|grep $JAVA_SERVICE|awk '{print $2}')
     if [ -z $PID ]
     then
-        echo "Maybe $SERVER not running, please check it..."
+        echo "$SERVER 未在运行中"
     else
-        echo -n "The $SERVER is stopping..."
-        if [ "$AUGMENT2" == "-f" ]
+        echo -n "$SERVER 正在停止 ..."
+        if [ "$AUGMENT2" = "-f" ]
         then
+        	# 强制终止 SIGKILL(9)
             echo "by force"
             kill -9 $PID
         else
+        	# 执行退出 SIGTERM(15)
             echo
             kill $PID
         fi
@@ -61,19 +66,19 @@ stop()
 
 status()
 {
-    PID=`ps -ef |grep java|grep $JAVA_SERVICE|awk '{print $2}'`
+    PID=$(ps -ef |grep java|grep $JAVA_SERVICE|awk '{print $2}')
     if [ -z $PID ]
     then
-        echo -e "\033[31m $SERVER Not running \033[0m"
+        echo -e "\033[31m $SERVER 未运行 \033[0m"
     else
-        echo -e "\033[32m $SERVER Running [$PID] \033[0m"
+        echo -e "\033[32m $SERVER 在运行 [$PID] \033[0m"
     fi
 }
 
 restart()
 {
     stop
-    for i in {3..1}
+    for i in 3 2 1
     do
         echo -n "$i "
         sleep 1
@@ -107,13 +112,3 @@ case $1 in
     *)
     usage;;
 esac
-
-# CentOS 8
-# chkconfig --add scada-server	添加服务
-# chkconfig --del scada-server	删除服务
-# chkconfig scada-server on	开机启动
-# chkconfig scada-server off	开机不启动
-# service scada-server start	启动服务
-# service scada-server stop	停止服务
-# service scada-server restart	重启服务
-# Debian 12

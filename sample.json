@@ -13,7 +13,6 @@
 		name: "default",
 		// 连接等待队列
 		backlog: 512,
-
 		// 服务程序集
 		// 可配置多项服务程序
 		servlets: [
@@ -62,11 +61,36 @@
 					// 内容目录位置
 					content: "/var/www/joyzl",
 					// 默认页面
-					defaults: ["index.html", "default.html"],
+					defaults: [
+						"index.html",
+						"default.html"
+					],
 					// 需要压缩的文件扩展名，GZip或Deflate压缩
-					compresses: [".html", ".htm", ".css", ".js", ".json", ".svg", ".xml"],
+					compresses: [
+						".html",
+						".htm",
+						".css",
+						".js",
+						".json",
+						".svg",
+						".xml"
+					],
 					// 需要缓存的文件扩展名，在内存中缓存
-					caches: [".html", ".htm", ".css", ".js", ".json", ".svg", ".jpg", ".jpeg", ".png", ".gif", ".ttf", ".woff", ".woff2"],
+					caches: [
+						".html",
+						".htm",
+						".css",
+						".js",
+						".json",
+						".svg",
+						".jpg",
+						".jpeg",
+						".png",
+						".gif",
+						".ttf",
+						".woff",
+						".woff2"
+					],
 					// 错误页面所在目录，其中按 404.html 匹配错误页面
 					error: "/var/www/joyzl/errors",
 					// 是否允许列出文件，当目录的默认页面缺失时，默认不允许
@@ -97,31 +121,35 @@
 				// 验证算法，默认未指定由程序决定
 				algorithm: null,
 				// 需要验证的请求方法，默认所有方法须验证
-				methods: ["GET", "HEAD"]
+				methods: [
+					"GET",
+					"HEAD"
+				]
 			}
 		],
-
 		// 虚拟主机集
 		// 可配置多项虚拟主机
 		hosts: [
 			{
-			// 虚拟主机管理名称
+				// 虚拟主机管理名称
 			name: "JOYZL",
-			// 虚拟主机域名
-			names: ["www.joyzl.com", "www.joyzl.cn"],
-			// 服务程序集
+				// 虚拟主机域名
+			names: [
+					"www.joyzl.com",
+					"www.joyzl.cn"
+				],
+				// 服务程序集
 			servlets: [
-				// 与前部分配置方式类似
-			],
-			// 身份验证集
+					// 与前部分配置方式类似
+				],
+				// 身份验证集
 			authenticates: [
-				// 与前部分配置方式类似
-			],
-
-			// 访问日志记录位置
+					// 与前部分配置方式类似
+				],
+				// 访问日志记录位置
 			access: "/var/www/joyzl-access/"
-		}],
-
+			}
+		],
 		// 访问日志记录位置
 		access: "access/"
 	}
