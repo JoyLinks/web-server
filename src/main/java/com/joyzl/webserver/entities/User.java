@@ -47,7 +47,7 @@ public class User {
 		name = value;
 	}
 
-	public String[] getURIs() {
+	public String[] getUris() {
 		if (uris == null) {
 			return null;
 		}
@@ -65,7 +65,7 @@ public class User {
 		return items;
 	}
 
-	public void setURIs(String[] values) throws URISyntaxException {
+	public void setUris(String[] values) throws URISyntaxException {
 		if (values == null) {
 			uris = null;
 		} else if (values.length == 0) {

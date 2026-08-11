@@ -53,7 +53,7 @@ public class UserServlet extends CROSServlet {
 			u = new User();
 			u.setEnable(user.isEnable());
 			u.setName(user.getName());
-			u.setURIs(user.getURIs());
+			u.setUris(user.getUris());
 			users.add(u);
 		}
 

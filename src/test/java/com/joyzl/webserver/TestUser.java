@@ -30,22 +30,22 @@ class TestUser {
 		request1.addHeader(HTTP1.Host, "www.joyzl.com");
 		request1.setURL("/test");
 
-		user.setURIs(null);
+		user.setUris(null);
 		assertTrue(Users.check(request1, user));
 
-		user.setURIs(new String[] { "" });
+		user.setUris(new String[] { "" });
 		assertTrue(Users.check(request1, user));
 
-		user.setURIs(new String[] { "/" });
+		user.setUris(new String[] { "/" });
 		assertTrue(Users.check(request1, user));
 
-		user.setURIs(new String[] { "/a" });
+		user.setUris(new String[] { "/a" });
 		assertFalse(Users.check(request1, user));
 
-		user.setURIs(new String[] { "//www.joyzl.com/a" });
+		user.setUris(new String[] { "//www.joyzl.com/a" });
 		assertFalse(Users.check(request1, user));
 
-		user.setURIs(new String[] { "//www.joyzl.com/test" });
+		user.setUris(new String[] { "//www.joyzl.com/test" });
 		assertTrue(Users.check(request1, user));
 	}
 }
