@@ -21,9 +21,9 @@ rm -rf publish/joyzl-web-server
 jlink \
 	--add-modules jdk.charsets\
 	--add-modules jdk.localedata\
-	--module-path publish\lib\
+	--module-path publish/lib\
 	--add-modules com.joyzl.webserver\
-	--output publish\joyzl-web-server\
+	--output publish/joyzl-web-server\
 	--ignore-signing-information\
 	--include-locales=zh-cn\
 	--no-header-files\
