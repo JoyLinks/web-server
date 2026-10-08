@@ -5,7 +5,7 @@ echo
 mvn --version
 echo
 
-VERSION=2.2.7
+VERSION=2.2.12
 ARCH=$(arch)
 rm -rf publish
 
@@ -15,7 +15,7 @@ mvn -f pom.xml clean package -P publish -Dmaven.test.skip=true
 echo
 
 # 构建运行环境
-ECHO Build executable JOYZL WEB Server
+echo Build executable JOYZL WEB Server
 rm -rf publish/joyzl-web-server
 # https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html
 jlink \
