@@ -39,7 +39,7 @@ mv publish/server.sh publish/joyzl-web-server/server.sh
 mv publish/install.sh publish/joyzl-web-server/install.sh
 mv publish/uninstall.sh publish/joyzl-web-server/uninstall.sh
 mv publish/server.service publish/joyzl-web-server/server.service
-rm -f publish/*
+rm -f publish/* 2>/dev/null
 
 # 可执行文件
 chmod +x publish/joyzl-web-server/*.sh
