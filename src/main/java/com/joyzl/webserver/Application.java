@@ -91,7 +91,6 @@ public class Application {
 			});
 
 			if (instance != null) {
-				main = Thread.currentThread();
 				instance.daemon();
 			}
 		}
@@ -100,6 +99,7 @@ public class Application {
 	public static void stop(String[] args) {
 		if (main != null) {
 			main.interrupt();
+			main = null;
 		}
 		if (instance != null) {
 			synchronized (instance) {
@@ -226,6 +226,7 @@ public class Application {
 	}
 
 	void daemon() {
+		main = Thread.currentThread();
 		try {
 			while (instance != null) {
 				Thread.sleep(86400000 - System.currentTimeMillis() % 86400000);
