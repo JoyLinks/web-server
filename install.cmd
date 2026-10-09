@@ -3,19 +3,19 @@
 SET DIR=C:\Program Files
 SET VAR=%ProgramData%
 
-:: ��鰲װĿ¼
+:: 检查安装目录
 IF DEFINED ProgramFiles (
 	SET DIR=%ProgramFiles%
 ) ELSE (
-	ECHO ��ȷ������ϵͳΪ64λ
+	ECHO 请确保操作系统为64位
 	PAUSE
 	EXIT /b 1
 )
 
-:: ������ԱȨ��
+:: 检查管理员权限
 NET SESSION >nul 2>&1
 IF %errorLevel% NEQ 0 (
-	ECHO ��ʹ�ù���ԱȨ�����д˽ű���
+	ECHO 请使用管理员权限运行此脚本！
 	PAUSE
 	EXIT /b 1
 )
@@ -33,16 +33,16 @@ MKDIR "%VAR%\log"
 IF EXIST "%DIR%" (
 	XCOPY "%~dp0*.*" "%DIR%\" /F /E /I /H /Y /C
 	IF EXIST "%DIR%\server.properties" MOVE "%DIR%\server.properties" "%VAR%\server.properties"
-	MOVE "%DIR%\manage" "%VAR%\"
+	MOVE "%DIR%\www" "%VAR%\"
 	MOVE "%DIR%\*.json" "%VAR%\"
 
-	ECHO ע�����
+	ECHO 注册服务
 
 	CD %DIR%
 	REM https://commons.apache.org/proper/commons-daemon
 	service.exe //IS//JOYZL-WEB-Server ^
-	--DisplayName="JOYZL WEB Server ��ҳ�ļ���Դ������" ^
-	--Description "HTTP WEB Server ��ҳ�ļ���Դ���������ṩ WEB��WEBDAV��Archive �ȷ���֧�֡�" ^
+	--DisplayName="JOYZL WEB Server 网页文件资源服务器" ^
+	--Description "HTTP WEB Server 网页文件资源服务器，提供 WEB、WEBDAV、Archive 等服务支持。" ^
 	--JavaHome="%DIR%" ^
 	--Startup=auto ^
 	--StartMode=jvm ^
@@ -65,12 +65,12 @@ IF EXIST "%DIR%" (
 	--LogPrefix=daemon ^
 	--PidFile=pid
 
-	ECHO ��װ���!
-	ECHO ����λ�� %DIR%
-	ECHO ����λ�� %VAR%
+	ECHO 安装完成!
+	ECHO 程序位于 %DIR%
+	ECHO 配置位于 %VAR%
 ) ELSE (
-	ECHO ����: �޷�����Ŀ¼��������Ȩ�޲���
-	ECHO ���Թ���Ա�������д˽ű�
+	ECHO 错误: 无法创建目录，可能是权限不足
+	ECHO 请以管理员身份运行此脚本
 )
 
 PAUSE

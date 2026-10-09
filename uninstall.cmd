@@ -1,21 +1,21 @@
 @ECHO OFF
 CD /d "%~dp0"
 
-:: 检查管理员权限
+:: 妫�鏌ョ鐞嗗憳鏉冮檺
 NET SESSION >nul 2>&1
 IF %errorLevel% NEQ 0 (
-	ECHO 请使用管理员权限运行此脚本！
+	ECHO 璇蜂娇鐢ㄧ鐞嗗憳鏉冮檺杩愯姝よ剼鏈紒
 	PAUSE
 	EXIT /b 1
 )
 
 ECHO JOYZL WEB Server uninstall
 
-ECHO 停止服务
+ECHO 鍋滄鏈嶅姟
 service.exe stop JOYZL-WEB-Server
 TIMEOUT /t 12 /nobreak > nul
 
-ECHO 移除服务
+ECHO 绉婚櫎鏈嶅姟
 service.exe delete JOYZL-WEB-Server
 SC DELETE JOYZL-WEB-Server > nul
 

@@ -242,14 +242,15 @@
 												<include>roster.json</include>
 												<include>servers.json</include>
 
-												<include>
-													server-windows.properties</include>
+												<include>server_windows.properties</include>
+												<include>service_windows-AMD64.exe</include>
+												<include>service_windows-ARM64.exe</include>
 												<include>uninstall.cmd</include>
 												<include>install.cmd</include>
 												<include>service.exe</include>
 												<include>server.cmd</include>
 
-												<include>server-linux.properties</include>
+												<include>server_linux.properties</include>
 												<include>server.service</include>
 												<include>uninstall.sh</include>
 												<include>install.sh</include>

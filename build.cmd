@@ -35,11 +35,12 @@ jlink ^
 
 REM 复制附属文件
 MOVE /Y publish\*.json publish\joyzl-web-server\
-MOVE /Y publish\server-windows.properties publish\joyzl-web-server\server.properties
-MOVE /Y publish\server.cmd publish\joyzl-web-server\server.cmd
-MOVE /Y publish\install.cmd publish\joyzl-web-server\install.cmd
+MOVE /Y publish\server_windows.properties publish\joyzl-web-server\server.properties
+MOVE /Y publish\service_windows-%ARCH%.exe publish\joyzl-web-server\service.exe
 MOVE /Y publish\uninstall.cmd publish\joyzl-web-server\uninstall.cmd
-MOVE /Y publish\service.exe publish\joyzl-web-server\service.exe
+MOVE /Y publish\install.cmd publish\joyzl-web-server\install.cmd
+MOVE /Y publish\server.cmd publish\joyzl-web-server\server.cmd
+MOVE /Y publish\www publish\joyzl-web-server\www
 DEL /F /Q publish\*
 
 REM 构建压缩包

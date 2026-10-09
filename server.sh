@@ -5,11 +5,10 @@
 # processname: joyzl-web-server
 
 SERVER=joyzl-web-server
-WORK_HOME="/opt/joyzl/scada-server"
-JAVA_HOME="$WORK_HOME"/lib/runtime
+JAVA_HOME="/opt/joyzl/web-server"
 
 JAVA_SERVICE="com.joyzl.webserver/com.joyzl.webserver.Application"
-JAVA_OPTIONS="-Xms256m -Xmx2048m -Dfile.encoding=UTF-8 -Duser.dir=$WORK_HOME -Duser.timezone=GMT+08"
+JAVA_OPTIONS="-Xms256m -Xmx2048m -Dfile.encoding=UTF-8 -Duser.timezone=GMT+08"
 JAVA_COMMAND="authbind --deep $JAVA_HOME/bin/java -server $JAVA_OPTIONS --module $JAVA_SERVICE"
 
 # 当前目录
@@ -38,7 +37,7 @@ start()
         	echo
         	$JAVA_COMMAND
         else
-        	nohup $JAVA_COMMAND >> /var/log/joyzl/scada-server/console.log 2>&1 &
+        	nohup $JAVA_COMMAND >> /var/log/joyzl/web-server/console.log 2>&1 &
         fi
     fi
 }

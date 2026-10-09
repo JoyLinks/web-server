@@ -34,16 +34,13 @@ mkdir -p /var/cache/joyzl/web-server
 mkdir -p /var/lib/joyzl/web-server
 # 创建日志目录
 mkdir -p /var/log/joyzl/web-server
-# 创建发布目录
-mkdir -p /srv/www
-mkdir -p /var/www
 
 # 复制程序文件
 cp -rp ./* /opt/joyzl/web-server/
 # 移动配置文件
 mv -n /opt/joyzl/web-server/server.properties /var/lib/joyzl/web-server/
 mv -n /opt/joyzl/web-server/*.json /var/lib/joyzl/web-server/
-mv -n /opt/joyzl/web-server/manage /var/lib/joyzl/web-server/
+mv -n /opt/joyzl/web-server/www /var/lib/joyzl/web-server/www
 # 删除多余文件
 rm /opt/joyzl/web-server/uninstall.sh
 rm /opt/joyzl/web-server/install.sh

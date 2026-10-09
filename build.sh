@@ -34,11 +34,12 @@ jlink \
 
 # 复制附属文件
 mv publish/*.json publish/joyzl-web-server/
-mv publish/server-linux.properties publish/joyzl-web-server/server.properties
-mv publish/server.sh publish/joyzl-web-server/server.sh
-mv publish/install.sh publish/joyzl-web-server/install.sh
-mv publish/uninstall.sh publish/joyzl-web-server/uninstall.sh
+mv publish/server_linux.properties publish/joyzl-web-server/server.properties
 mv publish/server.service publish/joyzl-web-server/server.service
+mv publish/uninstall.sh publish/joyzl-web-server/uninstall.sh
+mv publish/install.sh publish/joyzl-web-server/install.sh
+mv publish/server.sh publish/joyzl-web-server/server.sh
+mv publish/www publish/joyzl-web-server/www
 rm -f publish/* 2>/dev/null
 
 # 可执行文件
