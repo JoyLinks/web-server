@@ -81,6 +81,9 @@
 				<version>3.14.0</version>
 				<configuration>
 					<release>17</release>
+					<compilerArgs>
+						<arg>--module-version=${project.version}</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -102,6 +105,15 @@
 								<exclude>**/Application.class</exclude>
 								<exclude>**/Daemon.class</exclude>
 							</excludes>
+							<archive>
+								<manifest>
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+									<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+								</manifest>
+								<manifestEntries>
+									<Implementation-Version>${project.version}</Implementation-Version>
+								</manifestEntries>
+							</archive>
 						</configuration>
 					</plugin>
 					<plugin>
@@ -200,6 +212,15 @@
 						<version>3.4.1</version>
 						<configuration>
 							<outputDirectory>publish/lib</outputDirectory>
+							<archive>
+								<manifest>
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+									<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+								</manifest>
+								<manifestEntries>
+									<Implementation-Version>${project.version}</Implementation-Version>
+								</manifestEntries>
+							</archive>
 						</configuration>
 					</plugin>
 					<!-- 依赖 -->
